@@ -3020,22 +3020,24 @@ function collectFormData(date, pts){
     screenWhat:document.getElementById('screen-what')?.value||'',
     creativeDesc:document.getElementById('creative-desc')?.value||'',
     creativeChosen: creativeChosen||null,
-    // Save all pill states as {groupId: activeClass}
-    pillStates: (()=>{
+    // Pill states — stored as JSON STRING so saveToSupabase doesn't strip it
+    pillStatesJSON: JSON.stringify((()=>{
       const ps={};
       document.querySelectorAll('#tab-report .pills[id]').forEach(grp=>{
         const active=grp.querySelector('.pg,.pr,.pa,.pb,.pt');
         if(active){
           const cls=PCLS.find(c=>active.classList.contains(c));
           if(cls){
-            // Store which index within the group is active
             const pills=[...grp.querySelectorAll('.pill')];
             ps[grp.id]={cls, idx:pills.indexOf(active)};
           }
         }
       });
       return ps;
-    })(),
+    })()),
+    // ssDone and ssDets also stored as JSON strings (arrays are objects — stripped otherwise)
+    ssDoneJSON: JSON.stringify(SS_SUBJECTS.map((_,i)=>!!document.getElementById('ss-'+i)?.checked)),
+    sDetsJSON:  JSON.stringify(SS_SUBJECTS.map((_,i)=>document.getElementById('ssdet-'+i)?.value||'')),
     savedAt:new Date().toISOString()
   };
 }
@@ -5507,35 +5509,39 @@ function loadDraftDay(d){
     setVal('book-type', d.bookType);
     if(typeof showWordBoxes==='function') showWordBoxes();
   }
-  if(d.ssDone&&Array.isArray(d.ssDone)){
-    d.ssDone.forEach((checked,i)=>{ const cb=document.getElementById('ss-'+i);if(cb)cb.checked=!!checked; });
-  }
-  if(d.ssDets&&Array.isArray(d.ssDets)){
-    d.ssDets.forEach((txt,i)=>{ const el=document.getElementById('ssdet-'+i);if(el)el.value=txt||''; });
-  }
-  if(typeof updateSS==='function') updateSS();
-
   // ── Test chapters box ─────────────────────────────────────────
   if(d.testSubj){ const tcBox=document.getElementById('test-chapters-box');if(tcBox)tcBox.style.display='block'; }
 
-  // ── Restore pill states (the main scoring inputs) ─────────────
-  if(d.pillStates && typeof d.pillStates==='object'){
-    Object.entries(d.pillStates).forEach(([gid,{cls,idx}])=>{
+  // ── Restore pill states — parse from JSON string (saved as string to survive Supabase filter) ──
+  const pillStates = (()=>{
+    try{
+      if(d.pillStatesJSON) return JSON.parse(d.pillStatesJSON);
+      if(d.pillStates && typeof d.pillStates==='object') return d.pillStates; // legacy
+    }catch(e){}
+    return null;
+  })();
+  if(pillStates){
+    Object.entries(pillStates).forEach(([gid,{cls,idx}])=>{
       const grp=document.getElementById(gid);
       if(!grp) return;
       const pills=[...grp.querySelectorAll('.pill')];
       if(pills[idx]){
-        // Clear group first
         pills.forEach(p=>PCLS.forEach(c=>p.classList.remove(c)));
         pills[idx].classList.add(cls);
       }
     });
-    // Show odda assign detail if needed
     const oddaGrp=document.getElementById('odda-assign');
     if(oddaGrp&&oddaGrp.querySelector('.pg')){
       const od=document.getElementById('odda-assign-detail');if(od)od.style.display='block';
     }
   }
+  
+  // ── Restore ssDone/ssDets — also parse from JSON string ──────────────────
+  const ssDone = (()=>{ try{ return d.ssDoneJSON ? JSON.parse(d.ssDoneJSON) : (Array.isArray(d.ssDone)?d.ssDone:null); }catch(e){return null;} })();
+  const ssDets = (()=>{ try{ return d.sDetsJSON  ? JSON.parse(d.sDetsJSON)  : (Array.isArray(d.ssDets)?d.ssDets:null); }catch(e){return null;} })();
+  if(ssDone) ssDone.forEach((checked,i)=>{ const cb=document.getElementById('ss-'+i);if(cb)cb.checked=!!checked; });
+  if(ssDets) ssDets.forEach((txt,i)=>{ const el=document.getElementById('ssdet-'+i);if(el)el.value=txt||''; });
+  if(typeof updateSS==='function') updateSS();
 
   // ── Creative ─────────────────────────────────────────────────
   if(d.creativeChosen){
