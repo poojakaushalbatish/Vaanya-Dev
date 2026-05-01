@@ -5554,7 +5554,9 @@ function loadDraftDay(d){
   // ── Parent award dropdowns ────────────────────────────────────
   if(d.shlokaPtsAwarded!==undefined) setVal('shloka-pts-award', String(d.shlokaPtsAwarded));
   if(d.creativePtsAwarded!==undefined) setVal('creative-pts-award', String(d.creativePtsAwarded));
-  if(d.parentRating!==undefined) setVal('parent-rating', String(d.parentRating));
+  // Only restore parentRating if actually set (non-zero means parent rated)
+  if(d.parentRating && d.parentRating !== 0) setVal('parent-rating', String(d.parentRating));
+  else { const pr=document.getElementById('parent-rating'); if(pr) pr.selectedIndex=0; }
 
   // ── Show draft banner ─────────────────────────────────────────
   const mc=document.querySelector('.main-content');
@@ -5710,6 +5712,11 @@ function _restoreFormFromSnap(snap){
     console.warn('Session date mismatch — skipping restore', snap.date, '!=', currentDate);
     return;
   }
+  // Before restoring, silentClear to ensure no stale state
+  _suppressSession = true;
+  silentClearDay();
+  document.getElementById('rpt-date').value = currentDate; // restore date after clear
+  _suppressSession = false;
   // loadDraftDay now handles everything: pills, text, creative, skill, etc.
   loadDraftDay(snap);
   // Override the amber banner with a green "restored" banner
