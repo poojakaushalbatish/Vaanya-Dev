@@ -2248,6 +2248,9 @@ async function loadFromSupabase() {
     if (!e1 && days) {
       savedDays = days.map(d => {
         const fullData = d.full_data ? (() => { try{ return JSON.parse(d.full_data); }catch(e){ return {}; } })() : {};
+        // Remove 'approved' from fullData before spreading —
+        // the database column must always win over stale full_data value
+        const { approved: _ignored, ...safeFullData } = fullData;
         return {
           date: d.date,
           pts: d.pts || 0,
@@ -2257,9 +2260,9 @@ async function loadFromSupabase() {
           odda: d.odda_done === true || d.odda_done === 'true',
           parentComment: d.notes || '',
           parentRating: d.parent_rating || 0,
-          approved: d.approved === true || d.approved === 'true',
+          approved: d.approved === true || d.approved === 'true', // DB column is truth
           savedAt: d.saved_at,
-          ...fullData
+          ...safeFullData  // spread full_data EXCEPT approved
         };
       });
     }
@@ -2402,12 +2405,11 @@ function getStreak(){
     .reverse(); // newest first
   if(!approved.length) return 0;
 
-  // Streak must include today or yesterday — otherwise it is broken
-  const today = new Date();
-  today.setHours(12,0,0,0);
-  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
-  const todayStr = today.toISOString().split('T')[0];
-  const yestStr  = yesterday.toISOString().split('T')[0];
+  // Use IST (UTC+5:30) for today's date — avoids UTC midnight mismatch
+  const istNow = new Date(Date.now() + 5.5 * 60 * 60000);
+  const todayStr = istNow.toISOString().split('T')[0];
+  const yestDate = new Date(istNow); yestDate.setUTCDate(yestDate.getUTCDate()-1);
+  const yestStr  = yestDate.toISOString().split('T')[0];
 
   // Most recent approved day must be today or yesterday
   if(approved[0] !== todayStr && approved[0] !== yestStr) return 0;
@@ -3332,8 +3334,9 @@ function renderRewards(){
   const rewardsData=(()=>{try{return JSON.parse(localStorage.getItem('vaanya_admin_rewards')||'null')||REWARDS;}catch(e){return REWARDS;}})();
   const g=document.getElementById('reward-grid');if(!g)return;g.innerHTML='';
   rewardsData.filter(r=>r.active!==false).sort((a,b)=>a.pts-b.pts).forEach(r=>{
-    const unlocked=earned>=r.pts;
-    const prog=Math.min(100,Math.round(earned/r.pts*100));
+    // Unlock based on AVAILABLE bank pts (earned minus spent) — not total earned
+    const unlocked=avail>=r.pts;
+    const prog=Math.min(100,Math.round(avail/r.pts*100));
     const grad=r.grad||('linear-gradient(135deg,'+r.col+','+r.col+'CC)');
     const div=document.createElement('div');
     div.className='rcard '+(unlocked?'unlocked':'locked');
@@ -3341,11 +3344,11 @@ function renderRewards(){
     div.innerHTML=`
       <div class="rc-lock">${unlocked?'✅':'🔒'}</div>
       <div class="rc-icon">${r.icon}</div>
-      <div class="rc-pts">${r.pts.toLocaleString()} pts</div>
+      <div class="rc-pts">${r.pts.toLocaleString()} pts needed</div>
       <div class="rc-title">${r.title}</div>
       <div class="rc-items">${(r.items||[]).map(i=>'• '+i).join('<br>')}</div>
       <div class="rc-prog"><div class="rc-fill" style="width:0%"></div></div>
-      <div style="font-size:9px;color:rgba(255,255,255,.9);margin-top:3px;font-weight:900">${prog}% · ${Math.min(earned,r.pts).toLocaleString()}/${r.pts.toLocaleString()}</div>
+      <div style="font-size:9px;color:rgba(255,255,255,.9);margin-top:3px;font-weight:900">${prog}% · ${Math.min(avail,r.pts).toLocaleString()}/${r.pts.toLocaleString()} bank pts</div>
       ${unlocked?`<div class="rc-claim" style="color:${r.bdr||r.col}">🎉 CLAIM IT!</div>`:''}`;
     g.appendChild(div);
     // Animate progress bar after render
@@ -4824,8 +4827,11 @@ function freezeLogic(){
 // SAVE BRAIN LAB DRAFT
 // ════════════════════════════════════════════
 async function saveBrainDraft(){
-  const date=document.getElementById('rpt-date')?.value;
-  if(!date){toast('Please set today\'s date first in Daily Report!');return;}
+  // Use IST date as fallback if rpt-date input is empty (e.g. called from Brain Lab tab)
+  const istNow = new Date(Date.now() + 5.5 * 60 * 60000);
+  const istToday = istNow.toISOString().split('T')[0];
+  let date = document.getElementById('rpt-date')?.value || istToday;
+  if(!date) date = istToday;
   const pts=calcDayPts();
   const data = collectFormData(date, pts);
   // Upsert into savedDays
