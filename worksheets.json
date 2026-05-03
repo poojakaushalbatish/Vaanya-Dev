@@ -1,7 +1,7 @@
 [
   {
-    "id": "ws-2026-05-02-maths",
-    "date": "2026-05-02",
+    "id": "ws-2026-05-03-maths",
+    "date": "2026-05-03",
     "subject": "Maths",
     "icon": "\ud83d\udcd0",
     "title": "Fractions \u2014 Adding & Subtracting",
@@ -60,8 +60,8 @@
     ]
   },
   {
-    "id": "ws-2026-05-02-english",
-    "date": "2026-05-02",
+    "id": "ws-2026-05-03-english",
+    "date": "2026-05-03",
     "subject": "English",
     "icon": "\ud83d\udcd6",
     "title": "Vocabulary \u2014 Synonyms & Antonyms",
@@ -120,8 +120,8 @@
     ]
   },
   {
-    "id": "ws-2026-05-02-gk",
-    "date": "2026-05-02",
+    "id": "ws-2026-05-03-gk",
+    "date": "2026-05-03",
     "subject": "General Knowledge",
     "icon": "\ud83c\udf0d",
     "title": "India \u2014 States & Capitals",
