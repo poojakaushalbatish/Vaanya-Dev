@@ -2885,8 +2885,7 @@ function calcDayPts(){
   // Points breakdown display — fix #9
   renderBreakdown(breakdown,pts);
 
-  // Cap total at 515 — worksheets are bonus brain pts, overall max stays 515
-  return Math.min(pts, 515);
+  return pts; // no cap — total grows as more activities are added
 }
 
 function renderBreakdown(bd,total){
@@ -2917,10 +2916,11 @@ function renderBreakdown(bd,total){
 }
 
 function updateXP(pts){
-  const max=515;
+  const max=Math.max(515, pts); // grows above 515 if worksheets add more
   const pct=Math.min(100,Math.round(Math.max(0,pts)/max*100));
   const el=document.getElementById('xp-bar');if(el)el.style.width=pct+'%';
-  const lbl=document.getElementById('xp-lbl');if(lbl)lbl.textContent=pts+' / '+max+' pts earned today';
+  const baseLbl = pts > 515 ? pts+' pts earned today 🌟 (above base max!)' : pts+' / 515 pts earned today';
+  const lbl=document.getElementById('xp-lbl');if(lbl)lbl.textContent=baseLbl;
   updateSidePanels(pts);
 }
 
@@ -6052,6 +6052,9 @@ function _wsSubmit(wsId, sheetIdx){
   renderWorksheets(todaySheets);
 
   toast(`📋 Worksheet submitted! ${correct}/${total} correct — +${pts} pts! 🎉`);
+
+  // Auto-save immediately to Supabase so pts survive a page refresh
+  saveBrainDraft().catch(e => console.warn('Auto-save after worksheet failed:', e));
 }
 
 function _wsUpdateTotalDisplay(){
