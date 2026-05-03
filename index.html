@@ -5858,32 +5858,32 @@ async function loadWorksheets(){
   const sec = document.getElementById('worksheet-section');
   if(!sec) return;
 
-  // Get today's date in YYYY-MM-DD
-  const today = document.getElementById('rpt-date')?.value
-    || new Date().toISOString().split('T')[0];
+  // Always compute date from the system clock — NEVER rely on rpt-date input
+  // Use IST (India Standard Time UTC+5:30) so date matches what Vaanya sees
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60000; // IST = UTC+5:30
+  const istDate = new Date(now.getTime() + istOffset);
+  const today = istDate.toISOString().split('T')[0]; // YYYY-MM-DD in IST
 
-  // Show loading state
-  if(!_wsLoaded){
-    sec.innerHTML = '<div style="padding:12px 0;text-align:center;font-size:13px;color:#6B7280;font-weight:700">⏳ Loading worksheets...</div>';
-  }
+  // Always show loading state (never cache between tab visits)
+  sec.innerHTML = '<div style="padding:12px 0;text-align:center;font-size:13px;color:#6B7280;font-weight:700">⏳ Loading worksheets...</div>';
 
-  // Fetch worksheets.json fresh each session
+  // Always fetch fresh — cache bust with timestamp so browser never serves stale file
   try {
-    // Cache bust with date so browser doesn't serve stale file
-    const res = await fetch('worksheets.json?v=' + today);
+    const res = await fetch('worksheets.json?t=' + Date.now());
     if(!res.ok) throw new Error('Not found');
     _wsData = await res.json();
     _wsLoaded = true;
   } catch(e) {
-    sec.innerHTML = '<div class="sec" style="margin-bottom:10px;border:1.5px dashed #E5E7EB;background:#FAFAFA;padding:16px;text-align:center;color:#9CA3AF;font-size:13px">📋 No worksheets file found — add worksheets.json to your GitHub repo</div>';
+    sec.innerHTML = '<div class="sec" style="margin-bottom:10px;border:1.5px dashed #E5E7EB;background:#FAFAFA;padding:16px;text-align:center;color:#9CA3AF;font-size:13px">📋 No worksheets file found — upload worksheets.json to your GitHub repo</div>';
     return;
   }
 
-  // Filter to today's worksheets only
+  // Filter to today's date — compare against IST date
   const todaySheets = _wsData.filter(w => w.date === today);
 
   if(todaySheets.length === 0){
-    sec.innerHTML = '<div class="sec" style="margin-bottom:10px;border:1.5px dashed #E5E7EB;background:#FAFAFA;padding:16px;text-align:center;color:#9CA3AF;font-size:13px">📋 No worksheets for today — add some to worksheets.json!</div>';
+    sec.innerHTML = '<div class="sec" style="margin-bottom:10px;border:1.5px dashed #E5E7EB;background:#FAFAFA;padding:16px;text-align:center;color:#9CA3AF;font-size:13px">📋 No worksheets for <b>' + today + '</b> — check the date in your worksheets.json matches today</div>';
     return;
   }
 
