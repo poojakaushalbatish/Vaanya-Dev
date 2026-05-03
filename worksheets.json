@@ -1,181 +1,61 @@
 [
   {
-    "id": "ws-2026-05-03-mental-maths",
-    "date": "2026-05-03",
-    "subject": "Mental Maths",
-    "icon": "\ud83e\uddee",
-    "title": "Fractions \u2014 Adding & Subtracting",
-    "type": "mcq",
-    "questions": [
-      {
-        "q": "What is 1/2 + 1/4?",
-        "opts": [
-          "2/6",
-          "3/4",
-          "2/4",
-          "1/3"
-        ],
-        "ans": 1
-      },
-      {
-        "q": "What is 3/4 \u2212 1/8?",
-        "opts": [
-          "2/4",
-          "5/8",
-          "4/8",
-          "6/8"
-        ],
-        "ans": 1
-      },
-      {
-        "q": "What is 2/3 + 1/6?",
-        "opts": [
-          "3/9",
-          "5/6",
-          "3/6",
-          "4/6"
-        ],
-        "ans": 1
-      },
-      {
-        "q": "Which fraction equals 2/4?",
-        "opts": [
-          "1/3",
-          "3/6",
-          "1/2",
-          "Both B and C"
-        ],
-        "ans": 3
-      },
-      {
-        "q": "What is 5/6 \u2212 1/3?",
-        "opts": [
-          "4/3",
-          "1/2",
-          "4/6",
-          "1/3"
-        ],
-        "ans": 1
-      }
-    ]
-  },
-  {
     "id": "ws-2026-05-03-english",
     "date": "2026-05-03",
     "subject": "English",
-    "icon": "\ud83d\udcd6",
-    "title": "Vocabulary \u2014 Synonyms & Antonyms",
+    "icon": "📖",
+    "title": "Practice English",
     "type": "mcq",
     "questions": [
       {
-        "q": "Synonym of BRAVE:",
+        "q": "SYNONYM — Choose the word closest in meaning to \"OBSTINATE\":",
         "opts": [
-          "Cowardly",
-          "Fearless",
-          "Weak",
-          "Timid"
+          "Obedient",
+          "Stubborn",
+          "Timid",
+          "Generous"
         ],
         "ans": 1
       },
       {
-        "q": "Antonym of ANCIENT:",
+        "q": "ANTONYM — Choose the word most opposite in meaning to \"BENEVOLENT\":",
         "opts": [
-          "Old",
-          "Historic",
-          "Modern",
-          "Aged"
+          "Humble",
+          "Generous",
+          "Cruel",
+          "Cheerful"
         ],
         "ans": 2
       },
       {
-        "q": "Synonym of ENORMOUS:",
+        "q": "PUNCTUATION — Which sentence is punctuated correctly?",
         "opts": [
-          "Tiny",
-          "Huge",
-          "Average",
-          "Small"
-        ],
-        "ans": 1
-      },
-      {
-        "q": "Antonym of GENEROUS:",
-        "opts": [
-          "Kind",
-          "Giving",
-          "Selfish",
-          "Helpful"
+          "She said, \"I will come tomorrow.",
+          "She said \"I will come tomorrow.\"",
+          "She said, \"I will come tomorrow.\"",
+          "She said \"I will come, tomorrow\"."
         ],
         "ans": 2
       },
       {
-        "q": "Synonym of HAPPY:",
+        "q": "COLLECTIVE NOUN — A group of judges is called a:",
         "opts": [
-          "Sad",
-          "Angry",
-          "Joyful",
-          "Bored"
-        ],
-        "ans": 2
-      }
-    ]
-  },
-  {
-    "id": "ws-2026-05-03-social-science",
-    "date": "2026-05-03",
-    "subject": "Social Science",
-    "icon": "\ud83c\udf0d",
-    "title": "India \u2014 States & Capitals",
-    "type": "mcq",
-    "questions": [
-      {
-        "q": "Capital of Rajasthan?",
-        "opts": [
-          "Jodhpur",
-          "Udaipur",
-          "Jaipur",
-          "Ajmer"
-        ],
-        "ans": 2
-      },
-      {
-        "q": "Largest state in India by area?",
-        "opts": [
-          "Maharashtra",
-          "Madhya Pradesh",
-          "Rajasthan",
-          "Uttar Pradesh"
-        ],
-        "ans": 2
-      },
-      {
-        "q": "Capital of Kerala?",
-        "opts": [
-          "Kochi",
-          "Kozhikode",
-          "Thrissur",
-          "Thiruvananthapuram"
+          "Troupe",
+          "Bench",
+          "Panel",
+          "Both (b) and (c)"
         ],
         "ans": 3
       },
       {
-        "q": "How many states does India have?",
+        "q": "PLURAL — Which of the following is the correct plural of \"SYLLABUS\"?",
         "opts": [
-          "27",
-          "28",
-          "29",
-          "30"
+          "Syllabuses",
+          "Syllabi",
+          "Syllabie",
+          "Both (a) and (b)"
         ],
-        "ans": 1
-      },
-      {
-        "q": "Capital of Uttarakhand?",
-        "opts": [
-          "Haridwar",
-          "Dehradun",
-          "Rishikesh",
-          "Nainital"
-        ],
-        "ans": 1
+        "ans": 3
       }
     ]
   }
