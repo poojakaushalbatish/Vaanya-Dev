@@ -1,0 +1,182 @@
+[
+  {
+    "id": "ws-2026-05-02-maths",
+    "date": "2026-05-02",
+    "subject": "Maths",
+    "icon": "\ud83d\udcd0",
+    "title": "Fractions \u2014 Adding & Subtracting",
+    "type": "mcq",
+    "questions": [
+      {
+        "q": "What is 1/2 + 1/4?",
+        "opts": [
+          "2/6",
+          "3/4",
+          "2/4",
+          "1/3"
+        ],
+        "ans": 1
+      },
+      {
+        "q": "What is 3/4 \u2212 1/8?",
+        "opts": [
+          "2/4",
+          "5/8",
+          "4/8",
+          "6/8"
+        ],
+        "ans": 1
+      },
+      {
+        "q": "What is 2/3 + 1/6?",
+        "opts": [
+          "3/9",
+          "5/6",
+          "3/6",
+          "4/6"
+        ],
+        "ans": 1
+      },
+      {
+        "q": "Which fraction is equivalent to 2/4?",
+        "opts": [
+          "1/3",
+          "3/6",
+          "1/2",
+          "Both B and C"
+        ],
+        "ans": 3
+      },
+      {
+        "q": "What is 5/6 \u2212 1/3?",
+        "opts": [
+          "4/3",
+          "1/2",
+          "4/6",
+          "1/3"
+        ],
+        "ans": 1
+      }
+    ]
+  },
+  {
+    "id": "ws-2026-05-02-english",
+    "date": "2026-05-02",
+    "subject": "English",
+    "icon": "\ud83d\udcd6",
+    "title": "Vocabulary \u2014 Synonyms & Antonyms",
+    "type": "mcq",
+    "questions": [
+      {
+        "q": "Synonym of BRAVE:",
+        "opts": [
+          "Cowardly",
+          "Fearless",
+          "Weak",
+          "Timid"
+        ],
+        "ans": 1
+      },
+      {
+        "q": "Antonym of ANCIENT:",
+        "opts": [
+          "Old",
+          "Historic",
+          "Modern",
+          "Aged"
+        ],
+        "ans": 2
+      },
+      {
+        "q": "Synonym of ENORMOUS:",
+        "opts": [
+          "Tiny",
+          "Huge",
+          "Average",
+          "Small"
+        ],
+        "ans": 1
+      },
+      {
+        "q": "Antonym of GENEROUS:",
+        "opts": [
+          "Kind",
+          "Giving",
+          "Selfish",
+          "Helpful"
+        ],
+        "ans": 2
+      },
+      {
+        "q": "Synonym of HAPPY:",
+        "opts": [
+          "Sad",
+          "Angry",
+          "Joyful",
+          "Bored"
+        ],
+        "ans": 2
+      }
+    ]
+  },
+  {
+    "id": "ws-2026-05-02-gk",
+    "date": "2026-05-02",
+    "subject": "General Knowledge",
+    "icon": "\ud83c\udf0d",
+    "title": "India \u2014 States & Capitals",
+    "type": "mcq",
+    "questions": [
+      {
+        "q": "Capital of Rajasthan?",
+        "opts": [
+          "Jodhpur",
+          "Udaipur",
+          "Jaipur",
+          "Ajmer"
+        ],
+        "ans": 2
+      },
+      {
+        "q": "Which is the largest state in India by area?",
+        "opts": [
+          "Maharashtra",
+          "Madhya Pradesh",
+          "Rajasthan",
+          "Uttar Pradesh"
+        ],
+        "ans": 2
+      },
+      {
+        "q": "Capital of Kerala?",
+        "opts": [
+          "Kochi",
+          "Kozhikode",
+          "Thrissur",
+          "Thiruvananthapuram"
+        ],
+        "ans": 3
+      },
+      {
+        "q": "How many states does India have?",
+        "opts": [
+          "27",
+          "28",
+          "29",
+          "30"
+        ],
+        "ans": 1
+      },
+      {
+        "q": "Capital of Uttarakhand?",
+        "opts": [
+          "Haridwar",
+          "Dehradun",
+          "Rishikesh",
+          "Nainital"
+        ],
+        "ans": 1
+      }
+    ]
+  }
+]
