@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vaanya — Worksheet Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0D1117;
+  --card: #161B22;
+  --card2: #1C2128;
+  --border: #30363D;
+  --border2: #21262D;
+  --teal: #10B981;
+  --teal-d: #065F46;
+  --teal-l: #D1FAE5;
+  --blue: #3B82F6;
+  --blue-d: #1D4ED8;
+  --purple: #7C3AED;
+  --gold: #F59E0B;
+  --red: #EF4444;
+  --text: #E6EDF3;
+  --text2: #8B949E;
+  --text3: #6E7681;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  padding:0 0 60px;
+}
+
+/* ── HEADER ── */
+.header{
+  background:linear-gradient(135deg,#0D1117,#1a1a3e);
+  border-bottom:1.5px solid var(--border);
+  padding:20px 24px;
+  position:sticky;top:0;z-index:100;
+  backdrop-filter:blur(10px);
+}
+.header-inner{max-width:860px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.logo{font-size:22px;font-weight:900;color:var(--teal);letter-spacing:-.02em}
+.logo span{color:var(--text2);font-weight:600;font-size:13px;display:block;margin-top:1px}
+.header-btns{display:flex;gap:8px}
+
+/* ── LAYOUT ── */
+.main{max-width:860px;margin:0 auto;padding:24px 16px}
+
+/* ── CARD ── */
+.card{
+  background:var(--card);
+  border:1.5px solid var(--border);
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:16px;
+}
+.card-title{
+  font-size:13px;font-weight:900;
+  color:var(--text2);
+  text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+
+/* ── FORM FIELDS ── */
+label{font-size:12px;font-weight:800;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+input,select,textarea{
+  width:100%;
+  background:var(--card2);
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:13px;font-weight:700;
+  color:var(--text);
+  font-family:'Nunito',sans-serif;
+  outline:none;
+  transition:border-color .2s;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--teal)}
+select option{background:#1C2128}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.row.three{grid-template-columns:1fr 1fr 1fr}
+.field{margin-bottom:14px}
+
+/* ── QUESTION BLOCK ── */
+.q-block{
+  background:var(--card2);
+  border:1.5px solid var(--border2);
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:12px;
+  position:relative;
+}
+.q-num{
+  font-size:11px;font-weight:900;
+  color:var(--purple);
+  text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:10px;
+}
+.q-text input{margin-bottom:12px}
+.opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.opt-row{display:flex;align-items:center;gap:8px}
+.opt-label{
+  width:28px;height:28px;
+  border-radius:50%;
+  background:var(--border);
+  font-size:11px;font-weight:900;
+  color:var(--text2);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.opt-row input{flex:1;padding:8px 12px;font-size:12px}
+.opt-row.correct .opt-label{background:var(--teal);color:#fff}
+.opt-row.correct input{border-color:var(--teal);background:#0a2318}
+
+.correct-sel{margin-top:12px}
+.correct-sel label{margin-bottom:8px}
+.answer-btns{display:flex;gap:6px;flex-wrap:wrap}
+.ans-btn{
+  padding:6px 14px;
+  border-radius:8px;
+  border:1.5px solid var(--border);
+  background:var(--card);
+  color:var(--text2);
+  font-size:12px;font-weight:800;
+  cursor:pointer;font-family:'Nunito',sans-serif;
+  transition:all .15s;
+}
+.ans-btn:hover{border-color:var(--teal);color:var(--teal)}
+.ans-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+
+.del-btn{
+  position:absolute;top:12px;right:12px;
+  width:28px;height:28px;border-radius:8px;
+  background:transparent;border:1.5px solid var(--border);
+  color:var(--text3);cursor:pointer;
+  font-size:14px;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.del-btn:hover{background:#7F1D1D;border-color:var(--red);color:var(--red)}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:10px 18px;border-radius:10px;border:none;
+  font-size:13px;font-weight:900;cursor:pointer;
+  font-family:'Nunito',sans-serif;transition:all .15s;
+}
+.btn-teal{background:var(--teal);color:#fff}
+.btn-teal:hover{background:#0ea572;transform:translateY(-1px)}
+.btn-purple{background:var(--purple);color:#fff}
+.btn-purple:hover{background:#6d28d9}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--teal);color:var(--teal)}
+.btn-red{background:#7F1D1D;color:var(--red);border:1.5px solid var(--red)}
+.btn-full{width:100%;justify-content:center;padding:13px}
+
+/* ── OUTPUT ── */
+.output-area{
+  background:#0a0f0a;
+  border:1.5px solid var(--teal-d);
+  border-radius:14px;
+  padding:16px;
+  font-family:'Courier New',monospace;
+  font-size:12px;
+  color:#86efac;
+  white-space:pre;
+  overflow-x:auto;
+  max-height:400px;
+  overflow-y:auto;
+  line-height:1.6;
+}
+.copy-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;flex-wrap:wrap;gap:8px;
+}
+.copy-bar-title{font-size:13px;font-weight:900;color:var(--teal)}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#065F46;border:1.5px solid var(--teal);
+  color:#fff;padding:10px 20px;border-radius:50px;
+  font-size:13px;font-weight:800;
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;
+}
+.toast.show{opacity:1}
+
+/* ── BADGES ── */
+.badge{
+  display:inline-block;padding:3px 10px;border-radius:50px;
+  font-size:11px;font-weight:800;
+}
+.badge-teal{background:#0a2318;color:var(--teal);border:1px solid var(--teal-d)}
+.badge-purple{background:#1e0a3e;color:#c4b5fd;border:1px solid #4c1d95}
+
+/* ── STEPS ── */
+.steps{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.step{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:8px;
+  background:var(--card2);border:1px solid var(--border2);
+  font-size:11px;font-weight:800;color:var(--text2);
+}
+.step .num{
+  width:20px;height:20px;border-radius:50%;
+  background:var(--purple);color:#fff;
+  font-size:10px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ── PILL COUNTER ── */
+.q-counter{
+  font-size:12px;font-weight:800;
+  color:var(--text2);
+  margin-bottom:12px;
+}
+
+/* ── SECTION DIVIDER ── */
+.divider{height:1.5px;background:var(--border2);margin:16px 0}
+
+/* scroll */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">
+      🏆 Worksheet Builder
+      <span>Vaanya Daily Star — Daily worksheet creator</span>
+    </div>
+    <div class="header-btns">
+      <button class="btn btn-ghost" onclick="clearAll()">🗑 Clear All</button>
+      <button class="btn btn-teal" onclick="generateJSON()">⚡ Generate JSON</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- HOW TO USE -->
+  <div class="steps">
+    <div class="step"><span class="num">1</span> Fill worksheet details</div>
+    <div class="step"><span class="num">2</span> Add questions below</div>
+    <div class="step"><span class="num">3</span> Mark the correct answer</div>
+    <div class="step"><span class="num">4</span> Generate JSON</div>
+    <div class="step"><span class="num">5</span> Copy → paste in GitHub</div>
+  </div>
+
+  <!-- WORKSHEET META -->
+  <div class="card">
+    <div class="card-title">📋 Worksheet Details</div>
+    <div class="row">
+      <div class="field">
+        <label>Date (today)</label>
+        <input type="date" id="ws-date">
+      </div>
+      <div class="field">
+        <label>Subject</label>
+        <select id="ws-subject" onchange="updateIcon()">
+          <option value="English">📖 English</option>
+          <option value="Mental Maths">🧮 Mental Maths</option>
+          <option value="Social Science">🌍 Social Science</option>
+          <option value="Maths">📐 Maths</option>
+          <option value="Science">🔬 Science</option>
+          <option value="GK">🌍 GK</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Worksheet Title (topic)</label>
+        <input type="text" id="ws-title" placeholder="e.g. Grammar — Tenses">
+      </div>
+      <div class="field">
+        <label>Icon (emoji)</label>
+        <input type="text" id="ws-icon" value="📖" style="font-size:18px;text-align:center">
+      </div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS -->
+  <div class="card">
+    <div class="card-title">
+      ❓ Questions
+      <span class="badge badge-purple" id="q-count-badge">0 questions</span>
+    </div>
+    <div id="questions-container"></div>
+    <button class="btn btn-ghost btn-full" onclick="addQuestion()" style="margin-top:4px">
+      ➕ Add Question
+    </button>
+  </div>
+
+  <!-- SECOND WORKSHEET -->
+  <div class="card" style="border-color:#4C1D95">
+    <div class="card-title" style="justify-content:space-between">
+      <span>📋 Second Worksheet (optional)</span>
+      <span class="badge badge-purple">Same day, different subject</span>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Subject</label>
+        <select id="ws2-subject" onchange="updateIcon2()">
+          <option value="">— None —</option>
+          <option value="English">📖 English</option>
+          <option value="Mental Maths">🧮 Mental Maths</option>
+          <option value="Social Science">🌍 Social Science</option>
+          <option value="Maths">📐 Maths</option>
+          <option value="Science">🔬 Science</option>
+          <option value="GK">🌍 GK</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Title</label>
+        <input type="text" id="ws2-title" placeholder="e.g. States & Capitals">
+      </div>
+    </div>
+    <div id="q2-container"></div>
+    <button class="btn btn-ghost btn-full" onclick="addQuestion2()" id="add-q2-btn" style="margin-top:4px">
+      ➕ Add Question to Second Worksheet
+    </button>
+  </div>
+
+  <!-- GENERATE BUTTON -->
+  <button class="btn btn-teal btn-full" style="font-size:15px;padding:16px;margin-bottom:16px" onclick="generateJSON()">
+    ⚡ Generate worksheets.json Content
+  </button>
+
+  <!-- OUTPUT -->
+  <div class="card" id="output-card" style="display:none">
+    <div class="copy-bar">
+      <div class="copy-bar-title">✅ Ready to paste into GitHub</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-teal" onclick="copyJSON()">📋 Copy to Clipboard</button>
+        <button class="btn btn-ghost" onclick="downloadJSON()">⬇ Download File</button>
+      </div>
+    </div>
+    <div class="output-area" id="json-output"></div>
+    <div class="divider"></div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.7">
+      <b style="color:var(--teal)">Next step:</b> Go to GitHub → your repo → click <code style="background:#21262D;padding:2px 6px;border-radius:4px">worksheets.json</code> 
+      → click ✏️ pencil → Select All → Delete → Paste this → Commit changes ✅
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Defaults ──────────────────────────────
+const SUBJECT_ICONS = {
+  'English':'📖','Mental Maths':'🧮','Social Science':'🌍',
+  'Maths':'📐','Science':'🔬','GK':'🌍'
+};
+
+let qCount  = 0; // worksheet 1 questions
+let q2Count = 0; // worksheet 2 questions
+
+// Set today's date on load
+window.onload = () => {
+  const today = new Date();
+  const ist   = new Date(today.getTime() + 5.5*60*60000);
+  document.getElementById('ws-date').value = ist.toISOString().split('T')[0];
+};
+
+function updateIcon(){
+  const subj = document.getElementById('ws-subject').value;
+  document.getElementById('ws-icon').value = SUBJECT_ICONS[subj] || '📋';
+}
+function updateIcon2(){}
+
+// ── Add Question (Worksheet 1) ────────────
+function addQuestion(){
+  qCount++;
+  const container = document.getElementById('questions-container');
+  const div = document.createElement('div');
+  div.className = 'q-block';
+  div.id = `qblock-${qCount}`;
+  div.innerHTML = buildQBlock(qCount, 1);
+  container.appendChild(div);
+  updateQBadge();
+}
+
+function addQuestion2(){
+  const subj = document.getElementById('ws2-subject').value;
+  if(!subj){ toast('⚠️ Please select a subject for the second worksheet first!'); return; }
+  q2Count++;
+  const container = document.getElementById('q2-container');
+  const div = document.createElement('div');
+  div.className = 'q-block';
+  div.id = `q2block-${q2Count}`;
+  div.innerHTML = buildQBlock(q2Count, 2);
+  container.appendChild(div);
+}
+
+function buildQBlock(n, ws){
+  const prefix = ws === 1 ? 'q' : 'q2';
+  return `
+    <div class="q-num">Question ${n}</div>
+    <button class="del-btn" onclick="deleteQ('${prefix}block-${n}','${prefix}Count')" title="Delete question">✕</button>
+    <div class="field">
+      <label>Question Text</label>
+      <input type="text" id="${prefix}${n}-text" placeholder="Type the question here...">
+    </div>
+    <label style="margin-bottom:8px;display:block">Options (type all 4)</label>
+    <div class="opts-grid">
+      ${['A','B','C','D'].map((l,i)=>`
+        <div class="opt-row" id="${prefix}${n}-opt-row-${i}">
+          <div class="opt-label" id="${prefix}${n}-opt-lbl-${i}">${l}</div>
+          <input type="text" id="${prefix}${n}-opt-${i}" placeholder="Option ${l}">
+        </div>`).join('')}
+    </div>
+    <div class="correct-sel">
+      <label>✅ Which option is correct?</label>
+      <div class="answer-btns">
+        ${['A','B','C','D'].map((l,i)=>`
+          <button class="ans-btn" id="${prefix}${n}-ans-btn-${i}"
+            onclick="selectAnswer('${prefix}',${n},${i})">
+            ${l}
+          </button>`).join('')}
+      </div>
+    </div>`;
+}
+
+function selectAnswer(prefix, qn, idx){
+  // Highlight selected answer button
+  ['A','B','C','D'].forEach((_,i) => {
+    const btn = document.getElementById(`${prefix}${qn}-ans-btn-${i}`);
+    const row = document.getElementById(`${prefix}${qn}-opt-row-${i}`);
+    const lbl = document.getElementById(`${prefix}${qn}-opt-lbl-${i}`);
+    if(btn) btn.classList.toggle('active', i === idx);
+    if(row) row.classList.toggle('correct', i === idx);
+  });
+  // Store answer on the block
+  const block = document.getElementById(`${prefix}block-${qn}`);
+  if(block) block.dataset.ans = idx;
+}
+
+function deleteQ(blockId){
+  const el = document.getElementById(blockId);
+  if(el) el.remove();
+  updateQBadge();
+}
+
+function updateQBadge(){
+  const n = document.querySelectorAll('#questions-container .q-block').length;
+  document.getElementById('q-count-badge').textContent = n + ' question' + (n===1?'':'s');
+}
+
+// ── Generate JSON ─────────────────────────
+function generateJSON(){
+  const date    = document.getElementById('ws-date').value;
+  const subject = document.getElementById('ws-subject').value;
+  const title   = document.getElementById('ws-title').value.trim();
+  const icon    = document.getElementById('ws-icon').value.trim();
+
+  if(!date)    { toast('⚠️ Please set the date!'); return; }
+  if(!title)   { toast('⚠️ Please enter a worksheet title!'); return; }
+
+  const worksheets = [];
+
+  // ── Build Worksheet 1 ──
+  const qs1 = buildQsFromDOM('q', '#questions-container .q-block');
+  if(qs1 === null) return; // validation failed
+  if(qs1.length === 0){ toast('⚠️ Add at least 1 question to Worksheet 1!'); return; }
+
+  const slug1 = subject.toLowerCase().replace(/\s+/g,'-');
+  worksheets.push({
+    id: `ws-${date}-${slug1}`,
+    date, subject, icon, title,
+    type: 'mcq',
+    questions: qs1
+  });
+
+  // ── Build Worksheet 2 (optional) ──
+  const subj2 = document.getElementById('ws2-subject').value;
+  if(subj2){
+    const title2 = document.getElementById('ws2-title').value.trim();
+    if(!title2){ toast('⚠️ Enter a title for Worksheet 2!'); return; }
+    const qs2 = buildQsFromDOM('q2', '#q2-container .q-block');
+    if(qs2 === null) return;
+    if(qs2.length === 0){ toast('⚠️ Add at least 1 question to Worksheet 2!'); return; }
+    const slug2 = subj2.toLowerCase().replace(/\s+/g,'-');
+    worksheets.push({
+      id: `ws-${date}-${slug2}`,
+      date, subject: subj2,
+      icon: SUBJECT_ICONS[subj2] || '📋',
+      title: title2,
+      type: 'mcq',
+      questions: qs2
+    });
+  }
+
+  const json = JSON.stringify(worksheets, null, 2);
+  document.getElementById('json-output').textContent = json;
+  document.getElementById('output-card').style.display = 'block';
+  document.getElementById('output-card').scrollIntoView({behavior:'smooth'});
+  toast('✅ JSON generated! Copy and paste into GitHub.');
+}
+
+function buildQsFromDOM(prefix, selector){
+  const blocks = document.querySelectorAll(selector);
+  const questions = [];
+  let valid = true;
+
+  blocks.forEach((block, bi) => {
+    const qn  = bi + 1;
+    const qEl = document.getElementById(`${prefix}${qn}-text`);
+    if(!qEl){ return; }
+
+    const qText = qEl.value.trim();
+    if(!qText){ toast(`⚠️ Question ${qn} text is empty!`); valid=false; return; }
+
+    const opts = [];
+    for(let i=0;i<4;i++){
+      const oEl = document.getElementById(`${prefix}${qn}-opt-${i}`);
+      if(!oEl || !oEl.value.trim()){ toast(`⚠️ Q${qn}: Option ${['A','B','C','D'][i]} is empty!`); valid=false; return; }
+      opts.push(oEl.value.trim());
+    }
+
+    const ans = parseInt(block.dataset.ans ?? -1);
+    if(ans < 0 || ans > 3){ toast(`⚠️ Q${qn}: Please select the correct answer!`); valid=false; return; }
+
+    questions.push({ q: qText, opts, ans });
+  });
+
+  return valid ? questions : null;
+}
+
+// ── Utilities ─────────────────────────────
+function copyJSON(){
+  const text = document.getElementById('json-output').textContent;
+  navigator.clipboard.writeText(text).then(()=>toast('📋 Copied to clipboard!'));
+}
+
+function downloadJSON(){
+  const text = document.getElementById('json-output').textContent;
+  const date = document.getElementById('ws-date').value || 'today';
+  const a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(text);
+  a.download = `worksheets.json`;
+  a.click();
+  toast('⬇ Downloaded worksheets.json!');
+}
+
+function clearAll(){
+  if(!confirm('Clear everything and start fresh?')) return;
+  document.getElementById('ws-title').value = '';
+  document.getElementById('ws-icon').value = '📖';
+  document.getElementById('ws2-subject').value = '';
+  document.getElementById('ws2-title').value = '';
+  document.getElementById('questions-container').innerHTML = '';
+  document.getElementById('q2-container').innerHTML = '';
+  document.getElementById('output-card').style.display = 'none';
+  qCount = 0; q2Count = 0;
+  updateQBadge();
+  toast('🗑 Cleared!');
+}
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
