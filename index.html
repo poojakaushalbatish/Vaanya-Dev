@@ -1106,6 +1106,10 @@ tr:hover td{background:#FAFBFF}
      TAB: BRAIN LAB
 ═══════════════════════════════════════ -->
 <div class="tab" id="tab-brain">
+
+<!-- ── WORKSHEET SECTION — populated by loadWorksheets() ── -->
+<div id="worksheet-section"></div>
+
 <div class="puzzle-card">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
     <div>
@@ -1239,6 +1243,10 @@ tr:hover td{background:#FAFBFF}
       -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1" id="brain-pts-big">0</div>
     <div style="font-size:13px;font-weight:800;color:#065F46;margin-top:6px" id="brain-pts-msg">Complete puzzles above to earn points!</div>
     <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap" id="brain-breakdown">
+      <div class="pts-chip" style="background:#F5F3FF;border-color:#C4B5FD;min-width:70px">
+        <div class="pts-chip-num" id="bb-worksheet" style="color:#7C3AED">0</div>
+        <div class="pts-chip-lbl" style="color:#7C3AED">📋 Worksheets</div>
+      </div>
       <span style="background:#EFF6FF;color:#1D4ED8;border:1.5px solid #93C5FD;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:800">🔢 Sudoku: <span id="bb-sudoku">0</span> pts</span>
       <span style="background:#FDF4FF;color:#7C3AED;border:1.5px solid #C084FC;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:800">🧩 Logic: <span id="bb-logic">0</span> / 20 pts</span>
       <span style="background:#FFF7ED;color:#C2410C;border:1.5px solid #FED7AA;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:800">⚡ Maths: <span id="bb-maths">0</span> / 25 pts</span>
@@ -2358,6 +2366,7 @@ function showSyncStatus(state) {
 }
 let brainPtsToday = 0;
 let sudokuPts = 0, logicPtsTotal = 0, riddlePtsTotal = 0;
+let worksheetPts = 0; // pts from daily MCQ worksheets
 let sudokuFrozen = false; // once completed today, freeze
 let logicFrozen  = false; // once completed today, freeze
 let parentUnlocked = false; // PIN authenticated this session
@@ -2433,6 +2442,7 @@ function showTab(id,btn){
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
   if(btn)btn.classList.add('active');
+  if(id==='brain'){loadWorksheets();}
   if(id==='rewards'){renderRewards();setTimeout(showVaanyaMotivation,600);}
   if(id==='spend')renderSpend();
   if(id==='history')renderHistory();
@@ -4142,7 +4152,7 @@ function clearDay(){
   const prApp=document.getElementById('approved-section');if(prApp)prApp.style.display='none';
   const freeMsg=document.getElementById('free-act-msg');if(freeMsg)freeMsg.innerHTML='';
   const prRatRes=document.getElementById('parent-rating-result');if(prRatRes)prRatRes.innerHTML='';
-  creativeChosen=null;brainPtsToday=0;sudokuPts=0;logicPtsTotal=0;riddlePtsTotal=0;mathsPtsToday=0;todayApproved=false;
+  creativeChosen=null;brainPtsToday=0;sudokuPts=0;logicPtsTotal=0;riddlePtsTotal=0;mathsPtsToday=0;worksheetPts=0;todayApproved=false;
   sudokuFrozen=false;logicFrozen=false;logicCurrentPuzzles=[];mathsFrozen=false;mathsChecked=false;mathsSelected=[];
   genSudoku('easy');genLogicPuzzles();initMathsSprint();
   const sAwd=document.getElementById('shloka-pts-award');if(sAwd)sAwd.value='0';
@@ -4288,7 +4298,7 @@ function checkSudoku(){
   if(allCorrect&&allFilled){
     const bonus={easy:0,medium:5,hard:10}[sudokuDifficulty]||0;
     sudokuPts=Math.max(sudokuPts,30+bonus);
-    brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal;
+    brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
     msg.innerHTML=`<span style="color:#10B981;font-size:16px">🎉 PERFECT! +${30+bonus} pts!</span>`;
     toast('Sudoku solved! +'+(30+bonus)+' brain pts!');
     updateBrainDisplay();calcDayPts();
@@ -4298,7 +4308,7 @@ function checkSudoku(){
 }
 function revealSudokuHint(){
   sudokuPts=Math.max(0,sudokuPts-5);
-  brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal;
+  brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
   updateBrainDisplay();calcDayPts();
   for(let r=0;r<9;r++)for(let c=0;c<9;c++){
     if(sudokuGrid[r][c]===0){
@@ -4420,7 +4430,7 @@ function checkLogicAnswers(){
   // Score: 3 correct=20, 2=13, 1=7, 0=0
   const scoreMap=[0,7,13,20];
   const pts=scoreMap[correct]||0;
-  logicPtsTotal=pts;brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal;
+  logicPtsTotal=pts;brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
   updateBrainDisplay();calcDayPts();
 
   // Show score panel
@@ -4482,7 +4492,7 @@ function checkRiddle(i,correct,hint){
   const isRight=ans===correct.toLowerCase()||correct.toLowerCase().includes(ans)&&ans.length>2;
   riddleAnswered.push(i);
   if(isRight){
-    riddlePts+=10;riddlePtsTotal+=10;brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal;
+    riddlePts+=10;riddlePtsTotal+=10;brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
     document.getElementById('rid-result-'+i).innerHTML='<span style="color:#10B981;font-weight:800">🎉 Correct! +10 pts! Answer: '+correct+'</span>';
     toast('Riddle solved! +10 brain pts!');
     updateBrainDisplay();calcDayPts();
@@ -4708,7 +4718,7 @@ function checkMathsSprint(){
   const scoreMap=[0,3,8,14,20,25];
   const pts=scoreMap[correct]||0;
   mathsPtsToday=pts;
-  brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday;
+  brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
   updateBrainDisplay();calcDayPts();
 
   document.getElementById('maths-score-chip').textContent=pts;
@@ -4748,6 +4758,7 @@ function updateBrainDisplay(){
   const bl = document.getElementById('bb-logic');if(bl)bl.textContent=logicPtsTotal;
   const bm = document.getElementById('bb-maths');if(bm)bm.textContent=mathsPtsToday;
   const br = document.getElementById('bb-riddle');if(br)br.textContent=riddlePtsTotal;
+  const bw = document.getElementById('bb-worksheet');if(bw)bw.textContent=worksheetPts;
   // Mood emoji + message
   const moodEl = document.getElementById('brain-mood-emoji');
   const msgEl  = document.getElementById('brain-pts-msg');
@@ -5818,6 +5829,210 @@ function _sessionStartAutoSave(){
       }
     } catch(e){ console.warn('Auto-save error:', e); }
   }, 60000);
+}
+
+
+
+// ════════════════════════════════════════════════════════════════
+// WORKSHEET ENGINE — reads worksheets.json, renders MCQ worksheets
+// You control everything by editing worksheets.json on GitHub.
+// NEVER need to touch this code to add new worksheets.
+// ════════════════════════════════════════════════════════════════
+
+let _wsLoaded    = false;  // prevent re-fetching same session
+let _wsAnswered  = {};     // { worksheetId: { answered:bool, pts:number, score:string } }
+let _wsData      = [];     // full worksheets array from JSON
+
+// Points awarded based on percentage score
+function _wsPtsFromScore(correct, total){
+  if(total === 0) return 0;
+  const pct = (correct / total) * 100;
+  if(pct >= 90) return 15;
+  if(pct >= 75) return 12;
+  if(pct >= 60) return 8;
+  return 4; // 4pts for attempting
+}
+
+// Fetch worksheets.json and render today's worksheets
+async function loadWorksheets(){
+  const sec = document.getElementById('worksheet-section');
+  if(!sec) return;
+
+  // Get today's date in YYYY-MM-DD
+  const today = document.getElementById('rpt-date')?.value
+    || new Date().toISOString().split('T')[0];
+
+  // Show loading state
+  if(!_wsLoaded){
+    sec.innerHTML = '<div style="padding:12px 0;text-align:center;font-size:13px;color:#6B7280;font-weight:700">⏳ Loading worksheets...</div>';
+  }
+
+  // Fetch worksheets.json fresh each session
+  try {
+    // Cache bust with date so browser doesn't serve stale file
+    const res = await fetch('worksheets.json?v=' + today);
+    if(!res.ok) throw new Error('Not found');
+    _wsData = await res.json();
+    _wsLoaded = true;
+  } catch(e) {
+    sec.innerHTML = '<div class="sec" style="margin-bottom:10px;border:1.5px dashed #E5E7EB;background:#FAFAFA;padding:16px;text-align:center;color:#9CA3AF;font-size:13px">📋 No worksheets file found — add worksheets.json to your GitHub repo</div>';
+    return;
+  }
+
+  // Filter to today's worksheets only
+  const todaySheets = _wsData.filter(w => w.date === today);
+
+  if(todaySheets.length === 0){
+    sec.innerHTML = '<div class="sec" style="margin-bottom:10px;border:1.5px dashed #E5E7EB;background:#FAFAFA;padding:16px;text-align:center;color:#9CA3AF;font-size:13px">📋 No worksheets for today — add some to worksheets.json!</div>';
+    return;
+  }
+
+  renderWorksheets(todaySheets);
+}
+
+// Build the worksheet UI
+function renderWorksheets(sheets){
+  const sec = document.getElementById('worksheet-section');
+  if(!sec) return;
+
+  let html = `
+    <div class="puzzle-card" style="margin-bottom:10px;background:linear-gradient(135deg,#4C1D95,#7C3AED,#2563EB)">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div>
+          <div class="puz-title">📋 Today's Worksheets</div>
+          <div class="puz-sub">Complete each worksheet to earn points!</div>
+        </div>
+        <div class="pts-chip" style="background:rgba(255,255,255,.15)">
+          <div class="pts-chip-num" id="ws-total-disp">0</div>
+          <div class="pts-chip-lbl">Worksheet pts</div>
+        </div>
+      </div>
+    </div>`;
+
+  sheets.forEach((ws, wi) => {
+    const done    = _wsAnswered[ws.id];
+    const doneHtml = done
+      ? `<div style="background:#ECFDF5;border:1.5px solid #6EE7B7;border-radius:10px;padding:10px 14px;
+           font-size:13px;font-weight:800;color:#065F46;text-align:center;margin-top:10px">
+           ✅ Completed! You scored ${done.score} — <span style="color:#7C3AED">+${done.pts} pts earned!</span>
+         </div>`
+      : '';
+
+    const qs = (ws.questions || []).map((q, qi) => {
+      const opts = q.opts.map((opt, oi) => {
+        let btnStyle = 'background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#fff';
+        if(done){
+          if(oi === q.ans) btnStyle = 'background:#065F46;border-color:#10B981;color:#fff'; // correct
+          else if(_wsAnswered[ws.id]?.chosen?.[qi] === oi && oi !== q.ans)
+            btnStyle = 'background:#7F1D1D;border-color:#EF4444;color:#fff'; // wrong
+        }
+        const disabled = done ? 'disabled' : '';
+        return `<button class="opt-btn" style="${btnStyle};margin:3px;padding:7px 14px;font-size:12px;font-weight:700;border-radius:10px;border:1.5px solid;cursor:${done?'default':'pointer'};font-family:'Nunito',sans-serif;transition:.15s"
+          ${disabled} onclick="_wsChoose('${ws.id}',${qi},${oi},this)">${opt}</button>`;
+      }).join('');
+
+      const bgQ = qi % 2 === 0 ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.08)';
+      return `<div style="background:${bgQ};border-radius:10px;padding:10px 12px;margin-bottom:6px">
+        <div style="font-size:13px;font-weight:800;color:#E0E7FF;margin-bottom:6px">Q${qi+1}. ${q.q}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">${opts}</div>
+      </div>`;
+    }).join('');
+
+    const submitBtn = done ? '' : `
+      <button class="btn" onclick="_wsSubmit('${ws.id}',${wi})"
+        style="margin-top:10px;width:100%;background:linear-gradient(135deg,#7C3AED,#2563EB);color:#fff;
+               font-size:14px;font-weight:900;padding:12px;border-radius:12px;border:none;cursor:pointer;
+               font-family:'Nunito',sans-serif">
+        ✅ Submit Worksheet & Get Points
+      </button>`;
+
+    html += `
+      <div class="sec" style="margin-bottom:10px;background:linear-gradient(135deg,#1E1B4B,#312E81);border:1.5px solid rgba(167,139,250,.3)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="font-size:28px">${ws.icon || '📋'}</div>
+          <div>
+            <div style="font-size:15px;font-weight:900;color:#E0E7FF">${ws.title}</div>
+            <div style="font-size:12px;color:#A5B4FC;font-weight:700">${ws.subject} · ${ws.questions?.length || 0} questions · up to 15 pts</div>
+          </div>
+          ${done ? '<div style="margin-left:auto;font-size:20px">✅</div>' : ''}
+        </div>
+        ${qs}
+        ${submitBtn}
+        ${doneHtml}
+      </div>`;
+  });
+
+  sec.innerHTML = html;
+  _wsUpdateTotalDisplay();
+}
+
+// Track chosen answers per worksheet (before submit)
+const _wsChosen = {}; // { wsId: { qIdx: optIdx } }
+
+function _wsChoose(wsId, qIdx, optIdx, btn){
+  if(_wsAnswered[wsId]) return; // already submitted
+  if(!_wsChosen[wsId]) _wsChosen[wsId] = {};
+  _wsChosen[wsId][qIdx] = optIdx;
+
+  // Highlight chosen option — unselect siblings in same question
+  const allBtns = btn.closest('div[style*="flex-wrap"]')?.querySelectorAll('.opt-btn');
+  if(allBtns) allBtns.forEach(b => {
+    b.style.background = 'rgba(255,255,255,.08)';
+    b.style.borderColor = 'rgba(255,255,255,.2)';
+    b.style.color = '#fff';
+    b.style.transform = '';
+  });
+  btn.style.background = '#7C3AED';
+  btn.style.borderColor = '#A78BFA';
+  btn.style.color = '#fff';
+  btn.style.transform = 'scale(1.04)';
+}
+
+// Submit and grade a worksheet
+function _wsSubmit(wsId, sheetIdx){
+  const ws = _wsData.find(w => w.id === wsId);
+  if(!ws || _wsAnswered[wsId]) return;
+
+  const chosen = _wsChosen[wsId] || {};
+  const total   = ws.questions.length;
+  let correct   = 0;
+
+  ws.questions.forEach((q, qi) => {
+    if(chosen[qi] === q.ans) correct++;
+  });
+
+  // Check if all questions answered
+  const answered = Object.keys(chosen).length;
+  if(answered < total){
+    toast(`⚠️ Please answer all ${total} questions before submitting!`);
+    return;
+  }
+
+  const pts   = _wsPtsFromScore(correct, total);
+  const score = `${correct}/${total}`;
+
+  // Save result
+  _wsAnswered[wsId] = { pts, score, chosen: {...chosen} };
+
+  // Update running worksheet total
+  worksheetPts = Object.values(_wsAnswered).reduce((s, v) => s + v.pts, 0);
+  brainPtsToday = sudokuPts + logicPtsTotal + riddlePtsTotal + mathsPtsToday + worksheetPts;
+  updateBrainDisplay();
+  calcDayPts();
+  _wsUpdateTotalDisplay();
+
+  // Re-render to show correct/wrong highlights
+  const today = document.getElementById('rpt-date')?.value
+    || new Date().toISOString().split('T')[0];
+  const todaySheets = _wsData.filter(w => w.date === today);
+  renderWorksheets(todaySheets);
+
+  toast(`📋 Worksheet submitted! ${correct}/${total} correct — +${pts} pts! 🎉`);
+}
+
+function _wsUpdateTotalDisplay(){
+  const el = document.getElementById('ws-total-disp');
+  if(el) el.textContent = worksheetPts;
 }
 
 
