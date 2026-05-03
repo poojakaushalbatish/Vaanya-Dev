@@ -5863,205 +5863,342 @@ function _sessionStartAutoSave(){
 // NEVER need to touch this code to add new worksheets.
 // ════════════════════════════════════════════════════════════════
 
-let _wsLoaded    = false;  // prevent re-fetching same session
-let _wsAnswered  = {};     // { worksheetId: { answered:bool, pts:number, score:string } }
-let _wsData      = [];     // full worksheets array from JSON
 
 // Points awarded based on percentage score
+
+// ════════════════════════════════════════════════════════════════
+// WORKSHEET ENGINE v3 — KBC style, subject tabs, per-subject pts
+// Edit worksheets.json only — never touch this code
+// ════════════════════════════════════════════════════════════════
+
+// Points scale per worksheet
 function _wsPtsFromScore(correct, total){
   if(total === 0) return 0;
   const pct = (correct / total) * 100;
   if(pct >= 90) return 10;
   if(pct >= 75) return 8;
   if(pct >= 60) return 5;
-  return 3; // 3pts for attempting
+  return 3;
 }
 
-// Fetch worksheets.json and render today's worksheets
+// Subject → display config
+const WS_SUBJECTS = {
+  'English':        { icon:'📖', color:'#1D4ED8', light:'#EFF6FF', glow:'#93C5FD', badge:'E' },
+  'Mental Maths':   { icon:'🧮', color:'#D97706', light:'#FFFBEB', glow:'#FCD34D', badge:'M' },
+  'Social Science': { icon:'🌍', color:'#065F46', light:'#ECFDF5', glow:'#6EE7B7', badge:'S' },
+  'Maths':          { icon:'📐', color:'#7C3AED', light:'#F5F3FF', glow:'#C4B5FD', badge:'M' },
+  'Science':        { icon:'🔬', color:'#0E7490', light:'#ECFEFF', glow:'#67E8F9', badge:'S' },
+  'GK':             { icon:'🌍', color:'#065F46', light:'#ECFDF5', glow:'#6EE7B7', badge:'G' },
+  'General Knowledge': { icon:'🌍', color:'#065F46', light:'#ECFDF5', glow:'#6EE7B7', badge:'G' },
+};
+function _wsSubjConf(subject){
+  return WS_SUBJECTS[subject] || { icon:'📋', color:'#4C1D95', light:'#F5F3FF', glow:'#C4B5FD', badge:'W' };
+}
+
+let _wsLoaded    = false;
+let _wsAnswered  = {};
+let _wsData      = [];
+let _wsChosen    = {};
+let _wsActiveTab = null; // currently selected subject tab
+
+// Fetch and render
 async function loadWorksheets(){
   const sec = document.getElementById('worksheet-section');
   if(!sec) return;
 
-  // Always compute date from the system clock — NEVER rely on rpt-date input
-  // Use IST (India Standard Time UTC+5:30) so date matches what Vaanya sees
   const now = new Date();
-  const istOffset = 5.5 * 60 * 60000; // IST = UTC+5:30
-  const istDate = new Date(now.getTime() + istOffset);
-  const today = istDate.toISOString().split('T')[0]; // YYYY-MM-DD in IST
+  const istDate = new Date(now.getTime() + 5.5 * 60 * 60000);
+  const today = istDate.toISOString().split('T')[0];
 
-  // Always show loading state (never cache between tab visits)
-  sec.innerHTML = '<div style="padding:12px 0;text-align:center;font-size:13px;color:#6B7280;font-weight:700">⏳ Loading worksheets...</div>';
+  sec.innerHTML = `<div style="padding:20px;text-align:center;font-size:13px;color:#A5B4FC;font-weight:700">⏳ Loading worksheets...</div>`;
 
-  // Always fetch fresh — cache bust with timestamp so browser never serves stale file
   try {
     const res = await fetch('worksheets.json?t=' + Date.now());
     if(!res.ok) throw new Error('Not found');
     _wsData = await res.json();
     _wsLoaded = true;
   } catch(e) {
-    sec.innerHTML = '<div class="sec" style="margin-bottom:10px;border:1.5px dashed #E5E7EB;background:#FAFAFA;padding:16px;text-align:center;color:#9CA3AF;font-size:13px">📋 No worksheets file found — upload worksheets.json to your GitHub repo</div>';
+    sec.innerHTML = `<div style="margin:10px 0;padding:20px;text-align:center;color:#9CA3AF;font-size:13px;background:#0F172A;border-radius:16px;border:1.5px dashed #334155">📋 No worksheets.json found in your GitHub repo</div>`;
     return;
   }
 
-  // Filter to today's date — compare against IST date
   const todaySheets = _wsData.filter(w => w.date === today);
-
   if(todaySheets.length === 0){
-    sec.innerHTML = '<div class="sec" style="margin-bottom:10px;border:1.5px dashed #E5E7EB;background:#FAFAFA;padding:16px;text-align:center;color:#9CA3AF;font-size:13px">📋 No worksheets for <b>' + today + '</b> — check the date in your worksheets.json matches today</div>';
+    sec.innerHTML = `<div style="margin:10px 0;padding:20px;text-align:center;color:#9CA3AF;font-size:13px;background:#0F172A;border-radius:16px;border:1.5px dashed #334155">📋 No worksheets for <b style="color:#C4B5FD">${today}</b> — check the date in worksheets.json</div>`;
     return;
   }
 
-  renderWorksheets(todaySheets);
+  // Group by subject
+  const subjects = [...new Set(todaySheets.map(w => w.subject))];
+  _wsActiveTab = _wsActiveTab && subjects.includes(_wsActiveTab) ? _wsActiveTab : subjects[0];
+
+  renderWsShell(subjects, todaySheets);
 }
 
-// Build the worksheet UI
-function renderWorksheets(sheets){
+// Render the outer shell — subject tabs + content area
+function renderWsShell(subjects, allSheets){
   const sec = document.getElementById('worksheet-section');
   if(!sec) return;
 
+  // Header card
+  const totalWsPts = Object.values(_wsAnswered).reduce((s,v)=>s+v.pts,0);
+  const completedCount = Object.keys(_wsAnswered).length;
+  const totalCount = allSheets.length;
+
+  let tabsHtml = subjects.map(subj => {
+    const conf = _wsSubjConf(subj);
+    const isActive = subj === _wsActiveTab;
+    const subjSheets = allSheets.filter(w => w.subject === subj);
+    const doneCount = subjSheets.filter(w => _wsAnswered[w.id]).length;
+    const tick = doneCount === subjSheets.length && doneCount > 0 ? ' ✅' : (doneCount > 0 ? ` ${doneCount}/${subjSheets.length}` : '');
+    return `<button onclick="_wsSelectTab('${subj}')" style="
+      padding:8px 16px;border-radius:50px;font-size:12px;font-weight:900;
+      font-family:'Nunito',sans-serif;cursor:pointer;border:2px solid;
+      transition:all .2s;white-space:nowrap;
+      background:${isActive ? conf.color : 'rgba(255,255,255,.07)'};
+      border-color:${isActive ? conf.color : 'rgba(255,255,255,.15)'};
+      color:${isActive ? '#fff' : 'rgba(255,255,255,.6)'};
+      box-shadow:${isActive ? '0 4px 14px rgba(0,0,0,.4)' : 'none'};
+    ">${conf.icon} ${subj}${tick}</button>`;
+  }).join('');
+
   let html = `
-    <div class="puzzle-card" style="margin-bottom:10px;background:linear-gradient(135deg,#4C1D95,#7C3AED,#2563EB)">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <div>
-          <div class="puz-title">📋 Today's Worksheets</div>
-          <div class="puz-sub">Complete each worksheet to earn points!</div>
+    <div style="background:linear-gradient(135deg,#0F0C29,#1a1a4e,#24243e);border-radius:20px;margin-bottom:10px;overflow:hidden;border:1.5px solid rgba(167,139,250,.25)">
+      <!-- Header -->
+      <div style="padding:16px 16px 12px;border-bottom:1px solid rgba(255,255,255,.08)">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:16px;font-weight:900;color:#E0E7FF">📋 Today's Worksheets</div>
+            <div style="font-size:11px;color:#A5B4FC;margin-top:2px">${completedCount}/${totalCount} completed · ${totalWsPts} pts earned</div>
+          </div>
+          <div style="background:rgba(124,58,237,.3);border:1.5px solid #7C3AED;border-radius:16px;padding:6px 14px;text-align:center">
+            <div style="font-size:22px;font-weight:900;color:#C4B5FD;line-height:1" id="ws-total-disp">${totalWsPts}</div>
+            <div style="font-size:9px;color:#A5B4FC;text-transform:uppercase;letter-spacing:.06em">worksheet pts</div>
+          </div>
         </div>
-        <div class="pts-chip" style="background:rgba(255,255,255,.15)">
-          <div class="pts-chip-num" id="ws-total-disp">0</div>
-          <div class="pts-chip-lbl">Worksheet pts</div>
+        <!-- Subject tabs -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px" id="ws-subject-tabs">
+          ${tabsHtml}
         </div>
+      </div>
+      <!-- Content area -->
+      <div id="ws-content-area" style="padding:16px">
+        %%WS_CONTENT%%
       </div>
     </div>`;
 
-  sheets.forEach((ws, wi) => {
-    const done    = _wsAnswered[ws.id];
-    const doneHtml = done
-      ? `<div style="background:#ECFDF5;border:1.5px solid #6EE7B7;border-radius:10px;padding:10px 14px;
-           font-size:13px;font-weight:800;color:#065F46;text-align:center;margin-top:10px">
-           ✅ Completed! You scored ${done.score} — <span style="color:#7C3AED">+${done.pts} pts earned!</span>
-         </div>`
-      : '';
+  // Build content for active tab
+  const activeSheets = allSheets.filter(w => w.subject === _wsActiveTab);
+  const contentHtml = activeSheets.map((ws, wi) => _wsRenderCard(ws, wi)).join('');
 
-    const qs = (ws.questions || []).map((q, qi) => {
-      const opts = q.opts.map((opt, oi) => {
-        let btnStyle = 'background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#fff';
-        if(done){
-          if(oi === q.ans) btnStyle = 'background:#065F46;border-color:#10B981;color:#fff'; // correct
-          else if(_wsAnswered[ws.id]?.chosen?.[qi] === oi && oi !== q.ans)
-            btnStyle = 'background:#7F1D1D;border-color:#EF4444;color:#fff'; // wrong
-        }
-        const disabled = done ? 'disabled' : '';
-        return `<button class="opt-btn" style="${btnStyle};margin:3px;padding:7px 14px;font-size:12px;font-weight:700;border-radius:10px;border:1.5px solid;cursor:${done?'default':'pointer'};font-family:'Nunito',sans-serif;transition:.15s"
-          ${disabled} onclick="_wsChoose('${ws.id}',${qi},${oi},this)">${opt}</button>`;
-      }).join('');
-
-      const bgQ = qi % 2 === 0 ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.08)';
-      return `<div style="background:${bgQ};border-radius:10px;padding:10px 12px;margin-bottom:6px">
-        <div style="font-size:13px;font-weight:800;color:#E0E7FF;margin-bottom:6px">Q${qi+1}. ${q.q}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px">${opts}</div>
-      </div>`;
-    }).join('');
-
-    const submitBtn = done ? '' : `
-      <button class="btn" onclick="_wsSubmit('${ws.id}',${wi})"
-        style="margin-top:10px;width:100%;background:linear-gradient(135deg,#7C3AED,#2563EB);color:#fff;
-               font-size:14px;font-weight:900;padding:12px;border-radius:12px;border:none;cursor:pointer;
-               font-family:'Nunito',sans-serif">
-        ✅ Submit Worksheet & Get Points
-      </button>`;
-
-    html += `
-      <div class="sec" style="margin-bottom:10px;background:linear-gradient(135deg,#1E1B4B,#312E81);border:1.5px solid rgba(167,139,250,.3)">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <div style="font-size:28px">${ws.icon || '📋'}</div>
-          <div>
-            <div style="font-size:15px;font-weight:900;color:#E0E7FF">${ws.title}</div>
-            <div style="font-size:12px;color:#A5B4FC;font-weight:700">${ws.subject} · ${ws.questions?.length || 0} questions · up to 10 pts</div>
-          </div>
-          ${done ? '<div style="margin-left:auto;font-size:20px">✅</div>' : ''}
-        </div>
-        ${qs}
-        ${submitBtn}
-        ${doneHtml}
-      </div>`;
-  });
-
+  html = html.replace('%%WS_CONTENT%%', contentHtml);
   sec.innerHTML = html;
-  _wsUpdateTotalDisplay();
 }
 
-// Track chosen answers per worksheet (before submit)
-const _wsChosen = {}; // { wsId: { qIdx: optIdx } }
+// Render a single worksheet card — KBC style
+function _wsRenderCard(ws, wi){
+  const done = _wsAnswered[ws.id];
+  const conf = _wsSubjConf(ws.subject);
 
-function _wsChoose(wsId, qIdx, optIdx, btn){
-  if(_wsAnswered[wsId]) return; // already submitted
+  const qs = (ws.questions || []).map((q, qi) => {
+    return _wsRenderQuestion(ws.id, q, qi, done);
+  }).join('');
+
+  const resultHtml = done ? `
+    <div style="margin-top:16px;background:rgba(16,185,129,.15);border:1.5px solid #10B981;border-radius:14px;padding:12px 16px;text-align:center">
+      <div style="font-size:20px;margin-bottom:4px">🎉</div>
+      <div style="font-size:15px;font-weight:900;color:#6EE7B7">Score: ${done.score} correct</div>
+      <div style="font-size:13px;font-weight:700;color:#A7F3D0;margin-top:2px">+${done.pts} pts earned!</div>
+    </div>` : `
+    <button onclick="_wsSubmit('${ws.id}',${wi})" style="
+      margin-top:16px;width:100%;padding:14px;
+      background:linear-gradient(135deg,${conf.color},#1D4ED8);
+      color:#fff;border:none;border-radius:14px;
+      font-size:14px;font-weight:900;cursor:pointer;
+      font-family:'Nunito',sans-serif;
+      box-shadow:0 4px 20px rgba(0,0,0,.4);
+      letter-spacing:.02em">
+      ✅ Submit & Get Points
+    </button>`;
+
+  return `
+    <div style="margin-bottom:20px">
+      <!-- Worksheet title bar -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:rgba(255,255,255,.05);border-radius:12px">
+        <div style="font-size:24px">${ws.icon || conf.icon}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:900;color:#E0E7FF">${ws.title}</div>
+          <div style="font-size:11px;color:#A5B4FC;margin-top:1px">${ws.questions?.length||0} questions · up to 10 pts</div>
+        </div>
+        ${done ? '<div style="font-size:24px">✅</div>' : ''}
+      </div>
+      <!-- Questions -->
+      ${qs}
+      ${resultHtml}
+    </div>`;
+}
+
+// Render one KBC-style question
+function _wsRenderQuestion(wsId, q, qi, done){
+  const chosen = _wsChosen[wsId] || {};
+  const chosenIdx = chosen[qi];
+  const labels = ['A','B','C','D'];
+
+  // Build 4 options in KBC layout: A C / B D (left col: A,B  right col: C,D)
+  const optHtml = (oi) => {
+    const opt = q.opts[oi];
+    const label = labels[oi] || String.fromCharCode(65+oi);
+    let bg = 'linear-gradient(135deg,#1a237e,#283593)';
+    let border = 'rgba(100,120,220,.5)';
+    let glow = '';
+    let textCol = '#E8EAF6';
+
+    if(done){
+      if(oi === q.ans){
+        bg = 'linear-gradient(135deg,#1B5E20,#2E7D32)';
+        border = '#4CAF50'; glow = '0 0 12px rgba(76,175,80,.5)';
+        textCol = '#fff';
+      } else if(chosenIdx === oi && oi !== q.ans){
+        bg = 'linear-gradient(135deg,#7F1D1D,#991B1B)';
+        border = '#EF4444'; textCol = '#fff';
+      }
+    } else if(chosenIdx === oi){
+      bg = 'linear-gradient(135deg,#1565C0,#1976D2)';
+      border = '#FFD600'; glow = '0 0 16px rgba(255,214,0,.4)';
+      textCol = '#fff';
+    }
+
+    const disabled = done ? 'pointer-events:none' : 'cursor:pointer';
+    return `
+      <div onclick="_wsChoose('${wsId}',${qi},${oi},this)" style="
+        display:flex;align-items:center;gap:0;
+        border-radius:50px;overflow:hidden;
+        border:2px solid ${border};
+        background:${bg};
+        box-shadow:${glow || 'none'};
+        ${disabled};
+        transition:all .2s;
+        user-select:none;
+      " data-wsid="${wsId}" data-qi="${qi}" data-oi="${oi}">
+        <!-- Letter badge -->
+        <div style="
+          background:rgba(255,255,255,.12);
+          border-right:1.5px solid rgba(255,255,255,.15);
+          padding:10px 14px;
+          font-size:13px;font-weight:900;
+          color:rgba(255,255,255,.8);
+          min-width:38px;text-align:center;
+          flex-shrink:0;
+        ">${label}:</div>
+        <!-- Option text -->
+        <div style="
+          padding:10px 14px;
+          font-size:12px;font-weight:700;
+          color:${textCol};
+          flex:1;
+        ">${opt}</div>
+      </div>`;
+  };
+
+  // 2×2 grid: A|C on top, B|D on bottom
+  const opts = q.opts;
+  const grid = opts.length === 4 ? `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${optHtml(0)}${optHtml(2)}
+      ${optHtml(1)}${optHtml(3)}
+    </div>` : `
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${q.opts.map((_,oi)=>optHtml(oi)).join('')}
+    </div>`;
+
+  return `
+    <div style="margin-bottom:16px">
+      <!-- Question pill -->
+      <div style="
+        background:linear-gradient(135deg,#1a237e,#1565C0);
+        border:2px solid rgba(100,149,237,.6);
+        border-radius:50px;
+        padding:12px 20px;
+        text-align:center;
+        font-size:13px;font-weight:800;
+        color:#E8EAF6;
+        margin-bottom:10px;
+        box-shadow:0 0 20px rgba(26,35,126,.5);
+        position:relative;
+      ">
+        <span style="color:rgba(255,255,255,.5);margin-right:6px">Q${qi+1}.</span>${q.q}
+      </div>
+      ${grid}
+    </div>`;
+}
+
+// Select a subject tab
+function _wsSelectTab(subject){
+  _wsActiveTab = subject;
+  loadWorksheets(); // re-render
+}
+
+// Handle option click
+function _wsChoose(wsId, qIdx, optIdx, el){
+  if(_wsAnswered[wsId]) return;
   if(!_wsChosen[wsId]) _wsChosen[wsId] = {};
   _wsChosen[wsId][qIdx] = optIdx;
 
-  // Highlight chosen option — unselect siblings in same question
-  const allBtns = btn.closest('div[style*="flex-wrap"]')?.querySelectorAll('.opt-btn');
-  if(allBtns) allBtns.forEach(b => {
-    b.style.background = 'rgba(255,255,255,.08)';
-    b.style.borderColor = 'rgba(255,255,255,.2)';
-    b.style.color = '#fff';
-    b.style.transform = '';
-  });
-  btn.style.background = '#7C3AED';
-  btn.style.borderColor = '#A78BFA';
-  btn.style.color = '#fff';
-  btn.style.transform = 'scale(1.04)';
+  // Re-render just this worksheet's content area — efficient
+  const ws = _wsData.find(w => w.id === wsId);
+  if(!ws) return;
+  const today = new Date(new Date().getTime() + 5.5*60*60000).toISOString().split('T')[0];
+  const allSheets = _wsData.filter(w => w.date === today);
+  const activeSheets = allSheets.filter(w => w.subject === _wsActiveTab);
+  const wi = activeSheets.findIndex(w => w.id === wsId);
+
+  // Re-render just the question block
+  const qBlock = el.closest('[data-ws-q]') || el.closest('.ws-q-block');
+  // Simpler: just re-render the full content area
+  const ca = document.getElementById('ws-content-area');
+  if(ca) ca.innerHTML = activeSheets.map((w, i) => _wsRenderCard(w, i)).join('');
 }
 
-// Submit and grade a worksheet
+// Submit and grade
 function _wsSubmit(wsId, sheetIdx){
   const ws = _wsData.find(w => w.id === wsId);
   if(!ws || _wsAnswered[wsId]) return;
 
   const chosen = _wsChosen[wsId] || {};
-  const total   = ws.questions.length;
-  let correct   = 0;
+  const total = ws.questions.length;
+  let correct = 0;
 
   ws.questions.forEach((q, qi) => {
     if(chosen[qi] === q.ans) correct++;
   });
 
-  // Check if all questions answered
-  const answered = Object.keys(chosen).length;
-  if(answered < total){
+  if(Object.keys(chosen).length < total){
     toast(`⚠️ Please answer all ${total} questions before submitting!`);
     return;
   }
 
-  const pts   = _wsPtsFromScore(correct, total);
-  const score = `${correct}/${total}`;
+  const pts = _wsPtsFromScore(correct, total);
+  _wsAnswered[wsId] = { pts, score: `${correct}/${total}`, chosen: {...chosen} };
 
-  // Save result
-  _wsAnswered[wsId] = { pts, score, chosen: {...chosen} };
-
-  // Update running worksheet total
-  worksheetPts = Object.values(_wsAnswered).reduce((s, v) => s + v.pts, 0);
+  // Recalculate totals
+  worksheetPts = Object.values(_wsAnswered).reduce((s,v) => s + v.pts, 0);
   brainPtsToday = sudokuPts + logicPtsTotal + riddlePtsTotal + mathsPtsToday + worksheetPts;
   updateBrainDisplay();
   calcDayPts();
-  _wsUpdateTotalDisplay();
 
-  // Re-render to show correct/wrong highlights
-  const today = document.getElementById('rpt-date')?.value
-    || new Date().toISOString().split('T')[0];
-  const todaySheets = _wsData.filter(w => w.date === today);
-  renderWorksheets(todaySheets);
+  toast(`📋 ${ws.subject} submitted! ${correct}/${total} correct — +${pts} pts! 🎉`);
 
-  toast(`📋 Worksheet submitted! ${correct}/${total} correct — +${pts} pts! 🎉`);
+  // Re-render to show results
+  loadWorksheets();
 
-  // Auto-save immediately to Supabase so pts survive a page refresh
+  // Immediately save to Supabase so refresh never loses pts
   saveBrainDraft().catch(e => console.warn('Auto-save after worksheet failed:', e));
 }
 
 function _wsUpdateTotalDisplay(){
   const el = document.getElementById('ws-total-disp');
-  if(el) el.textContent = worksheetPts;
+  if(el) el.textContent = Object.values(_wsAnswered).reduce((s,v)=>s+v.pts,0);
 }
-
 
 // ════════════════════════════════════════════
 // INIT — load cloud data then build UI
