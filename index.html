@@ -1178,13 +1178,13 @@ tr:hover td{background:#FAFBFF}
 
 <div id="puzzle-maths" style="display:none">
 <div class="sec" style="border-color:#FED7AA;background:linear-gradient(135deg,#FFF7ED,#fff)">
-  <!-- Header -->
+
+  <!-- ── HEADER (always visible) ── -->
   <div style="background:linear-gradient(135deg,#F97316,#C2410C);border-radius:var(--rads);padding:13px 16px;color:#fff;margin-bottom:14px">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
       <div>
         <div style="font-size:15px;font-weight:900">⚡ Mental Maths Sprint</div>
         <div style="font-size:10px;opacity:.85;margin-top:2px">5 questions · Class 6 CBSE · Olympiad Level · Up to 25 pts</div>
-        <!-- progress dots -->
         <div style="display:flex;gap:5px;margin-top:8px" id="maths-prog-dots"></div>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
@@ -1196,8 +1196,8 @@ tr:hover td{background:#FAFBFF}
           <div style="font-size:20px;font-weight:900;line-height:1" id="maths-answered-chip">0/5</div>
           <div style="font-size:9px;opacity:.8;text-transform:uppercase;letter-spacing:.06em">answered</div>
         </div>
-        <!-- timer -->
-        <div style="position:relative;width:54px;height:54px;flex-shrink:0">
+        <!-- Timer — hidden until sprint starts -->
+        <div style="position:relative;width:54px;height:54px;flex-shrink:0" id="maths-timer-wrap" style="display:none">
           <svg width="54" height="54" viewBox="0 0 54 54" style="position:absolute;top:0;left:0;transform:rotate(-90deg)">
             <circle cx="27" cy="27" r="22" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="4"/>
             <circle id="maths-timer-arc" cx="27" cy="27" r="22" fill="none" stroke="#fff" stroke-width="4"
@@ -1209,21 +1209,43 @@ tr:hover td{background:#FAFBFF}
     </div>
   </div>
 
-  <!-- Questions container -->
-  <div id="maths-questions"></div>
-
-  <!-- Submit / New buttons -->
-  <div class="btn-row" style="margin-top:14px">
-    <button id="maths-check-btn" onclick="checkMathsSprint()"
-      style="background:linear-gradient(135deg,#F97316,#C2410C);color:#fff;border:none;padding:10px 26px;
-        border-radius:var(--rads);font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;
-        cursor:not-allowed;opacity:.4" disabled>✅ Submit Answers</button>
-    <button id="maths-new-btn" onclick="newMathsSprint()" style="display:none;background:linear-gradient(135deg,#F97316,#C2410C);color:#fff;border:none;padding:10px 22px;border-radius:var(--rads);font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer">🔄 New Sprint</button>
+  <!-- ── START SCREEN (shown before sprint begins) ── -->
+  <div id="maths-start-screen" style="text-align:center;padding:30px 16px">
+    <div style="font-size:52px;margin-bottom:10px">⚡</div>
+    <div style="font-size:18px;font-weight:900;color:#92400E;margin-bottom:6px">Ready for your Maths Sprint?</div>
+    <div style="font-size:13px;color:#6B7280;margin-bottom:6px;line-height:1.6">
+      5 questions · 3 minute timer<br>
+      Timer starts when YOU click Start!
+    </div>
+    <div style="font-size:12px;color:#D97706;font-weight:800;margin-bottom:24px">
+      ⚠️ Once started, the sprint cannot be paused
+    </div>
+    <button onclick="startMathsSprint()" style="
+      background:linear-gradient(135deg,#F97316,#C2410C);
+      color:#fff;border:none;padding:14px 40px;
+      border-radius:50px;font-family:'Nunito',sans-serif;
+      font-size:16px;font-weight:900;cursor:pointer;
+      box-shadow:0 6px 20px rgba(249,115,22,.4);
+      letter-spacing:.02em">
+      🚀 Start Sprint!
+    </button>
   </div>
 
-  <!-- Score result card -->
+  <!-- ── QUESTIONS (hidden until sprint starts) ── -->
+  <div id="maths-sprint-area" style="display:none">
+    <div id="maths-questions"></div>
+    <div class="btn-row" style="margin-top:14px">
+      <button id="maths-check-btn" onclick="checkMathsSprint(false)"
+        style="background:linear-gradient(135deg,#F97316,#C2410C);color:#fff;border:none;padding:10px 26px;
+          border-radius:var(--rads);font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer">
+        ✅ Submit Answers
+      </button>
+    </div>
+  </div>
+
+  <!-- ── SCORE RESULT (shown after submission) ── -->
   <div id="maths-score-display" style="display:none;margin-top:14px;background:linear-gradient(135deg,#FFF7ED,#ECFDF5);border:2px solid #FED7AA;border-radius:var(--rad);padding:16px;text-align:center">
-    <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:#92400E;margin-bottom:4px">⚡ Sprint Score</div>
+    <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:#92400E;margin-bottom:4px">⚡ Sprint Complete!</div>
     <div style="font-size:48px;font-weight:900;background:linear-gradient(135deg,#F97316,#10B981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1" id="maths-score-big">0</div>
     <div style="font-size:12px;font-weight:700;color:#6B7280;margin-top:2px">/ 25 pts</div>
     <div style="font-size:13px;font-weight:800;color:#374151;margin-top:8px" id="maths-score-msg"></div>
@@ -2545,6 +2567,7 @@ function calcParentRating(){
 
 function showPuzzle(type,btn){
   if(type==='riddle'){toast('🎭 Riddles coming soon! Stay tuned.');return;}
+  if(type==='maths') initMathsSprint(); // init sprint whenever maths tab opened
   ['sudoku','logic','riddle','maths','worksheet'].forEach(t=>{
     const el=document.getElementById('puzzle-'+t);
     if(el)el.style.display=t===type?'block':'none';
@@ -3223,18 +3246,23 @@ async function approveReport(){
   const brD=!!(document.getElementById('brain-done')?.querySelector('.pg')||document.getElementById('brain-done')?.querySelector('.pa'));
   const odD=!!document.getElementById('odda-att')?.querySelector('.pg');
 
-  const data={date,pts,shlokaD:shD,creativeD:crD,brainD:brD,odda:odD,
-    ttPts:parseInt(document.getElementById('rpt-tt')?.value||0)||0,
-
-    parentComment:(document.getElementById('parent-comment')?.value||'').substring(0,2000),
-    parentRating:parseInt(document.getElementById('parent-rating')?.value||0),
-    approved:true,
-    savedAt:new Date().toISOString()};
+  // Use FULL collectFormData so all form fields are preserved in full_data
+  // Override approved:true explicitly after collectFormData runs
+  const data = collectFormData(date, pts);
+  data.approved    = true;
+  data.shlokaD     = shD;
+  data.creativeD   = crD;
+  data.brainD      = brD;
+  data.odda        = odD;
+  data.parentComment = (document.getElementById('parent-comment')?.value||'').substring(0,2000);
+  data.parentRating  = parseInt(document.getElementById('parent-rating')?.value||0);
+  data.savedAt       = new Date().toISOString();
 
   const idx=savedDays.findIndex(d=>d.date===date);
-  if(idx>=0)savedDays[idx]=data;else savedDays.unshift(data);
+  if(idx>=0)savedDays[idx]={...savedDays[idx],...data};
+  else savedDays.unshift(data);
   savedDays.sort((a,b)=>new Date(b.date)-new Date(a.date));
-  localStorage.setItem('vaanya_days',JSON.stringify(savedDays)); // keep local backup too
+  localStorage.setItem('vaanya_days',JSON.stringify(savedDays));
   await saveToSupabase(data);
 
   // Show approved banner
@@ -3253,9 +3281,7 @@ async function approveReport(){
   populateResetDatePicker();
   showPop('✅','Report Approved! 🎉','Vaanya your report has been approved! You earned '+pts+' points today! ⭐ Keep it up!');
   toast('Report approved! +'+pts+' points saved! Report is now locked.');
-
-  // Save to Supabase cloud
-  await saveToSupabase(data);
+  // Note: saveToSupabase already called above — no second call needed
 
   // Streak celebration
   const streak=getStreak();
@@ -4578,13 +4604,26 @@ function exportBackup() {
 // ════════════════════════════════════════════
 // MENTAL MATHS SPRINT — Class 6 CBSE Olympiad
 // ════════════════════════════════════════════
-let mathsPtsToday = 0;
-let mathsFrozen   = false;
-let mathsChecked  = false;
-let mathsSelected = [];
-let mathsQuestions= [];
-let mathsTimerVal = 180;
-let mathsTimerInt = null;
+
+// ════════════════════════════════════════════════════════════════
+// MATHS SPRINT — v4
+// • Start button triggers sprint — timer does NOT start on tab open
+// • Submit anytime OR auto-submits when timer hits 0
+// • On refresh mid-sprint: same questions restored, timer resets to 3min
+// • On refresh after submit: frozen state shown with correct/wrong highlights
+// ════════════════════════════════════════════════════════════════
+
+let mathsPtsToday  = 0;
+let mathsFrozen    = false;   // true once sprint is submitted for today
+let mathsChecked   = false;   // true once answers are checked
+let mathsSelected  = [];      // chosen option index per question (null = unanswered)
+let mathsQuestions = [];      // 5 selected questions for this sprint
+let mathsTimerVal  = 180;     // countdown seconds
+let mathsTimerInt  = null;    // setInterval handle
+let mathsStarted   = false;   // true once Start Sprint clicked
+
+// Session key for maths sprint state
+const MATHS_SESSION_KEY = 'vaanya_maths_sprint';
 
 const MATHS_BANK = [
   {q:'Vaanya buys 12 pens at ₹8 each and 8 erasers at ₹3 each. She pays with a ₹150 note. How much change does she get?',opts:['₹2','₹6','₹10','₹14'],ans:1,exp:'Cost = 12×8 + 8×3 = 96+24 = ₹120. Change = 150−120 = ₹30. Wait — ₹30 is not in options. Recheck: 12×8=96, 8×3=24, total=120, change=30. Select closest: ₹6 if 144 spent. 12×8=96, 8×6=48→144, change=6. So eraser cost is ₹6. ✓',diff:'Medium',topic:'Money & Operations'},
@@ -4597,87 +4636,182 @@ const MATHS_BANK = [
   {q:'A car travels 240 km in 4 hours. How far will it travel in 7 hours at the same speed?',opts:['380 km','400 km','420 km','440 km'],ans:2,exp:'Speed = 240/4 = 60 km/h. Distance in 7h = 60×7 = 420 km.',diff:'Easy',topic:'Speed & Distance'},
   {q:'Find the LCM of 12, 18 and 24.',opts:['36','48','72','96'],ans:2,exp:'12=2²×3, 18=2×3², 24=2³×3. LCM = 2³×3² = 8×9 = 72.',diff:'Medium',topic:'LCM & HCF'},
   {q:'A shopkeeper buys an article for ₹400 and sells it for ₹480. What is the profit percentage?',opts:['10%','15%','20%','25%'],ans:2,exp:'Profit = 480−400 = ₹80. Profit% = (80/400)×100 = 20%.',diff:'Medium',topic:'Profit & Loss'},
-  {q:'Simplify: 3/4 + 5/6 − 1/3',opts:['4/3','7/6','5/4','3/2'],ans:0,exp:'LCM of 4,6,3 = 12. → 9/12 + 10/12 − 4/12 = 15/12 = 5/4. Recheck: 9+10−4=15, 15/12=5/4. Closest: 5/4.',diff:'Medium',topic:'Fractions'},
+  {q:'Simplify: 3/4 + 5/6 − 1/3',opts:['5/4','7/6','4/3','3/2'],ans:2,exp:'LCM of 4,6,3 = 12. → 9/12 + 10/12 − 4/12 = 15/12 = 5/4.',diff:'Medium',topic:'Fractions'},
   {q:'The perimeter of a square is 64 cm. What is its area?',opts:['256 cm²','128 cm²','64 cm²','512 cm²'],ans:0,exp:'Side = 64÷4 = 16 cm. Area = 16² = 256 cm².',diff:'Easy',topic:'Mensuration'},
   {q:'What is the HCF of 48, 72 and 96?',opts:['12','16','24','48'],ans:2,exp:'48=2⁴×3, 72=2³×3², 96=2⁵×3. HCF = 2³×3 = 24.',diff:'Medium',topic:'LCM & HCF'},
   {q:'If 20% of a number is 45, what is 45% of the same number?',opts:['100','101.25','90','112.5'],ans:1,exp:'Number = 45/0.20 = 225. 45% of 225 = 0.45×225 = 101.25.',diff:'Hard',topic:'Percentages'},
   {q:'A train 180m long passes a stationary pole in 9 seconds. What is the speed in km/h?',opts:['60 km/h','72 km/h','80 km/h','90 km/h'],ans:1,exp:'Speed = 180/9 = 20 m/s = 20×18/5 = 72 km/h.',diff:'Hard',topic:'Speed & Distance'},
   {q:'Find the value: (−3) × (−4) + (−2) × 5',opts:['2','−2','22','−22'],ans:0,exp:'(−3)×(−4) = 12. (−2)×5 = −10. Total = 12+(−10) = 2.',diff:'Medium',topic:'Integers'},
   {q:'A school has 840 students. 3/7 are girls. How many boys are there?',opts:['360','480','420','300'],ans:1,exp:'Girls = (3/7)×840 = 360. Boys = 840−360 = 480.',diff:'Medium',topic:'Fractions'},
-  {q:'Which is the smallest 5-digit number exactly divisible by 9?',opts:['10008','10017','10000','10009'],ans:0,exp:'10000 ÷ 9 = 1111 rem 1. Next = 10000+(9−1) = 10008. Check: 1+0+0+0+8=9 ✓',diff:'Hard',topic:'Divisibility'},
-  {q:'If a:b = 3:5 and b:c = 4:7, find a:b:c.',opts:['12:20:35','3:5:7','6:10:14','9:15:21'],ans:0,exp:'Make b common. b=5 and b=4 → LCM=20. a:b=12:20, b:c=20:35. So a:b:c = 12:20:35.',diff:'Hard',topic:'Ratio & Proportion'},
-  {q:'The sum of three consecutive even numbers is 78. What is the largest?',opts:['24','26','28','30'],ans:2,exp:'Let numbers be n, n+2, n+4. Sum = 3n+6 = 78 → n = 24. Largest = 24+4 = 28.',diff:'Medium',topic:'Number Theory'},
-  {q:'What is 15% of 240 added to 20% of 150?',opts:['54','66','60','72'],ans:1,exp:'15% of 240 = 36. 20% of 150 = 30. Sum = 66.',diff:'Easy',topic:'Percentages'},
-  {q:'A tap fills a tank in 12 hours. After 4 hours it is turned off. What fraction of the tank is still empty?',opts:['1/3','2/3','1/4','3/4'],ans:1,exp:'Filled in 4h = 4/12 = 1/3. Empty = 1 − 1/3 = 2/3.',diff:'Medium',topic:'Pipes & Tanks'},
+  {q:'Which is the smallest 5-digit number exactly divisible by 9?',opts:['10008','10017','10000','10009'],ans:0,exp:'10000÷9=1111 rem 1. Next = 10000+(9−1) = 10008. Check: 1+0+0+0+8=9 ✓',diff:'Hard',topic:'Divisibility'},
+  {q:'If a:b = 3:5 and b:c = 4:7, find a:b:c.',opts:['12:20:35','3:5:7','6:10:14','9:15:21'],ans:0,exp:'Make b common. b=5 and b=4 → LCM=20. a:b=12:20, b:c=20:35. So a:b:c=12:20:35.',diff:'Hard',topic:'Ratio & Proportion'},
+  {q:'The sum of three consecutive even numbers is 78. What is the largest?',opts:['24','26','28','30'],ans:2,exp:'Let numbers be n, n+2, n+4. Sum=3n+6=78 → n=24. Largest=24+4=28.',diff:'Medium',topic:'Number Theory'},
+  {q:'What is 15% of 240 added to 20% of 150?',opts:['54','66','60','72'],ans:1,exp:'15% of 240=36. 20% of 150=30. Sum=66.',diff:'Easy',topic:'Percentages'},
+  {q:'A tap fills a tank in 12 hours. After 4 hours it is turned off. What fraction is still empty?',opts:['1/3','2/3','1/4','3/4'],ans:1,exp:'Filled in 4h = 4/12 = 1/3. Empty = 1 − 1/3 = 2/3.',diff:'Medium',topic:'Pipes & Tanks'},
   {q:'Angles of a triangle are in the ratio 2:3:5. Find the largest angle.',opts:['50°','60°','90°','100°'],ans:2,exp:'Sum = 180°. Largest = (5/10)×180 = 90°.',diff:'Easy',topic:'Geometry'},
   {q:'A number is multiplied by 5 and then 15 is subtracted. The result is 60. Find the number.',opts:['13','15','17','19'],ans:1,exp:'5n − 15 = 60 → 5n = 75 → n = 15.',diff:'Easy',topic:'Basic Algebra'},
   {q:'Express 0.0625 as a fraction in simplest form.',opts:['1/8','1/16','1/12','1/4'],ans:1,exp:'0.0625 = 625/10000 = 1/16.',diff:'Hard',topic:'Decimals & Fractions'},
 ];
 
-function initMathsSprint(){
-  mathsFrozen=false; mathsChecked=false; mathsSelected=[]; mathsQuestions=[];
-  mathsPtsToday=0;
-  clearInterval(mathsTimerInt);
-  newMathsSprint();
+// ── Save sprint state to sessionStorage ──────────────────────────
+function _mathsSaveSession(){
+  try {
+    const istDate = new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
+    sessionStorage.setItem(MATHS_SESSION_KEY, JSON.stringify({
+      date: istDate,
+      questions: mathsQuestions,
+      selected:  mathsSelected,
+      checked:   mathsChecked,
+      frozen:    mathsFrozen,
+      pts:       mathsPtsToday,
+    }));
+  } catch(e){}
 }
 
-function newMathsSprint(){
-  if(mathsFrozen){toast('⚡ Maths Sprint done for today! Come back tomorrow.');return;}
+// ── Load sprint state from sessionStorage ─────────────────────────
+function _mathsLoadSession(){
+  try {
+    const raw = sessionStorage.getItem(MATHS_SESSION_KEY);
+    if(!raw) return null;
+    const s = JSON.parse(raw);
+    const istDate = new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
+    if(s.date !== istDate) { sessionStorage.removeItem(MATHS_SESSION_KEY); return null; }
+    return s;
+  } catch(e){ return null; }
+}
+
+// ── Called when Maths Sprint tab is opened ───────────────────────
+function initMathsSprint(){
   clearInterval(mathsTimerInt);
-  mathsChecked=false;
-  mathsSelected=Array(5).fill(null);
-  const shuffled=[...MATHS_BANK].sort(()=>Math.random()-.5);
-  mathsQuestions=shuffled.slice(0,5);
 
-  document.getElementById('maths-score-display').style.display='none';
-  document.getElementById('maths-new-btn').style.display='none';
-  document.getElementById('maths-check-btn').style.display='';
-  document.getElementById('maths-check-btn').disabled=true;
-  document.getElementById('maths-check-btn').style.opacity='.4';
-  document.getElementById('maths-check-btn').style.cursor='not-allowed';
-  document.getElementById('maths-score-chip').textContent='0';
-  document.getElementById('maths-answered-chip').textContent='0/5';
+  // Check if frozen from savedDays (already submitted today)
+  if(mathsFrozen && mathsChecked && mathsQuestions.length > 0){
+    _mathsShowFrozenState();
+    return;
+  }
 
-  mathsTimerVal=180;
-  updateMathsTimer();
-  buildMathsProgress();
+  // Check sessionStorage for in-progress or completed sprint
+  const sess = _mathsLoadSession();
+  if(sess){
+    mathsQuestions = sess.questions || [];
+    mathsSelected  = sess.selected  || Array(5).fill(null);
+    mathsChecked   = sess.checked   || false;
+    mathsFrozen    = sess.frozen    || false;
+    mathsPtsToday  = sess.pts       || 0;
+    brainPtsToday  = sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
+    updateBrainDisplay();
+
+    if(mathsFrozen && mathsChecked){
+      // Sprint was completed — show frozen results
+      _mathsShowFrozenState();
+      return;
+    } else {
+      // Sprint was in progress — restore questions, reset timer to 3 min fresh
+      _mathsShowSprintArea();
+      renderMathsQuestions();
+      buildMathsProgress();
+      _restoreSelections();
+      _mathsStartTimer(); // timer always resets to 3:00 on refresh (as per requirement)
+      return;
+    }
+  }
+
+  // No session — show start screen
+  _mathsShowStartScreen();
+}
+
+function _mathsShowStartScreen(){
+  document.getElementById('maths-start-screen').style.display = 'block';
+  document.getElementById('maths-sprint-area').style.display  = 'none';
+  document.getElementById('maths-score-display').style.display= 'none';
+  document.getElementById('maths-timer-wrap').style.display   = 'none';
+  document.getElementById('maths-score-chip').textContent     = '0';
+  document.getElementById('maths-answered-chip').textContent  = '0/5';
+}
+
+function _mathsShowSprintArea(){
+  document.getElementById('maths-start-screen').style.display = 'none';
+  document.getElementById('maths-sprint-area').style.display  = 'block';
+  document.getElementById('maths-score-display').style.display= 'none';
+  document.getElementById('maths-timer-wrap').style.display   = 'flex';
+}
+
+function _mathsShowFrozenState(){
+  document.getElementById('maths-start-screen').style.display = 'none';
+  document.getElementById('maths-sprint-area').style.display  = 'block';
+  document.getElementById('maths-score-display').style.display= 'block';
+  document.getElementById('maths-timer-wrap').style.display   = 'none';
+  document.getElementById('maths-check-btn').style.display    = 'none';
+  document.getElementById('maths-score-chip').textContent     = mathsPtsToday;
+  renderMathsQuestions(); // re-render in frozen state
+  _mathsShowScoreCard();
+}
+
+// ── Start Sprint button clicked ──────────────────────────────────
+function startMathsSprint(){
+  // Pick 5 random questions
+  const shuffled = [...MATHS_BANK].sort(()=>Math.random()-.5);
+  mathsQuestions = shuffled.slice(0, 5);
+  mathsSelected  = Array(5).fill(null);
+  mathsChecked   = false;
+  mathsFrozen    = false;
+  mathsPtsToday  = 0;
+  mathsStarted   = true;
+
+  _mathsShowSprintArea();
   renderMathsQuestions();
-  mathsTimerInt=setInterval(()=>{
+  buildMathsProgress();
+  _mathsStartTimer();
+  _mathsSaveSession(); // save questions so refresh restores them
+}
+
+// ── Timer ────────────────────────────────────────────────────────
+function _mathsStartTimer(){
+  clearInterval(mathsTimerInt);
+  mathsTimerVal = 180; // always reset to 3:00 (as per requirement)
+  updateMathsTimer();
+  mathsTimerInt = setInterval(()=>{
     mathsTimerVal--;
     updateMathsTimer();
-    if(mathsTimerVal<=0){clearInterval(mathsTimerInt);if(!mathsChecked)checkMathsSprint();}
-  },1000);
+    if(mathsTimerVal <= 0){
+      clearInterval(mathsTimerInt);
+      if(!mathsChecked) checkMathsSprint(true); // auto-submit
+    }
+  }, 1000);
 }
 
 function buildMathsProgress(){
-  const el=document.getElementById('maths-prog-dots');
-  if(!el)return;
-  el.innerHTML=mathsQuestions.map((_,i)=>`<div id="mpd-${i}" style="height:6px;width:28px;border-radius:3px;background:rgba(255,255,255,.25);transition:background .3s"></div>`).join('');
+  const el = document.getElementById('maths-prog-dots');
+  if(!el) return;
+  el.innerHTML = mathsQuestions.map((_,i)=>
+    `<div id="mpd-${i}" style="height:6px;width:28px;border-radius:3px;background:rgba(255,255,255,.25);transition:background .3s"></div>`
+  ).join('');
 }
 
 function updateMathsProgress(){
   mathsQuestions.forEach((_,i)=>{
-    const d=document.getElementById('mpd-'+i);if(!d)return;
-    d.style.background=mathsSelected[i]!==null?'#fff':'rgba(255,255,255,.25)';
+    const d = document.getElementById('mpd-'+i); if(!d) return;
+    d.style.background = mathsSelected[i] !== null ? '#fff' : 'rgba(255,255,255,.25)';
   });
 }
 
 function updateMathsTimer(){
-  const m=Math.floor(mathsTimerVal/60),s=mathsTimerVal%60;
-  const el=document.getElementById('maths-timer-txt');
-  if(el) el.textContent=m+':'+(s<10?'0':'')+s;
-  const arc=document.getElementById('maths-timer-arc');
-  if(!arc)return;
-  const pct=mathsTimerVal/180;
-  arc.style.strokeDashoffset=138.2*(1-pct);
-  arc.style.stroke=pct>0.4?'#fff':pct>0.2?'#FCD34D':'#FCA5A5';
+  const m = Math.floor(mathsTimerVal/60), s = mathsTimerVal%60;
+  const el = document.getElementById('maths-timer-txt');
+  if(el) el.textContent = m+':'+(s<10?'0':'')+s;
+  const arc = document.getElementById('maths-timer-arc');
+  if(!arc) return;
+  const pct = mathsTimerVal/180;
+  arc.style.strokeDashoffset = 138.2*(1-pct);
+  arc.style.stroke = pct>0.4?'#fff':pct>0.2?'#FCD34D':'#FCA5A5';
 }
 
+// ── Render questions ─────────────────────────────────────────────
 function renderMathsQuestions(){
-  const wrap=document.getElementById('maths-questions');
-  if(!wrap)return;
-  const diffStyle={Easy:'background:#ECFDF5;color:#065F46',Medium:'background:#FFFBEB;color:#92400E',Hard:'background:#FEF2F2;color:#B91C1C'};
-  wrap.innerHTML=mathsQuestions.map((q,i)=>`
+  const wrap = document.getElementById('maths-questions');
+  if(!wrap) return;
+  const diffStyle = {Easy:'background:#ECFDF5;color:#065F46',Medium:'background:#FFFBEB;color:#92400E',Hard:'background:#FEF2F2;color:#B91C1C'};
+  wrap.innerHTML = mathsQuestions.map((q,i)=>`
     <div style="background:#fff;border-radius:var(--rads);border:2px solid #FED7AA;margin-bottom:10px;overflow:hidden">
       <div style="background:linear-gradient(135deg,#FFF7ED,#FFEDD5);padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:1.5px solid #FED7AA">
         <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#F97316,#C2410C);color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
@@ -4687,85 +4821,128 @@ function renderMathsQuestions(){
       <div style="padding:13px 14px">
         <div style="font-size:13px;font-weight:800;color:var(--ink);line-height:1.6;margin-bottom:11px">${q.q}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          ${q.opts.map((o,oi)=>`<button id="mopt-${i}-${oi}" class="opt-btn" onclick="selectMathsOpt(${i},${oi})" style="text-align:left;font-size:12px;padding:8px 11px">${String.fromCharCode(65+oi)}) ${o}</button>`).join('')}
+          ${q.opts.map((o,oi)=>{
+            let cls='opt-btn', bg='', bc='', co='';
+            if(mathsChecked){
+              if(oi===q.ans){ cls='opt-btn correct'; }
+              else if(mathsSelected[i]===oi && oi!==q.ans){ cls='opt-btn wrong'; }
+            } else if(mathsSelected[i]===oi){
+              bg='var(--tl)'; bc='var(--t)'; co='var(--td)';
+            }
+            const dis = mathsChecked ? 'disabled style="cursor:default"' : `onclick="selectMathsOpt(${i},${oi})"`;
+            return `<button id="mopt-${i}-${oi}" class="${cls}" ${dis} style="text-align:left;font-size:12px;padding:8px 11px;background:${bg};border-color:${bc};color:${co}">${String.fromCharCode(65+oi)}) ${o}</button>`;
+          }).join('')}
         </div>
-        <div id="mexpl-${i}" style="display:none;margin-top:8px;font-size:11px;background:#ECFDF5;border-radius:6px;padding:8px 10px;color:#065F46;font-weight:700;line-height:1.5">💡 ${q.exp}</div>
+        <div id="mexpl-${i}" style="display:${mathsChecked?'block':'none'};margin-top:8px;font-size:11px;background:#ECFDF5;border-radius:6px;padding:8px 10px;color:#065F46;font-weight:700;line-height:1.5">💡 ${q.exp}</div>
       </div>
     </div>`).join('');
 }
 
-function selectMathsOpt(qi,oi){
-  if(mathsChecked||mathsFrozen)return;
-  mathsSelected[qi]=oi;
-  for(let j=0;j<4;j++){
-    const b=document.getElementById(`mopt-${qi}-${j}`);
-    if(!b)continue;
-    b.className='opt-btn';
-    b.style.background=j===oi?'var(--tl)':'';
-    b.style.borderColor=j===oi?'var(--t)':'';
-    b.style.color=j===oi?'var(--td)':'';
-  }
-  const answered=mathsSelected.filter(x=>x!==null).length;
-  document.getElementById('maths-answered-chip').textContent=answered+'/5';
+// ── Restore previously chosen selections after refresh ────────────
+function _restoreSelections(){
+  mathsSelected.forEach((sel, i) => {
+    if(sel === null) return;
+    const btn = document.getElementById(`mopt-${i}-${sel}`);
+    if(btn){
+      btn.style.background = 'var(--tl)';
+      btn.style.borderColor = 'var(--t)';
+      btn.style.color = 'var(--td)';
+    }
+  });
+  const answered = mathsSelected.filter(x=>x!==null).length;
+  document.getElementById('maths-answered-chip').textContent = answered+'/5';
   updateMathsProgress();
-  if(answered===5){
-    const btn=document.getElementById('maths-check-btn');
-    btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';
-  }
 }
 
-function checkMathsSprint(){
-  if(mathsChecked||mathsFrozen)return;
-  mathsChecked=true;
+// ── Option selection ─────────────────────────────────────────────
+function selectMathsOpt(qi, oi){
+  if(mathsChecked || mathsFrozen) return;
+  mathsSelected[qi] = oi;
+  for(let j=0;j<4;j++){
+    const b = document.getElementById(`mopt-${qi}-${j}`); if(!b) continue;
+    b.className = 'opt-btn';
+    b.style.background  = j===oi ? 'var(--tl)' : '';
+    b.style.borderColor = j===oi ? 'var(--t)'  : '';
+    b.style.color       = j===oi ? 'var(--td)' : '';
+  }
+  const answered = mathsSelected.filter(x=>x!==null).length;
+  document.getElementById('maths-answered-chip').textContent = answered+'/5';
+  updateMathsProgress();
+  _mathsSaveSession(); // save selection immediately
+}
+
+// ── Check/Submit sprint (timerExpired=true means auto-submit) ─────
+function checkMathsSprint(timerExpired = false){
+  if(mathsChecked || mathsFrozen) return;
+  mathsChecked = true;
+  mathsFrozen  = true;
   clearInterval(mathsTimerInt);
-  let correct=0;
-  mathsQuestions.forEach((q,i)=>{
-    const chosen=mathsSelected[i];
-    const isRight=chosen===q.ans;
-    if(isRight)correct++;
+
+  let correct = 0;
+  mathsQuestions.forEach((q,i) => {
+    if(mathsSelected[i] === q.ans) correct++;
+    // Colour correct/wrong
     for(let j=0;j<4;j++){
-      const b=document.getElementById(`mopt-${i}-${j}`);
-      if(!b)continue;
-      b.disabled=true;b.style.cursor='default';
-      if(j===q.ans){b.className='opt-btn correct';b.style.background='';b.style.borderColor='';b.style.color='';}
-      else if(j===chosen&&!isRight){b.className='opt-btn wrong';b.style.background='';b.style.borderColor='';b.style.color='';}
-      else{b.className='opt-btn';b.style.background='';b.style.borderColor='';b.style.color='';}
+      const b = document.getElementById(`mopt-${i}-${j}`); if(!b) continue;
+      b.disabled = true; b.style.cursor = 'default';
+      b.style.background=''; b.style.borderColor=''; b.style.color='';
+      if(j===q.ans)         b.className = 'opt-btn correct';
+      else if(j===mathsSelected[i] && j!==q.ans) b.className = 'opt-btn wrong';
+      else                  b.className = 'opt-btn';
     }
-    const expl=document.getElementById(`mexpl-${i}`);
-    if(expl)expl.style.display='block';
+    const expl = document.getElementById(`mexpl-${i}`);
+    if(expl) expl.style.display = 'block';
   });
 
-  const scoreMap=[0,3,8,14,20,25];
-  const pts=scoreMap[correct]||0;
-  mathsPtsToday=pts;
-  brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
-  updateBrainDisplay();calcDayPts();
+  // Score: 0=0, 1=3, 2=8, 3=14, 4=20, 5=25
+  const scoreMap = [0,3,8,14,20,25];
+  const pts = scoreMap[correct] || 0;
+  mathsPtsToday  = pts;
+  brainPtsToday  = sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
+  updateBrainDisplay();
+  calcDayPts();
 
-  document.getElementById('maths-score-chip').textContent=pts;
-  document.getElementById('maths-score-big').textContent=pts;
-  const msgs=['Keep going — practice makes perfect! 💪','Good try! 1 correct — you are warming up! 🙂','Nice effort! 2/5 — keep pushing! 😊','Well done! 3/5 — solid maths brain! 😄','Excellent! 4/5 — almost perfect! 🤩','PERFECT SCORE! Olympiad champion! 🥳🧠'];
-  document.getElementById('maths-score-msg').textContent=msgs[correct]||'';
+  _mathsShowScoreCard();
+  _mathsSaveSession();
 
-  const bdEl=document.getElementById('maths-score-breakdown');
+  const suffix = timerExpired ? '⏰ Time up! ' : '';
+  toast(`${suffix}⚡ Sprint done! ${correct}/5 correct — +${pts} pts!`);
+
+  // Immediately save to Supabase
+  saveBrainDraft().catch(e=>console.warn('Sprint save failed:',e));
+}
+
+function _mathsShowScoreCard(){
+  const correct = mathsQuestions.filter((q,i)=>mathsSelected[i]===q.ans).length;
+  const pts = mathsPtsToday;
+
+  document.getElementById('maths-score-chip').textContent = pts;
+  document.getElementById('maths-score-big').textContent  = pts;
+  const msgs = ['Keep going — practice makes perfect! 💪','Good try! 1 correct — keep warming up! 🙂','Nice effort! 2/5 — keep pushing! 😊','Well done! 3/5 — solid maths brain! 😄','Excellent! 4/5 — almost perfect! 🤩','PERFECT SCORE! Olympiad champion! 🥳🧠'];
+  document.getElementById('maths-score-msg').textContent = msgs[correct]||'';
+
+  const bdEl = document.getElementById('maths-score-breakdown');
   if(bdEl){
-    bdEl.innerHTML=mathsQuestions.map((q,i)=>{
-      const right=mathsSelected[i]===q.ans;
-      const bg=right?'background:#ECFDF5;color:#065F46;border:1.5px solid #6EE7B7':'background:#FEF2F2;color:#B91C1C;border:1.5px solid #FCA5A5';
-      return `<span style="${bg};border-radius:20px;padding:4px 11px;font-size:11px;font-weight:800">${right?'✅':'❌'} Q${i+1}: ${q.topic}</span>`;
+    bdEl.innerHTML = mathsQuestions.map((q,i)=>{
+      const right = mathsSelected[i]===q.ans;
+      const skipped = mathsSelected[i]===null;
+      const bg = right ? 'background:#ECFDF5;color:#065F46;border:1.5px solid #6EE7B7'
+                       : skipped ? 'background:#F3F4F6;color:#6B7280;border:1.5px solid #D1D5DB'
+                       : 'background:#FEF2F2;color:#B91C1C;border:1.5px solid #FCA5A5';
+      const icon = right ? '✅' : skipped ? '⬜' : '❌';
+      return `<span style="${bg};border-radius:20px;padding:4px 11px;font-size:11px;font-weight:800">${icon} Q${i+1}: ${q.topic}</span>`;
     }).join('');
   }
 
-  document.getElementById('maths-score-display').style.display='block';
-  document.getElementById('maths-check-btn').style.display='none';
-  document.getElementById('maths-new-btn').style.display='';
-  toast('⚡ Maths Sprint done! '+pts+'/25 pts — '+correct+'/5 correct!');
+  document.getElementById('maths-score-display').style.display = 'block';
+  document.getElementById('maths-check-btn').style.display     = 'none';
+  document.getElementById('maths-timer-wrap').style.display    = 'none';
 
-  // Freeze for today
-  mathsFrozen=true;
-  document.getElementById('maths-new-btn').disabled=true;
-  document.getElementById('maths-new-btn').style.opacity='.4';
-  document.getElementById('maths-new-btn').style.cursor='not-allowed';
+  // Answered chip shows final count
+  const answeredCount = mathsSelected.filter(x=>x!==null).length;
+  document.getElementById('maths-answered-chip').textContent   = answeredCount+'/5';
 }
+
 
 function updateBrainDisplay(){
   const pts = brainPtsToday;
@@ -5444,7 +5621,7 @@ function silentClearDay(){
   const skYes=document.getElementById('skill-yes-box');if(skYes)skYes.style.display='none';
   const skNo=document.getElementById('skill-no-msg');if(skNo)skNo.style.display='none';
   creativeChosen=null; brainPtsToday=0; todayApproved=false; aiSkillPts=0;
-  sudokuFrozen=false; logicFrozen=false; logicCurrentPuzzles=[]; mathsFrozen=false; mathsChecked=false; mathsSelected=[]; mathsPtsToday=0;
+  sudokuFrozen=false; logicFrozen=false; logicCurrentPuzzles=[]; mathsFrozen=false; mathsChecked=false; mathsSelected=[]; mathsPtsToday=0; mathsStarted=false; clearInterval(mathsTimerInt); try{sessionStorage.removeItem(MATHS_SESSION_KEY);}catch(e){}
   genSudoku('easy'); genLogicPuzzles(); initMathsSprint();
   reflPts1=0; reflPts2=0; reflPts3=0;
   if(dateVal) document.getElementById('rpt-date').value=dateVal;
@@ -5606,7 +5783,7 @@ function loadDraftDay(d){
   // ── Restore brain lab pts variables (so score survives refresh) ──
   if(d.savedSudokuPts    !== undefined) sudokuPts       = d.savedSudokuPts;
   if(d.savedLogicPts     !== undefined) logicPtsTotal   = d.savedLogicPts;
-  if(d.savedMathsPts     !== undefined) mathsPtsToday   = d.savedMathsPts;
+  if(d.savedMathsPts     !== undefined){ mathsPtsToday = d.savedMathsPts; if(d.savedMathsPts>0){ mathsFrozen=true; mathsChecked=true; } }
   if(d.savedRiddlePts    !== undefined) riddlePtsTotal  = d.savedRiddlePts;
   if(d.savedWorksheetPts !== undefined) worksheetPts    = d.savedWorksheetPts;
   if(d.savedWsAnswered){
@@ -5779,30 +5956,37 @@ function _restoreFormFromSnap(snap){
 // After Supabase loads: decide what to show for today's date
 function _onLoadRestoreDate(date){
   const existing = savedDays.find(d => d.date === date);
+
+  // APPROVED: always trust Supabase — never load any session for approved reports
   if(existing && existing.approved){
-    // Already approved — show locked
+    _sessionClearDate(date); // clean up any stale session
     loadApprovedDay(existing);
     lockForm(date, existing.pts);
     return;
   }
-  // Check session first (fastest — no network)
+
+  // Check session — only for non-approved dates
   const snap = _sessionLoadForDate(date);
   if(snap){
-    const snapAge = Date.now() - (snap.ts || 0);
-    // Session must be less than 24 hours old to be valid
-    if(snapAge < 86400000){
-      const dbAge = existing?.savedAt
-        ? Date.now() - new Date(existing.savedAt).getTime() : Infinity;
-      if(snapAge < dbAge){
-        // Session is newer than Supabase draft
-        unlockForm();
-        document.getElementById('rpt-date').value = date; // ensure date set before restore
-        _restoreFormFromSnap(snap);
-        toast('✅ Your work was restored after the page refreshed!');
-        return;
+    // Extra safety: if session says approved, discard it — Supabase is truth
+    if(snap.approved === true){
+      _sessionClearDate(date);
+    } else {
+      const snapAge = Date.now() - (snap.ts || 0);
+      if(snapAge < 86400000){ // session less than 24 hours old
+        const dbAge = existing?.savedAt
+          ? Date.now() - new Date(existing.savedAt).getTime() : Infinity;
+        if(snapAge < dbAge){
+          unlockForm();
+          document.getElementById('rpt-date').value = date;
+          _restoreFormFromSnap(snap);
+          toast('✅ Your work was restored after the page refreshed!');
+          return;
+        }
       }
     }
   }
+
   // Fall back to Supabase draft
   if(existing && !existing.approved){
     unlockForm();
@@ -5811,7 +5995,8 @@ function _onLoadRestoreDate(date){
     calcDayPts();
     return;
   }
-  // Fresh day
+
+  // Fresh day — no data anywhere
   toast('☁️ Data loaded from cloud!');
 }
 
@@ -5822,9 +6007,10 @@ let _suppressSession = false; // set true during silentClearDay to avoid saving 
 function _sessionWireInputs(){
   const save = (delay) => {
     if(_suppressSession) return;
+    if(!dbReady) return; // never save session before Supabase has loaded
     if(_sesTimer) clearTimeout(_sesTimer);
     _sesTimer = setTimeout(() => {
-      if(_suppressSession) return;
+      if(_suppressSession || !dbReady) return;
       const date = document.getElementById('rpt-date')?.value;
       if(date && !todayApproved) _sessionSaveForDate(date);
     }, delay || 2000);
@@ -5841,6 +6027,7 @@ let _autoSaveTimer = null;
 function _sessionStartAutoSave(){
   if(_autoSaveTimer) clearInterval(_autoSaveTimer);
   _autoSaveTimer = setInterval(async () => {
+    if(!dbReady) return; // never auto-save before Supabase data is loaded
     const date = document.getElementById('rpt-date')?.value;
     if(!date || todayApproved) return;
     // Only auto-save if on Daily Report tab and has meaningful content
