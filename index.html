@@ -3005,7 +3005,12 @@ function collectFormData(date, pts){
   return {
     date, pts,
     shlokaD:shD, creativeD:crD, brainD:brD, odda:odD,
-    approved:false,
+    // CRITICAL: read approved status from savedDays — never hardcode false
+    // This prevents auto-save from overwriting an approved report back to pending
+    approved: (()=>{
+      const existing = savedDays.find(d => d.date === date);
+      return existing ? (existing.approved === true) : false;
+    })(),
 
     parentComment:document.getElementById('parent-comment')?.value||'',
     parentRating:parseInt(document.getElementById('parent-rating')?.value||0),
