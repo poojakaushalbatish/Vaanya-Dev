@@ -1297,202 +1297,229 @@ tr:hover td{background:#FAFBFF}
 ═══════════════════════════════════════ -->
 <div class="tab" id="tab-geeta">
 
-<!-- AURORA HEADER BANNER -->
-<div style="background:linear-gradient(135deg,#ECFDF5,#EFF6FF,#F0FDF4,#ECFEFF);
-  background-size:300% 300%;animation:auroraShift 8s ease infinite;
-  border-radius:18px;border:2px solid #6EE7B7;padding:14px 18px;
-  margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+<!-- ══ HEADER ══ -->
+<div style="background:linear-gradient(135deg,#ECFDF5,#EFF6FF);border-radius:18px;
+  border:2px solid #6EE7B7;padding:14px 18px;margin-bottom:12px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
   box-shadow:0 4px 24px rgba(16,185,129,.1)">
-  <div style="width:48px;height:48px;border-radius:50%;
+  <div style="width:50px;height:50px;border-radius:50%;flex-shrink:0;
     background:linear-gradient(135deg,#10B981,#3B82F6,#8B5CF6);
-    display:flex;align-items:center;justify-content:center;font-size:24px;
-    box-shadow:0 4px 16px rgba(16,185,129,.4);animation:avSpin 6s linear infinite;flex-shrink:0">🕉️</div>
+    display:flex;align-items:center;justify-content:center;font-size:26px;
+    box-shadow:0 4px 16px rgba(16,185,129,.4)">🕉️</div>
   <div style="flex:1">
     <div style="font-size:18px;font-weight:900;color:#064E3B">🪷 Geeta — Soul Work</div>
     <div style="font-size:11px;color:#0F766E;font-weight:700;margin-top:2px">
-      Learn · Reflect · Recite to Mamma &amp; Papa · Earn 25 pts
+      30 Shlokas · 7 Life Lessons · Learn · Reflect · Earn pts 🌟
     </div>
-    <div style="margin-top:6px;background:rgba(16,185,129,.12);border-radius:6px;height:5px;
-      overflow:hidden;border:1px solid rgba(16,185,129,.2)">
-      <div style="height:100%;width:65%;background:linear-gradient(90deg,#10B981,#3B82F6,#8B5CF6);
-        border-radius:6px;animation:xpGlowA 2s ease-in-out infinite"></div>
+    <div style="margin-top:7px;background:rgba(16,185,129,.12);border-radius:6px;
+      height:6px;overflow:hidden;border:1px solid rgba(16,185,129,.2)">
+      <div id="geeta-master-bar" style="height:100%;width:0%;
+        background:linear-gradient(90deg,#10B981,#3B82F6,#8B5CF6);border-radius:6px;
+        transition:width .8s ease"></div>
+    </div>
+    <div id="geeta-master-lbl" style="font-size:10px;color:#0F766E;font-weight:800;margin-top:3px">
+      0 / 30 shlokas mastered
     </div>
   </div>
-  <!-- dot indicators -->
-  <div style="display:flex;gap:6px;align-items:center">
-    <div id="gdot-1" style="width:9px;height:9px;border-radius:50%;
-      background:linear-gradient(135deg,#10B981,#3B82F6);
-      box-shadow:0 0 6px rgba(16,185,129,.6);transition:all .4s"></div>
-    <div id="gdot-2" style="width:9px;height:9px;border-radius:50%;background:#A7F3D0;transition:all .4s"></div>
-    <div id="gdot-3" style="width:9px;height:9px;border-radius:50%;background:#A7F3D0;transition:all .4s"></div>
-    <div id="gdot-4" style="width:9px;height:9px;border-radius:50%;background:#A7F3D0;transition:all .4s"></div>
-  </div>
-  <div style="background:linear-gradient(135deg,#10B981,#3B82F6);color:#fff;
-    border-radius:12px;padding:7px 14px;text-align:center;
-    box-shadow:0 3px 10px rgba(16,185,129,.4)">
-    <div style="font-size:20px;font-weight:900;line-height:1">25</div>
-    <div style="font-size:8px;font-weight:800;opacity:.9">PTS</div>
+  <div style="text-align:center;background:linear-gradient(135deg,#065F46,#10B981);
+    border-radius:14px;padding:8px 16px;box-shadow:0 3px 12px rgba(16,185,129,.4)">
+    <div id="geeta-pts-badge" style="font-size:22px;font-weight:900;color:#fff;line-height:1">0</div>
+    <div style="font-size:9px;color:rgba(255,255,255,.85);font-weight:800;letter-spacing:.05em">GEETA PTS</div>
   </div>
 </div>
 
-<!-- MAIN LAYOUT: narrow image column (1/3) + wide shloka column (2/3) -->
-<div style="display:grid;grid-template-columns:1fr 2fr;gap:14px;align-items:start">
-
-  <!-- ══ LEFT: IMAGE COLUMN ══ -->
-  <div style="border-radius:18px;border:2px solid #6EE7B7;overflow:hidden;
-    box-shadow:0 4px 20px rgba(16,185,129,.12);position:sticky;top:12px;
-    background:#ECFDF5">
-
-    <!-- Stacked image viewer — height matches content on right naturally -->
-    <div id="gimg-wrap" style="position:relative;overflow:hidden;
-      background:linear-gradient(135deg,#ECFDF5,#D1FAE5);min-height:180px">
-
-      <img id="gimg-1"
-        src="https://poojakaushalbatish.github.io/Vaanya-Daily-Star/Krishna_1.PNG"
-        style="display:block;width:100%;height:auto;object-fit:cover;
-          position:relative;z-index:2;transition:opacity 1.5s ease;opacity:1"
-        onerror="this.style.opacity=0;document.getElementById('gimg-aurora-fallback').style.display='flex'">
-      <img id="gimg-2"
-        src="https://poojakaushalbatish.github.io/Vaanya-Daily-Star/Krishna_2.PNG"
-        style="display:block;width:100%;height:auto;object-fit:cover;
-          position:absolute;inset:0;z-index:1;transition:opacity 1.5s ease;opacity:0"
-        onerror="this.style.display='none'">
-      <img id="gimg-3"
-        src="https://poojakaushalbatish.github.io/Vaanya-Daily-Star/Krishna_3.PNG"
-        style="display:block;width:100%;height:auto;object-fit:cover;
-          position:absolute;inset:0;z-index:1;transition:opacity 1.5s ease;opacity:0"
-        onerror="this.style.display='none'">
-      <img id="gimg-4"
-        src="https://poojakaushalbatish.github.io/Vaanya-Daily-Star/Krishna_4.PNG"
-        style="display:block;width:100%;height:auto;object-fit:cover;
-          position:absolute;inset:0;z-index:1;transition:opacity 1.5s ease;opacity:0"
-        onerror="this.style.display='none'">
-
-      <!-- Aurora fallback when images cant load (local file:// only) -->
-      <div id="gimg-aurora-fallback" style="display:none;position:absolute;inset:0;
-        background:linear-gradient(135deg,#ECFDF5,#EFF6FF,#F0FDF4);
-        align-items:center;justify-content:center;flex-direction:column;gap:10px;
-        min-height:180px;z-index:5">
-        <div style="font-size:48px;animation:qFloat 3s ease-in-out infinite">🕉️</div>
-        <div style="font-size:12px;font-weight:800;color:#065F46;text-align:center;padding:0 16px">
-          Images load on<br>GitHub Pages 🌐
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Caption bar -->
-    <div style="padding:10px 14px;background:linear-gradient(135deg,#ECFDF5,#EFF6FF);
-      border-top:1.5px solid #A7F3D0;text-align:center">
-      <div style="font-size:12px;font-weight:900;color:#065F46;animation:qFloat 3s ease-in-out infinite">
-        🕉️ श्रीमद्भगवद्गीता
-      </div>
+<!-- ══ DAILY ENCOURAGEMENT BANNER ══ -->
+<div id="geeta-daily-nudge" style="background:linear-gradient(135deg,#78350F,#92400E,#B45309);
+  border-radius:14px;padding:11px 16px;margin-bottom:12px;
+  display:flex;align-items:center;gap:12px;cursor:pointer"
+  onclick="document.getElementById('shloka-browse-grid').scrollIntoView({behavior:'smooth'})">
+  <div style="font-size:24px">📖</div>
+  <div style="flex:1">
+    <div style="font-size:12px;font-weight:900;color:#FEF3C7">Today's Challenge — Learn a new shloka!</div>
+    <div id="geeta-nudge-sub" style="font-size:10px;color:rgba(254,243,199,.8);margin-top:2px">
+      Tap to browse · Earn 10 pts when learning · 25 pts when Mamma/Papa approve ✅
     </div>
   </div>
+  <div style="font-size:20px;color:#FEF3C7">→</div>
+</div>
 
-  <!-- ══ RIGHT: SHLOKA + REFLECTION (2/3 width) ══ -->
+<!-- ══ SCENE CARD — collapsible, context-aware ══ -->
+<div id="geeta-scene-card" style="background:#fff;border-radius:16px;border:2px solid #FDE68A;
+  overflow:hidden;box-shadow:0 4px 16px rgba(245,158,11,.1);margin-bottom:12px">
+  <div onclick="toggleGeetaScene()" style="background:linear-gradient(135deg,#78350F,#92400E);
+    padding:11px 16px;display:flex;align-items:center;gap:10px;cursor:pointer">
+    <div style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.18);
+      display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🏹</div>
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:900;color:#FEF3C7">📍 The Story of Kurukshetra</div>
+      <div style="font-size:10px;color:rgba(254,243,199,.75);margin-top:1px">
+        Tap to read · Changes as you explore different chapters
+      </div>
+    </div>
+    <div id="geeta-scene-arrow" style="font-size:16px;color:#FEF3C7;transition:transform .3s">▼</div>
+  </div>
+  <div id="geeta-scene-body" style="display:none;padding:16px 18px;
+    font-size:13px;line-height:1.85;color:#374151">
+    <div id="geeta-scene-text"></div>
+  </div>
+</div>
+
+<!-- ══ MAIN GRID ══ -->
+<div style="display:grid;grid-template-columns:200px 1fr;gap:12px;align-items:start"
+  id="geeta-main-grid">
+
+  <!-- LEFT: Krishna images + filters + mastered -->
   <div>
-
-    <!-- Shloka card -->
-    <div style="background:#fff;border-radius:18px;border:2px solid #6EE7B7;
-      overflow:hidden;box-shadow:0 4px 24px rgba(16,185,129,.1);margin-bottom:12px">
-      <div style="background:linear-gradient(135deg,#065F46,#047857);
-        padding:13px 18px;display:flex;align-items:center;gap:10px">
-        <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.18);
-          border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;
-          justify-content:center;font-size:16px;flex-shrink:0">🕉️</div>
-        <div style="flex:1">
-          <div style="font-size:14px;font-weight:900;color:#fff">Today's Geeta Shloka</div>
-          <div style="font-size:10px;color:rgba(167,243,208,.9);font-weight:700;margin-top:1px">
-            Learn it · Know it · Recite to Mamma &amp; Papa for 25 pts!
-          </div>
-        </div>
-        <div id="shloka-day-badge"
-          style="background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.3);
-            border-radius:10px;color:#fff;padding:5px 12px;font-size:11px;font-weight:800;
-            font-family:'Nunito',sans-serif;text-align:center;min-width:60px"></div>
-      </div>
-      <div id="shloka-display" style="padding:18px 20px 14px"></div>
-    </div>
-
-    <!-- Reflection card -->
-    <div style="background:#fff;border-radius:18px;border:2px solid #A7F3D0;
-      overflow:hidden;box-shadow:0 4px 16px rgba(16,185,129,.08)">
-      <div style="background:linear-gradient(135deg,#ECFDF5,#EFF6FF);
-        padding:12px 18px;border-bottom:1.5px solid #A7F3D0">
-        <div style="font-size:13px;font-weight:900;color:#065F46">💭 My Reflection</div>
-        <div style="font-size:11px;color:#0F766E;font-weight:700;margin-top:2px">
-          How will I use this shloka in my daily life?
+    <!-- Krishna images -->
+    <div style="border-radius:16px;border:2px solid #6EE7B7;overflow:hidden;
+      margin-bottom:10px;background:#ECFDF5">
+      <div id="gimg-wrap" style="position:relative;background:linear-gradient(135deg,#ECFDF5,#D1FAE5);min-height:160px">
+        <img id="gimg-1" src="https://poojakaushalbatish.github.io/Vaanya-Daily-Star/Krishna_1.PNG"
+          style="width:100%;display:block;position:relative;z-index:2;opacity:1;transition:opacity 1.4s ease"
+          onerror="this.style.opacity=0;document.getElementById('gimg-fallback').style.display='flex'">
+        <img id="gimg-2" src="https://poojakaushalbatish.github.io/Vaanya-Daily-Star/Krishna_2.PNG"
+          style="width:100%;display:block;position:absolute;inset:0;z-index:1;opacity:0;transition:opacity 1.4s ease" onerror="this.style.display='none'">
+        <img id="gimg-3" src="https://poojakaushalbatish.github.io/Vaanya-Daily-Star/Krishna_3.PNG"
+          style="width:100%;display:block;position:absolute;inset:0;z-index:1;opacity:0;transition:opacity 1.4s ease" onerror="this.style.display='none'">
+        <img id="gimg-4" src="https://poojakaushalbatish.github.io/Vaanya-Daily-Star/Krishna_4.PNG"
+          style="width:100%;display:block;position:absolute;inset:0;z-index:1;opacity:0;transition:opacity 1.4s ease" onerror="this.style.display='none'">
+        <div id="gimg-fallback" style="display:none;position:absolute;inset:0;
+          align-items:center;justify-content:center;flex-direction:column;gap:8px;min-height:160px">
+          <div style="font-size:40px">🕉️</div>
+          <div style="font-size:10px;color:#065F46;font-weight:800;text-align:center">Images on GitHub Pages</div>
         </div>
       </div>
-      <div style="padding:14px 18px">
-        <textarea id="shloka-reflect"
-          style="width:100%;background:#F0FDF4;border:1.5px solid #A7F3D0;border-radius:12px;
-            padding:12px 14px;color:#064E3B;font-size:13px;font-family:'Nunito',sans-serif;
-            resize:none;min-height:120px;line-height:1.8"
-          placeholder="Write how you understand this shloka and how you will apply it in your daily life..."></textarea>
+      <div style="display:flex;gap:5px;justify-content:center;padding:7px;
+        background:linear-gradient(135deg,#ECFDF5,#EFF6FF)">
+        <div id="gdot-1" style="width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#10B981,#3B82F6);transition:all .4s"></div>
+        <div id="gdot-2" style="width:8px;height:8px;border-radius:50%;background:#A7F3D0;transition:all .4s"></div>
+        <div id="gdot-3" style="width:8px;height:8px;border-radius:50%;background:#A7F3D0;transition:all .4s"></div>
+        <div id="gdot-4" style="width:8px;height:8px;border-radius:50%;background:#A7F3D0;transition:all .4s"></div>
       </div>
     </div>
 
-  </div><!-- end right -->
-</div><!-- end grid -->
+    <!-- Group filters -->
+    <div style="background:#fff;border-radius:12px;border:1.5px solid #E5E7EB;
+      padding:10px;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:900;color:#9CA3AF;text-transform:uppercase;
+        letter-spacing:.07em;margin-bottom:7px">Life Lessons</div>
+      <div id="geeta-group-filters" style="display:flex;flex-direction:column;gap:4px">
+        <button onclick="filterGeetaGroup(null,this)"
+          style="text-align:left;padding:5px 8px;border-radius:7px;border:1.5px solid #10B981;
+            background:#ECFDF5;font-size:10px;font-weight:800;color:#065F46;cursor:pointer;width:100%">
+          🕉️ All 30 Shlokas
+        </button>
+      </div>
+    </div>
 
-<!-- PAST SHLOKAS SECTION -->
-<div style="background:#fff;border-radius:18px;border:2px solid #C4B5FD;
-  overflow:hidden;box-shadow:0 4px 16px rgba(139,92,246,.08);margin-top:14px">
-  <div style="background:linear-gradient(135deg,#EDE9FE,#F0FDF4);
-    padding:12px 18px;border-bottom:1.5px solid #C4B5FD;display:flex;align-items:center;gap:10px">
-    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#6D28D9);
-      display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">📖</div>
-    <div>
-      <div style="font-size:13px;font-weight:900;color:#4C1D95">📚 Shlokas I Have Learnt Before</div>
-      <div style="font-size:11px;color:#6D28D9;font-weight:700;margin-top:1px">
-        Write any past shloka you remember — with its meaning in your own words
+    <!-- Mastered list -->
+    <div style="background:#fff;border-radius:12px;border:1.5px solid #C4B5FD;overflow:hidden">
+      <div onclick="toggleMasteredList()"
+        style="background:linear-gradient(135deg,#4C1D95,#7C3AED);padding:9px 12px;
+          cursor:pointer;display:flex;align-items:center;gap:6px">
+        <div style="flex:1;font-size:11px;font-weight:900;color:#fff">🏆 Mastered</div>
+        <div id="mastered-count-badge" style="background:rgba(255,255,255,.2);border-radius:50px;
+          padding:2px 8px;font-size:10px;font-weight:900;color:#fff">0/30</div>
+        <div id="mastered-arrow" style="font-size:12px;color:#fff;transition:transform .3s">▼</div>
+      </div>
+      <div id="mastered-list-body" style="display:none;max-height:260px;overflow-y:auto">
+        <div id="mastered-list-inner" style="padding:8px"></div>
       </div>
     </div>
   </div>
-  <div style="padding:14px 18px">
-    <textarea id="past-shlokas"
-      style="width:100%;background:#F5F3FF;border:1.5px solid #C4B5FD;border-radius:12px;
-        padding:12px 14px;color:#3B0764;font-size:13px;font-family:'Nunito',sans-serif;
-        resize:vertical;min-height:130px;line-height:1.8"
-      placeholder="e.g.&#10;कर्मण्येवाधिकारस्ते मा फलेषु कदाचन — Do your duty without worrying about the result. (Chapter 2, Verse 47)&#10;&#10;योगः कर्मसु कौशलम् — Excellence in action is yoga. (Chapter 2, Verse 50)&#10;&#10;Write as many as you remember! 🌸"
-      oninput="calcDayPts();checkGeetaSaveReady()"></textarea>
-    <div style="margin-top:6px;font-size:11px;font-weight:700;color:#6D28D9;opacity:.7">
-      💡 Tip: Write the shloka, then its meaning in simple words. One shloka per line is easiest to read!
+
+  <!-- RIGHT: Browse grid -->
+  <div>
+    <div style="display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:9px;flex-wrap:wrap;gap:6px">
+      <div style="font-size:14px;font-weight:900;color:#064E3B">Browse Shlokas</div>
+      <div id="geeta-filter-lbl" style="font-size:11px;color:#6B7280;font-weight:700">All 30</div>
     </div>
-    <div id="past-shlokas-required" style="margin-top:6px;font-size:12px;font-weight:800;color:#B91C1C;display:flex;align-items:center;gap:5px">
-      ⚠️ This field is mandatory — write at least one past shloka to unlock Save!
-    </div>
+    <div id="shloka-browse-grid"></div>
   </div>
 </div>
 
-<!-- Mobile responsive -->
-<style>
-@media(max-width:650px){
-  #tab-geeta > div:nth-child(2){grid-template-columns:1fr !important}
-  #tab-geeta > div:nth-child(2) > div:first-child{position:static !important}
-}
-</style>
+<!-- ══ TODAY'S REFLECTION ══ -->
+<div style="margin-top:14px">
+  <div style="font-size:14px;font-weight:900;color:#064E3B;margin-bottom:10px">
+    📖 Today's Shloka Reflection
+  </div>
 
-<!-- hidden compat IDs -->
+  <div style="background:#fff;border-radius:16px;border:2px solid #A7F3D0;
+    overflow:hidden;margin-bottom:10px;box-shadow:0 4px 14px rgba(16,185,129,.07)">
+    <div style="background:linear-gradient(135deg,#ECFDF5,#EFF6FF);padding:11px 16px;
+      border-bottom:1.5px solid #A7F3D0">
+      <div style="font-size:13px;font-weight:900;color:#065F46">💭 My Reflection</div>
+      <div style="font-size:11px;color:#0F766E;font-weight:700;margin-top:1px">
+        Which shloka are you studying today? How will you use its lesson in your life?
+      </div>
+    </div>
+    <div style="padding:12px 16px">
+      <textarea id="shloka-reflect" rows="4"
+        style="width:100%;background:#F0FDF4;border:1.5px solid #A7F3D0;border-radius:10px;
+          padding:11px 13px;color:#064E3B;font-size:13px;font-family:'Nunito',sans-serif;
+          resize:none;line-height:1.8;box-sizing:border-box"
+        placeholder="Write the shloka you are learning today and how you will apply it in your life..."
+        oninput="calcDayPts();checkGeetaSaveReady()"></textarea>
+    </div>
+  </div>
+
+  <div style="background:#fff;border-radius:16px;border:2px solid #C4B5FD;
+    overflow:hidden;margin-bottom:12px;box-shadow:0 4px 14px rgba(139,92,246,.07)">
+    <div style="background:linear-gradient(135deg,#EDE9FE,#F0FDF4);padding:11px 16px;
+      border-bottom:1.5px solid #C4B5FD">
+      <div style="font-size:13px;font-weight:900;color:#4C1D95">📚 Shlokas I Remember</div>
+    </div>
+    <div style="padding:12px 16px">
+      <textarea id="past-shlokas" rows="3"
+        style="width:100%;background:#F5F3FF;border:1.5px solid #C4B5FD;border-radius:10px;
+          padding:11px 13px;color:#3B0764;font-size:13px;font-family:'Nunito',sans-serif;
+          resize:vertical;line-height:1.8;box-sizing:border-box"
+        placeholder="Write any past shloka you remember with its meaning..."
+        oninput="calcDayPts();checkGeetaSaveReady()"></textarea>
+      <div id="past-shlokas-required" style="margin-top:5px;font-size:11px;font-weight:800;
+        color:#B91C1C">⚠️ Write at least one past shloka to unlock Save!</div>
+    </div>
+  </div>
+
+  <div style="text-align:center">
+    <button id="geeta-save-btn" onclick="saveGeetaDraft()" disabled
+      style="background:linear-gradient(135deg,#9CA3AF,#6B7280);color:#fff;border:none;
+        border-radius:12px;padding:13px 36px;font-size:14px;font-weight:900;cursor:not-allowed;
+        font-family:'Nunito',sans-serif;opacity:.5;transition:all .3s">
+      💾 Save My Shloka Work
+    </button>
+    <div id="geeta-save-msg" style="margin-top:7px;font-size:12px;font-weight:700;
+      color:#10B981;min-height:18px"></div>
+  </div>
+</div>
+
+<!-- Shloka detail overlay -->
+<div id="shloka-overlay" style="display:none;position:fixed;inset:0;z-index:9500;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(4px);overflow-y:auto;-webkit-overflow-scrolling:touch"
+  onclick="closeShloka(event)">
+  <div id="shloka-overlay-inner" style="margin:16px auto;max-width:720px;width:95%;
+    background:#fff;border-radius:22px;overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative"
+    onclick="event.stopPropagation()">
+    <button onclick="closeShloka(null,true)"
+      style="position:absolute;right:14px;top:14px;z-index:10;width:34px;height:34px;
+        border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(0,0,0,.35);
+        color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+    <div id="shloka-overlay-content"></div>
+  </div>
+</div>
+
+<!-- Hidden compat fields -->
 <div id="shloka-done" style="display:none"></div>
 <div id="shloka-understood" style="display:none"></div>
 <textarea id="shloka-write" style="display:none"></textarea>
 
-<!-- SAVE BUTTON -->
-<div style="margin-top:14px;text-align:center">
-  <button id="geeta-save-btn" onclick="saveGeetaDraft()" disabled
-    style="background:linear-gradient(135deg,#9CA3AF,#6B7280);color:#fff;border:none;
-      border-radius:14px;padding:14px 40px;font-size:15px;font-weight:900;cursor:not-allowed;
-      font-family:'Nunito',sans-serif;box-shadow:none;
-      letter-spacing:.03em;transition:all .3s;opacity:.5">
-    💾 Save My Shloka Work
-  </button>
-  <div id="geeta-save-msg" style="margin-top:8px;font-size:12px;font-weight:700;
-    color:#10B981;min-height:20px"></div>
-</div>
-
+<style>
+@media(max-width:640px){
+  #geeta-main-grid{grid-template-columns:1fr!important}
+}
+</style>
 </div><!-- end tab-geeta -->
 
 <!-- ═══════════════════════════════════════
@@ -1644,6 +1671,19 @@ tr:hover td{background:#FAFBFF}
   <div style="margin-bottom:8px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#065F46">
     💭 How she will apply this shloka in her life:
   </div>
+    <!-- Shloka Mastery Approval -->
+    <div style="background:#fff;border-radius:16px;border:2px solid #FCD34D;overflow:hidden;margin-bottom:14px">
+      <div style="background:linear-gradient(135deg,#78350F,#92400E);padding:10px 16px;display:flex;align-items:center;gap:8px">
+        <div style="font-size:18px">🕉️</div>
+        <div>
+          <div style="font-size:13px;font-weight:900;color:#fff">Shloka Mastery Approval</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.8)">Ask Vaanya to recite · Approve if correct · 25 pts awarded</div>
+        </div>
+      </div>
+      <div id="parent-shloka-approval-section" style="padding:12px 16px">
+        <div style="font-size:12px;color:#9CA3AF;text-align:center;padding:12px">No shlokas awaiting approval right now.</div>
+      </div>
+    </div>
   <div id="parent-shloka-reflect"
     style="background:#F0FDF4;border:1.5px solid #A7F3D0;border-radius:12px;
       padding:12px 16px;font-size:13px;color:#064E3B;font-weight:600;line-height:1.7;
@@ -2153,29 +2193,9 @@ const EARN_GUIDE=[
   ['10-day streak bonus','120 pts','Keep the streak alive!'],
 ];
 
-const SHLOKAS=[
-  {text:'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन ।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ॥',
-   meaning:'You have the right to perform your duties, but not to the fruits of your actions. Do every action fully — let go of worrying about the result.',
-   chapter:'Chapter 2, Verse 47',transliteration:'Karmanyeva adhikaras te, ma phaleshu kadachan...'},
-  {text:'योगः कर्मसु कौशलम् ।',
-   meaning:'Yoga (excellence) is skill in performing actions. Do every task with your full skill and attention — that is yoga in daily life.',
-   chapter:'Chapter 2, Verse 50',transliteration:'Yogah karmasu kaushalam'},
-  {text:'श्रद्धावान् लभते ज्ञानम् ।',
-   meaning:'One who has faith and devotion gains knowledge. Believe in yourself and your efforts — knowledge comes to those who trust the process.',
-   chapter:'Chapter 4, Verse 39',transliteration:'Shraddhaavan labhate jnaanam'},
-  {text:'उद्धरेदात्मनाऽऽत्मानं नात्मानमवसादयेत् ।',
-   meaning:'Lift yourself up by your own efforts — do not let yourself fall. You are your own best friend — believe in yourself!',
-   chapter:'Chapter 6, Verse 5',transliteration:'Uddhareda atmana atmanam...'},
-  {text:'युक्ताहारविहारस्य युक्तचेष्टस्य कर्मसु ।\nयुक्तस्वप्नावबोधस्य योगो भवति दुःखहा ॥',
-   meaning:'For one who eats, plays, works and sleeps in balance — yoga (inner peace) destroys all sorrow. Balance in everything is the key to a happy life.',
-   chapter:'Chapter 6, Verse 17',transliteration:'Yukta ahara viharasya...'},
-  {text:'नैनं छिन्दन्ति शस्त्राणि नैनं दहति पावकः ।',
-   meaning:'The soul cannot be cut by weapons, nor burned by fire. Your true self — your inner strength — can never be destroyed. Be fearless!',
-   chapter:'Chapter 2, Verse 23',transliteration:'Nainam chindanti shastrani...'},
-  {text:'सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज ।',
-   meaning:'Leave all other worries aside and focus on Me alone. Give your full heart to your most important duties — studies, health, family.',
-   chapter:'Chapter 18, Verse 66',transliteration:'Sarva dharman parityajya, mam ekam sharanam vraja'},
-];
+const GITA_GROUPS = JSON.parse('[{"id": "g1", "icon": "🧭", "color": "#7C3AED", "light": "#F5F3FF", "border": "#C4B5FD", "name": "Who Am I?", "chapters": "Ch 1–2", "desc": "The soul, duty and Arjuna\'s crisis"}, {"id": "g2", "icon": "⚡", "color": "#D97706", "light": "#FFFBEB", "border": "#FCD34D", "name": "How Should I Act?", "chapters": "Ch 3–4", "desc": "Karma Yoga — action without selfishness"}, {"id": "g3", "icon": "🧘", "color": "#0891B2", "light": "#ECFEFF", "border": "#67E8F9", "name": "How Should I Think?", "chapters": "Ch 5–6", "desc": "Self-control, balance and a steady mind"}, {"id": "g4", "icon": "💛", "color": "#059669", "light": "#ECFDF5", "border": "#6EE7B7", "name": "How Should I Love?", "chapters": "Ch 7–9", "desc": "Devotion, trust and surrender to God"}, {"id": "g5", "icon": "🔍", "color": "#DC2626", "light": "#FEF2F2", "border": "#FCA5A5", "name": "What Is Real?", "chapters": "Ch 10–11", "desc": "God\'s glory and the cosmic vision"}, {"id": "g6", "icon": "🌳", "color": "#065F46", "light": "#ECFDF5", "border": "#6EE7B7", "name": "What Kind of Person?", "chapters": "Ch 12–16", "desc": "Character, virtues and divine qualities"}, {"id": "g7", "icon": "🎯", "color": "#1D4ED8", "light": "#EFF6FF", "border": "#93C5FD", "name": "The Final Answer", "chapters": "Ch 17–18", "desc": "Faith, discipline and the ultimate truth"}]');
+const GITA_CHAPTER_SCENE = JSON.parse('["<b>📍 Kurukshetra, 5,000 years ago.</b><br><br>Two massive armies face each other. Thousands of warriors, elephants, horses and chariots stretch as far as the eye can see. The air shakes with war drums and conch shells.<br><br>Arjuna — the greatest archer alive — stands in his chariot. His charioteer is Lord Krishna himself, his closest friend.<br><br>Arjuna asks Krishna to drive between the armies so he can see who he must fight. And then he sees them — his teacher Dronacharya, his grandfather Bhishma, his cousins. People he loved his whole life.<br><br><i>\'How can I fight these people, Krishna?\'</i><br><br>His bow Gandiva slips from his fingers. He collapses in his chariot, trembling and weeping. The world\'s greatest warrior has given up.<br><br>And it is at this moment that God begins to speak. 🕉️", "<b>📍 The battlefield. Arjuna has stopped crying.</b><br><br>Krishna has explained the soul — it is eternal, it cannot be destroyed. Arjuna listens, but a new question burns in his mind:<br><br><i>\'Krishna, you say knowledge is great. But what exactly should I DO?\'</i><br><br>This question unlocks the most practical teaching in the Gita — Karma Yoga. How to work without selfishness. How to do your duty because it is RIGHT, not for reward.", "<b>📍 The sun is still. The armies wait.</b><br><br><i>\'Krishna, if the mind is so powerful — how do I control it? It jumps like a monkey! Show me the mind of a wise person.\'</i><br><br>Krishna smiles. This is the question he has been waiting for. A person who controls their own mind can conquer anything — any exam, any fear, any challenge in life.", "<b>📍 Arjuna is calm. He begins to understand.</b><br><br><i>\'But Krishna — who exactly ARE you? I call you my friend, but I feel there is something more...\'</i><br><br>This question opens the most beautiful chapters of the Gita — where Krishna reveals he is in every flower, every river, every flash of lightning. Chapter 7, 8 and 9 are love letters from God to every human soul.", "<b>📍 Arjuna asks for proof.</b><br><br><i>\'Krishna, you say you are in everything. Show me. I want to SEE it.\'</i><br><br>What happens next is the most awe-inspiring moment in all of literature. Krishna reveals his Vishwaroop — his Universal Form. Arjuna sees the entire universe — suns, stars, all beings, time itself — within one blazing divine presence. He trembles and begs Krishna to return to his gentle human form.", "<b>📍 The battle is close. Krishna speaks of character.</b><br><br><i>\'Krishna, what makes a person truly GOOD? What is the difference between divine and evil qualities?\'</i><br><br>Chapters 12–16 are Krishna\'s complete answer: a description of the kind of person God loves most. Fearlessness, kindness, honesty, self-control, compassion — not rules, but descriptions of a free soul.", "<b>📍 The final moments before battle. Arjuna\'s last question.</b><br><br><i>\'Krishna, if there is ONE final truth — what is it?\'</i><br><br>Chapter 18 is Krishna\'s last answer. Not a lecture — a farewell from a teacher to his student. The last verse is the most famous ending of any scripture in the world. This is where YOUR journey begins. 🕉️"]');
+const SHLOKAS = JSON.parse('[{"id": "s1", "group": "g1", "chapter": "Chapter 1, Verse 47", "chapterName": "Arjuna Vishada Yoga", "chapterMeaning": "The Yoga of Arjuna\'s Grief", "sanskrit": "सञ्जय उवाच |\nएवमुक्त्वार्जुनः संख्ये रथोपस्थ उपाविशत् |\nविसृज्य सशरं चापं शोकसंविग्नमानसः ||", "transliteration": "sañjaya uvāca\nevam uktvā arjunaḥ saṅkhye · rathopastha upāviśat\nvisṛjya sa-śaraṁ cāpaṁ · śoka-saṁvigna-mānasaḥ", "wordMeaning": [{"w": "evam uktvā", "m": "having said thus"}, {"w": "arjunaḥ", "m": "Arjuna"}, {"w": "saṅkhye", "m": "on the battlefield"}, {"w": "rathopasthe", "m": "on the seat of the chariot"}, {"w": "upāviśat", "m": "sat down"}, {"w": "visṛjya", "m": "casting aside"}, {"w": "sa-śaraṁ cāpam", "m": "the bow and arrows"}, {"w": "śoka-saṁvigna-mānasaḥ", "m": "mind overwhelmed by grief"}], "meaning": "Having spoken thus on the battlefield, Arjuna cast aside his bow and arrows and sat down, his mind overwhelmed by grief.", "moment": "Arjuna looked across and saw his beloved grandfather Bhishma Pitamah, his teacher Dronacharya, and hundreds of cousins and friends — all on the opposite side. He had spent his whole life loving these people. His famous bow Gandiva slipped from his fingers. The world\'s greatest warrior wept.", "krishnaSays": "This verse is spoken by Sanjaya — the narrator. It is the moment everything begins. A hero\'s breakdown. Before you can find courage, you must first be honest about your fear. God does not speak to people who pretend to be fine. He speaks to people who are broken open and real.", "story": "<b>🌟 The Day the Captain Cried</b><br><br>In the 2011 Cricket World Cup final, India needed 274 runs to win. The pressure was immense. When the second wicket fell for just 31 runs, the entire nation held its breath. In the dressing room, some players were visibly shaking.<br><br>And then MS Dhoni — the unshakeable captain — walked out to bat. What nobody knew was that he had been quietly terrified backstage. He had not slept the previous night.<br><br>He admitted this years later: \'I was scared. Genuinely scared. But I walked out anyway.\'<br><br>He hit 91 not out and won India the World Cup.<br><br><i>The Gita does not begin with a fearless hero. It begins with the world\'s greatest warrior sitting down and crying. Because only when we admit our fear completely — can wisdom enter. Only when we are broken open — can something greater fill us.</i>", "lesson": "It is okay to feel scared or overwhelmed. Admitting it honestly is the first step to becoming stronger.", "lifeConnect": "The next time you feel like giving up — before a performance, an exam, something hard — remember that even the greatest archer in history cried first. And then he got up."}, {"id": "s2", "group": "g1", "chapter": "Chapter 2, Verse 11", "chapterName": "Sankhya Yoga", "chapterMeaning": "The Yoga of Knowledge", "sanskrit": "श्रीभगवानुवाच |\nअशोच्यानन्वशोचस्त्वं प्रज्ञावादांश्च भाषसे |\nगतासूनगतासूंश्च नानुशोचन्ति पण्डिताः ||", "transliteration": "śrī-bhagavān uvāca\naśocyān anvaśocas tvaṁ · prajñā-vādāṁś ca bhāṣase\ngatāsūn agatāsūṁś ca · nānuśocanti paṇḍitāḥ", "wordMeaning": [{"w": "aśocyān", "m": "those not worthy of grief"}, {"w": "anvaśocas tvaṁ", "m": "you grieve for them"}, {"w": "prajñā-vādān", "m": "words of wisdom"}, {"w": "bhāṣase", "m": "you speak"}, {"w": "gatāsūn", "m": "those who have departed"}, {"w": "agatāsūn", "m": "those still living"}, {"w": "nānuśocanti", "m": "do not grieve"}, {"w": "paṇḍitāḥ", "m": "the wise"}], "meaning": "You speak wise-sounding words yet grieve for those who should not be grieved for. The truly wise do not mourn either the living or the dead.", "moment": "Arjuna had been crying and giving all kinds of clever-sounding reasons why he should not fight. Krishna listened patiently. And then — like a great teacher speaking to a student who is making excuses — Krishna spoke his very first words of the Gita.", "krishnaSays": "There is a difference between feeling emotions (which is human and beautiful) and being so controlled by emotions that you cannot think clearly or do your duty. The wise person feels — but does not drown in feeling.", "story": "<b>🌟 Two Students, Same Failure, Different Futures</b><br><br>Meera and Riya both failed their Sanskrit test. Both were heartbroken. Their teacher gave them the same marks.<br><br>Meera cried for an hour, then decided she was \'just not good at languages.\' She stopped trying. She failed again next time.<br><br>Riya also cried — for about ten minutes. Then she sat with her mother, went through every wrong answer, found exactly where the gaps were, and practised those specific words for three days. She got 87% next time.<br><br>Both felt the same sadness. Same failure. Same starting point. But Riya\'s sadness became information — it told her where to work harder.<br><br><i>Meera\'s sadness became a jailer. Riya\'s sadness became a teacher.</i><br><br>Krishna is not asking Arjuna to stop feeling. He is asking him to let the feeling teach him, and then move forward.", "lesson": "Feel your emotions fully — but do not let them stop you from doing what needs to be done.", "lifeConnect": "When you fail a test or make a mistake, it is okay to feel bad. Cry if you need to. Then open the book, find what went wrong, and fix it. That is what the wise do."}, {"id": "s3", "group": "g1", "chapter": "Chapter 2, Verse 14", "chapterName": "Sankhya Yoga", "chapterMeaning": "The Yoga of Knowledge", "sanskrit": "मात्रास्पर्शास्तु कौन्तेय शीतोष्णसुखदुःखदाः |\nआगमापायिनोऽनित्यास्तांस्तितिक्षस्व भारत ||", "transliteration": "mātrā-sparśās tu kaunteya · śītoṣṇa-sukha-duḥkha-dāḥ\nāgamāpāyino \'nityās · tāṁs titikṣasva bhārata", "wordMeaning": [{"w": "mātrā-sparśāḥ", "m": "contacts of the senses"}, {"w": "kaunteya", "m": "O son of Kunti (Arjuna)"}, {"w": "śīta-uṣṇa", "m": "cold and heat"}, {"w": "sukha-duḥkha-dāḥ", "m": "giving pleasure and pain"}, {"w": "āgama-apāyinaḥ", "m": "coming and going"}, {"w": "anityāḥ", "m": "impermanent"}, {"w": "titikṣasva", "m": "just try to bear them"}, {"w": "bhārata", "m": "O descendant of Bharata"}], "meaning": "The contacts of the senses give rise to feelings of cold and heat, pleasure and pain. They come and go — they are impermanent. O Arjuna, learn to bear with them.", "moment": "Arjuna was suffering because of what he SAW. Krishna points to something deeper: the feelings themselves. Pain, pleasure, heat, cold — all experiences through our senses — are temporary. They arrive and they leave.", "krishnaSays": "Nothing lasts forever — not the good things, and not the bad things. The next time you are in pain, remember it will pass. The next time you are very happy, enjoy it fully — but know it will change too. The wise stay steady in both.", "story": "<b>🌟 The King\'s Ring</b><br><br>A king was in great distress. His kingdom was struggling, his enemies were strong, and he felt desperate for wisdom. He called his advisors and said: \'Find me something that is true in all times. Something that will bring me comfort when I suffer, and keep me humble when I am happy.\'<br><br>For weeks they searched. Finally, they brought him a simple gold ring. Engraved inside, in tiny letters, were four words:<br><br><b>\'This too shall pass.\'</b><br><br>The king wore it always. When his armies were defeated — he read it and felt hope return. When he was celebrated as a hero — he read it and stayed humble.<br><br><i>This is exactly what Krishna tells Arjuna in this verse, thousands of years before that ring was made. Pleasure and pain are both guests. Neither stays forever. Your job is to stay steady.</i>", "lesson": "Both pleasure and pain are temporary visitors. Stay steady — this too shall pass.", "lifeConnect": "The next time something upsets you deeply — a fight with a friend, a bad grade, an unfair situation — close your eyes and say: \'This is temporary. It will pass.\' And it will."}, {"id": "s4", "group": "g1", "chapter": "Chapter 2, Verse 23", "chapterName": "Sankhya Yoga", "chapterMeaning": "The Yoga of Knowledge", "sanskrit": "नैनं छिन्दन्ति शस्त्राणि नैनं दहति पावकः |\nन चैनं क्लेदयन्त्यापो न शोषयति मारुतः ||", "transliteration": "nainaṁ chindanti śastrāṇi · nainaṁ dahati pāvakaḥ\nna cainaṁ kledayanty āpo · na śoṣayati mārutaḥ", "wordMeaning": [{"w": "na enam", "m": "never this soul"}, {"w": "chindanti", "m": "can cut"}, {"w": "śastrāṇi", "m": "weapons"}, {"w": "na dahati", "m": "cannot burn"}, {"w": "pāvakaḥ", "m": "fire"}, {"w": "na kledayanti", "m": "cannot wet"}, {"w": "āpaḥ", "m": "water"}, {"w": "na śoṣayati", "m": "cannot dry"}, {"w": "mārutaḥ", "m": "wind"}], "meaning": "Weapons cannot cut the soul. Fire cannot burn it. Water cannot wet it. Wind cannot dry it.", "moment": "This is perhaps the most powerful single verse in the entire Gita. Four forces of nature — and none of them can touch the soul. Krishna is building Arjuna\'s fearlessness, one verse at a time.", "krishnaSays": "Think of the most powerful things you know — a sword, a wildfire, a flood, a storm. Now know that the real YOU is beyond all of it. Not because your body is invincible — but because your soul is made of something no physical force can reach.", "story": "<b>🌟 Prahlada and the Fire That Would Not Burn</b><br><br>Prahlada was a young boy — about your age — who believed completely in Lord Vishnu. His father was the demon king Hiranyakashipu, who demanded that everyone worship him, not Vishnu.<br><br>Prahlada refused. His father tried everything to destroy his son\'s faith.<br><br>He threw Prahlada off a cliff. Prahlada floated down gently, singing.<br><br>He sent poisonous snakes. They coiled around him peacefully and refused to bite.<br><br>He had elephants charge at him. They stopped and bowed their heads.<br><br>Finally, his sister Holika — who had a magical power to sit in fire without burning — sat in the flames holding Prahlada, intending to burn him alive.<br><br>Holika burned to ash. Prahlada walked out of the fire, still singing, completely unharmed.<br><br><i>Every year at Holi, the bonfire you light is Holika burning. The colours you play with the next day are Prahlada\'s joy. Your faith, your goodness, your true inner self — these are your Prahlada. Nothing can truly destroy them.</i>", "lesson": "Your soul — your inner goodness and strength — is untouchable by any outer force.", "lifeConnect": "When people say hurtful things to you, or when life feels very unfair — nothing outside can touch the real you. Your inner light is beyond harm."}, {"id": "s5", "group": "g1", "chapter": "Chapter 2, Verse 47", "chapterName": "Sankhya Yoga", "chapterMeaning": "The Yoga of Knowledge", "sanskrit": "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन |\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ||", "transliteration": "karmaṇy evādhikāras te · mā phaleṣu kadācana\nmā karma-phala-hetur bhūr · mā te saṅgo \'stv akarmaṇi", "wordMeaning": [{"w": "karmaṇi", "m": "in action"}, {"w": "eva", "m": "only"}, {"w": "adhikāraḥ te", "m": "is your right"}, {"w": "mā phaleṣu", "m": "never in the fruits (results)"}, {"w": "kadācana", "m": "at any time"}, {"w": "mā karma-phala-hetuḥ bhūḥ", "m": "do not be motivated by results"}, {"w": "saṅgaḥ akarmaṇi", "m": "attachment to inaction"}], "meaning": "You have the right to perform your duties, but never to the fruits of your actions. Do not let results be your motivation — and do not stop acting either.", "moment": "Arjuna was frozen — afraid of the result of the battle. Krishna\'s answer changed the world: Do not think about the result. Think only about the action. This is the most famous verse in the Gita.", "krishnaSays": "A student who only studies when she is sure she will get 100% is controlled by the result. If she doubts herself, she does not study. The student who studies because it is her duty — because she loves learning — always grows. She is not attached to the result, but she gives full effort every single time.", "story": "<b>🌟 Sachin Tendulkar — The Match After His Father Died</b><br><br>In the 1999 Cricket World Cup, India was playing Pakistan. Sachin had just received the worst news of his life — his father, his biggest hero and supporter, had died in Mumbai.<br><br>He flew home immediately. Attended the funeral. Grieved. And then his father\'s words came back to him: \'Play your game, son. Do your duty.\'<br><br>Sachin flew back to the World Cup the very next day. He walked onto the field while the entire cricket world watched. Nobody would have blamed him if he had missed the match.<br><br>He scored 140 runs — one of the greatest innings of his career. India won.<br><br>After the match, he looked up at the sky, raised his bat, and said: \'Papa, I hope you were watching.\'<br><br><i>He did not play for the scorecard. He did not play for glory. He played because it was his karma — his duty — and his father had taught him what Krishna had taught Arjuna 5,000 years earlier. Do your duty. Let go of the result.</i>", "lesson": "Focus completely on your effort and action — the result will follow.", "lifeConnect": "Before your next exam, say: \'I will study my very best. I will give my full effort. The marks are not in my hands — my effort is.\' Then study with everything you have."}, {"id": "s6", "group": "g1", "chapter": "Chapter 2, Verse 50", "chapterName": "Sankhya Yoga", "chapterMeaning": "The Yoga of Knowledge", "sanskrit": "बुद्धियुक्तो जहातीह उभे सुकृतदुष्कृते |\nतस्माद्योगाय युज्यस्व योगः कर्मसु कौशलम् ||", "transliteration": "buddhi-yukto jahātīha · ubhe sukṛta-duṣkṛte\ntasmād yogāya yujyasva · yogaḥ karmasu kauśalam", "wordMeaning": [{"w": "buddhi-yuktaḥ", "m": "one engaged with steady intelligence"}, {"w": "jahāti", "m": "goes beyond"}, {"w": "ubhe", "m": "both"}, {"w": "sukṛta-duṣkṛte", "m": "good and bad results"}, {"w": "tasmāt", "m": "therefore"}, {"w": "yogāya yujyasva", "m": "engage in yoga"}, {"w": "yogaḥ karmasu kauśalam", "m": "yoga is skill in action"}], "meaning": "A person of steady wisdom goes beyond both good and bad results. Therefore engage in yoga — for yoga is the art of skilled action.", "moment": "Krishna now defines what acting without attachment looks like in practice. Yoga is not only meditation in a cave. Yoga is excellence in whatever you do.", "krishnaSays": "Every time you do something with your full skill, full attention, and full heart — that is yoga. Eating your food carefully — yoga. Writing your homework neatly — yoga. Listening to your teacher completely — yoga. The divine is in the quality of the doing.", "story": "<b>🌟 The Potter God Loved Most</b><br><br>The great sage Narada once asked Lord Vishnu: \'Who is your greatest devotee on earth right now?\' Narada expected to hear about a famous saint meditating in a Himalayan cave.<br><br>Instead, Vishnu said: \'Go to the town of Mathura. Find the potter who works on the main road.\'<br><br>Narada was shocked. He went and found a man covered in clay, spinning his wheel in complete silence and concentration. The man woke at dawn, said one prayer, worked with total focus all day, said one prayer at dusk, and slept.<br><br>Narada asked: \'How are YOU Vishnu\'s greatest devotee? You barely pray!\'<br><br>The potter looked up, smiled, and said: \'Every pot I make, I make as an offering to God. I make it as perfectly as I can. The spinning is my meditation. The clay is my prayer.\'<br><br><i>That is Yoga. Your Kathak practice — yoga. Your gymnastics — yoga. Your homework done carefully — yoga. Every action done with complete skill and full heart is an offering.</i>", "lesson": "Do every task with complete skill and full attention — that IS your offering to God.", "lifeConnect": "When you do your homework, your Kathak practice, your gymnastics — do it with complete focus and your best skill. Not because someone is watching. Because that is who you are."}, {"id": "s7", "group": "g2", "chapter": "Chapter 3, Verse 8", "chapterName": "Karma Yoga", "chapterMeaning": "The Yoga of Action", "sanskrit": "नियतं कुरु कर्म त्वं कर्म ज्यायो ह्यकर्मणः |\nशरीरयात्रापि च ते न प्रसिद्ध्येदकर्मणः ||", "transliteration": "niyataṁ kuru karma tvaṁ · karma jyāyo hy akarmaṇaḥ\nśarīra-yātrāpi ca te · na prasiddhyed akarmaṇaḥ", "wordMeaning": [{"w": "niyatam karma", "m": "your prescribed duty"}, {"w": "kuru", "m": "perform"}, {"w": "karma jyāyaḥ", "m": "action is better"}, {"w": "hy akarmaṇaḥ", "m": "than inaction"}, {"w": "śarīra-yātrā", "m": "even the maintenance of the body"}, {"w": "na prasiddhyet", "m": "would not be possible"}, {"w": "akarmaṇaḥ", "m": "without action"}], "meaning": "Always perform your prescribed duties — action is certainly better than inaction. Even the maintenance of your body would not be possible without action.", "moment": "Arjuna asked: if knowledge is so great, why do you push me to this terrible action? Krishna replies: because inaction is NEVER the answer. Even to stay alive, you must act.", "krishnaSays": "There is no such thing as truly doing nothing. Even choosing to do nothing is itself a choice — an action. The question is never whether to act, but HOW to act. Act with skill, with duty, with dedication.", "story": "<b>🌟 The Farmer Who Waited for Perfect Weather</b><br><br>Two farmers had fields of equal size. The monsoon was approaching.<br><br>The first farmer thought carefully: \'What if the rains are too heavy and flood the field? What if they are too light and the plants dry up? What if there are crop diseases this year? I will wait and see the situation first before planting.\'<br><br>He waited. And waited.<br><br>The second farmer thought: \'I cannot control the rain. I cannot control the pests. But I can plant. I will plant and trust.\' She planted — carefully, row by row.<br><br>The rains came — imperfect, a bit uneven — but enough. The second farmer had a full harvest. The first farmer had nothing but weeds. Because an unplanted field does not stay empty. It fills with whatever grows without intention.<br><br><i>Your mind is that field. Your life is that field. If you do not plant your own crops — study, practice, effort, love — it fills itself with weeds: distraction, laziness, regret.</i>", "lesson": "Action is always better than inaction. Do not wait for perfect conditions. Begin.", "lifeConnect": "Whenever you feel like postponing your studies or practice — remember the unplanted field. Do even one small thing, right now."}, {"id": "s8", "group": "g2", "chapter": "Chapter 3, Verse 21", "chapterName": "Karma Yoga", "chapterMeaning": "The Yoga of Action", "sanskrit": "यद्यदाचरति श्रेष्ठस्तत्तदेवेतरो जनः |\nस यत्प्रमाणं कुरुते लोकस्तदनुवर्तते ||", "transliteration": "yad yad ācarati śreṣṭhas · tat tad evetaro janaḥ\nsa yat pramāṇaṁ kurute · lokas tad anuvartate", "wordMeaning": [{"w": "yad yad", "m": "whatever"}, {"w": "ācarati", "m": "does, practises"}, {"w": "śreṣṭhaḥ", "m": "a great, respected person"}, {"w": "tat tad eva", "m": "that very thing"}, {"w": "itaraḥ janaḥ", "m": "common people follow"}, {"w": "pramāṇam", "m": "standard, example"}, {"w": "lokaḥ anuvartate", "m": "the world follows"}], "meaning": "Whatever a great person does, others follow. Whatever standards they set, the world follows those standards.", "moment": "Krishna was reminding Arjuna of his responsibility as a leader. Arjuna was a hero — millions looked up to him. Whatever he did would be copied by ordinary people everywhere.", "krishnaSays": "You are being watched — not in a frightening way, but in an inspiring way. Younger children in your building, your cousins, your friends — they notice how you behave. Be worth following.", "story": "<b>🌟 Kalam and the Shoeshiners of Rashtrapati Bhavan</b><br><br>When APJ Abdul Kalam became President of India, he noticed something that nobody else had paid attention to in decades: the shoeshiners who worked outside Rashtrapati Bhavan started work before dawn, worked all day, and were never given a proper meal.<br><br>Without any announcement or fanfare, Kalam quietly arranged for them to receive hot breakfast from the President\'s own kitchen every morning.<br><br>The news spread quietly. Then other government buildings started doing the same. Then private offices nearby. Then schools in the area.<br><br>One man\'s small, quiet action — done not for publicity but because it was right — rippled outward for years.<br><br><i>Nobody told Kalam to do it. No rule required it. He simply did what a great person does — and others followed. You do not have to be President to change things. You only have to be consistently good.</i>", "lesson": "Lead by example. Your actions set the standard for those around you.", "lifeConnect": "Be the kind of friend, student, and daughter whose actions others want to copy — not because you are showing off, but because you genuinely act well."}, {"id": "s9", "group": "g2", "chapter": "Chapter 4, Verse 7", "chapterName": "Jnana Karma Sanyasa Yoga", "chapterMeaning": "The Yoga of Knowledge and Action", "sanskrit": "यदा यदा हि धर्मस्य ग्लानिर्भवति भारत |\nअभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम् ||", "transliteration": "yadā yadā hi dharmasya · glānir bhavati bhārata\nabhyutthānam adharmasya · tadātmānaṁ sṛjāmy aham", "wordMeaning": [{"w": "yadā yadā", "m": "whenever and wherever"}, {"w": "dharmasya glāniḥ", "m": "decline of righteousness"}, {"w": "bhavati", "m": "occurs"}, {"w": "abhyutthānam adharmasya", "m": "rise of unrighteousness"}, {"w": "tadā", "m": "at that time"}, {"w": "ātmānam sṛjāmi aham", "m": "I manifest myself"}], "meaning": "Whenever and wherever there is a decline in righteousness and a rise in unrighteousness, O Arjuna — at that time I manifest myself on earth.", "moment": "Krishna reveals something astonishing — he appears on earth not randomly, but precisely when goodness is losing and evil is rising. He is not absent during dark times. He arrives in the dark times.", "krishnaSays": "The world has cycles. Sometimes goodness is strong. Sometimes cruelty and injustice rise. But God has made a promise: when things get truly dark, I will come. I always come. And I come through brave, good people who choose to act.", "story": "<b>🌟 The Darkness Before Every Dawn — Five Times in History</b><br><br>In 563 BC, cruelty and superstition ruled India. Animal sacrifices were everywhere, the poor were oppressed, and spiritual wisdom had become hollow ritual. A prince named Siddhartha gave up his palace and became the Buddha — and lit a light that still burns 2,500 years later.<br><br>In 800 AD, the great philosophies of India had fragmented and were dying. A young boy named Shankara walked across the entire subcontinent debating every scholar he met — and rebuilt the spiritual foundation of India. He died at 32, having done more than most people do in 100 years.<br><br>In 1400 AD, religion had become all rituals and no heart. A weaver named Kabir — who never went to any school — wrote songs of such piercing truth that they are still sung today, across every religion.<br><br>In 1893, India was a colony. A young monk named Vivekananda stood in Chicago and said: \'Sisters and brothers of America\' — and the hall erupted in a two-minute standing ovation before he had said anything else. He placed India on the world\'s spiritual map.<br><br>In 1930, a 61-year-old man walked 241 miles to pick up a handful of salt — and cracked the British Empire.<br><br><i>Every single time. When darkness rose. Dharma appeared. Not accidentally. By promise.</i>", "lesson": "Whenever goodness is threatened, God appears — through great teachers, brave leaders, and ordinary people who choose to act rightly.", "lifeConnect": "When someone is being bullied and everyone else is silent — you standing up is that verse coming alive in your own small world."}, {"id": "s10", "group": "g2", "chapter": "Chapter 4, Verse 39", "chapterName": "Jnana Karma Sanyasa Yoga", "chapterMeaning": "The Yoga of Knowledge and Action", "sanskrit": "श्रद्धावान् लभते ज्ञानं तत्परः संयतेन्द्रियः |\nज्ञानं लब्ध्वा परां शान्तिमचिरेणाधिगच्छति ||", "transliteration": "śraddhāvān labhate jñānaṁ · tat-paraḥ saṁyatendriyaḥ\njñānaṁ labdhvā parāṁ śāntim · acireṇādhigacchati", "wordMeaning": [{"w": "śraddhāvān", "m": "one who has faith"}, {"w": "labhate jñānam", "m": "attains knowledge"}, {"w": "tat-paraḥ", "m": "devoted to it"}, {"w": "saṁyata-indriyaḥ", "m": "with controlled senses"}, {"w": "jñānam labdhvā", "m": "having attained knowledge"}, {"w": "parām śāntim", "m": "the highest peace"}, {"w": "acireṇa", "m": "very soon"}], "meaning": "The faithful, devoted, and sense-controlled person attains knowledge. Having attained it, they quickly reach the highest peace.", "moment": "Arjuna was impatient — he wanted to understand everything immediately. Krishna tells him the secret ingredient that all the cleverness in the world cannot replace: faith.", "krishnaSays": "You will not understand everything immediately. There will be lessons that confuse you, teachers who challenge you, subjects that seem impossible. Faith — in yourself, in the process, in God — carries you through the gap between not-knowing and knowing.", "story": "<b>🌟 The Girl Who Believed Before She Could See</b><br><br>Helen Keller was born able to see and hear. When she was 19 months old, an illness took away both her sight and her hearing — permanently. The world went completely dark and silent.<br><br>For years, she raged. She threw things, destroyed objects, bit people who tried to help her. She had no way to communicate and no faith that anything would ever change.<br><br>Then her teacher Annie Sullivan arrived. Annie placed Helen\'s hand under running water and spelled W-A-T-E-R into her palm — slowly, again and again — for weeks and weeks. Helen felt nothing but frustration and confusion.<br><br>And then one morning, something clicked. The word connected to the thing. It was like a door that had been locked for years suddenly swung open.<br><br>Helen wept and laughed at the same time. She ran to touch everything she could find, asking for its name. In one afternoon she learned thirty words.<br><br>Helen Keller went on to graduate from university, write 12 books, and inspire millions of people across the world. She who could neither see nor hear became one of the most eloquent voices of her century.<br><br><i>Between Annie spelling water on her palm and Helen understanding — there was a gap. A gap of weeks that felt like forever. Faith is what lives in that gap. Śraddhā. This shloka.</i>", "lesson": "Have faith in the process before you can see the results. Knowledge always comes to those who keep going faithfully.", "lifeConnect": "When a subject feels completely impossible — grammar, fractions, history dates — trust that understanding will come if you keep going. It always does."}, {"id": "s11", "group": "g3", "chapter": "Chapter 5, Verse 22", "chapterName": "Karma Sanyasa Yoga", "chapterMeaning": "The Yoga of Renouncing Action", "sanskrit": "ये हि संस्पर्शजा भोगा दुःखयोनय एव ते |\nआद्यन्तवन्तः कौन्तेय न तेषु रमते बुधः ||", "transliteration": "ye hi saṁsparśa-jā bhogā · duḥkha-yonaya eva te\nādy-antavantaḥ kaunteya · na teṣu ramate budhaḥ", "wordMeaning": [{"w": "saṁsparśa-jāḥ bhogāḥ", "m": "pleasures born of sense-contact"}, {"w": "duḥkha-yonayaḥ", "m": "sources of suffering"}, {"w": "ādi-anta-vantaḥ", "m": "having a beginning and an end"}, {"w": "na ramate", "m": "does not delight in"}, {"w": "budhaḥ", "m": "the wise person"}], "meaning": "The pleasures that arise from sense contact are sources of suffering — they have a beginning and an end. The wise person does not take delight in these.", "moment": "After discussing action, Krishna begins talking about the mind. He points to the source of so much restlessness: the constant chasing of pleasure through the senses.", "krishnaSays": "Every pleasure you chase through the outside world gives a rush that fades, leaving you wanting more. Junk food. Screen time. Attention from others. They are real pleasures — but they are temporary. The wise person learns to find joy that does not depend on anything outside.", "story": "<b>🌟 The Monkey Trap</b><br><br>In South India, hunters catch monkeys without any weapons at all. They hollow out a coconut, put some sweet rice inside, and make a hole just large enough for an open monkey hand to pass through.<br><br>The monkey smells the rice. It reaches in, grabs a fistful, and now cannot pull its closed fist back out. The hole is too small for a fist.<br><br>The monkey screams. It panics. It pulls harder and harder. The hunter walks up slowly and calmly, in no hurry at all.<br><br>The monkey could be free in one second — by simply letting go of the rice. But it refuses. It cannot imagine freedom without the rice in its hand.<br><br><i>The monkey was never trapped by the coconut. It was trapped by its own desire.</i><br><br>This is what Krishna means. The \'sweet rice\' is whatever we are chasing — more screen time, more attention, more junk food. The trap is our refusal to let go. We hold the very thing that holds us.<br><br>The free monkey is the one who can reach in, taste a little, and walk away satisfied. That is wisdom.", "lesson": "True joy comes from within — not from constantly chasing outside pleasures.", "lifeConnect": "Notice the next time you reach for your phone out of boredom. That reaching feeling — that is the monkey\'s hand in the coconut. You can choose to open the fist and walk away."}, {"id": "s12", "group": "g3", "chapter": "Chapter 6, Verse 5", "chapterName": "Dhyana Yoga", "chapterMeaning": "The Yoga of Meditation", "sanskrit": "उद्धरेदात्मनाऽऽत्मानं नात्मानमवसादयेत् |\nआत्मैव ह्यात्मनो बन्धुरात्मैव रिपुरात्मनः ||", "transliteration": "uddhared ātmanātmānaṁ · nātmānam avasādayet\nātmaiva hy ātmano bandhur · ātmaiva ripur ātmanaḥ", "wordMeaning": [{"w": "uddharet", "m": "must uplift, must deliver"}, {"w": "ātmanā ātmānam", "m": "by the self, the self"}, {"w": "na avasādayet", "m": "must not degrade"}, {"w": "ātmā eva", "m": "the self alone"}, {"w": "bandhuḥ", "m": "friend"}, {"w": "ripuḥ", "m": "enemy"}], "meaning": "Elevate yourself by your own mind — do not degrade yourself. The mind alone is the friend of the self, and the mind alone is the enemy of the self.", "moment": "Arjuna had asked: what does the mind of a truly wise person look like? Krishna\'s answer surprised everyone — your mind is your greatest friend or your greatest enemy. And you choose which.", "krishnaSays": "The mind that says \'I can\'t do this, I\'m not good enough, I\'ll never learn this\' — that is your enemy, and it lives inside your own head. The mind that says \'I\'ll try again, I can grow, I haven\'t learned this yet\' — that is your friend. Same mind. Different choices. Every single day.", "story": "<b>🌟 Eklavya — The Student Who Had No Teacher</b><br><br>Eklavya was a young boy from a tribal family who dreamed of becoming the greatest archer in the world. He walked to the royal training ground and asked Guru Dronacharya — the most famous archery teacher alive — to teach him.<br><br>Dronacharya refused. Eklavya was not of royal birth. The rules of that time were strict.<br><br>Another person would have given up. Most people would have. Eklavya walked back into the forest.<br><br>He found clay. He built a statue of Dronacharya. And every single day, for years, he practised archery alone in the forest — with the clay statue as his teacher.<br><br>When Arjuna eventually met Eklavya and saw him shoot, he was stunned. Eklavya could do things with a bow that Arjuna himself could not.<br><br>The best archer Dronacharya had ever trained — and the best archer he never trained — turned out to be the same person.<br><br><i>Uddhared ātmanātmānam — elevate yourself, by yourself. Eklavya had no teacher, no training ground, no royal support. He had only his mind — used as a friend, not an enemy.</i>", "lesson": "You are your own best friend or worst enemy — it depends on what you choose to believe about yourself.", "lifeConnect": "When a voice in your head says \'you can\'t do this\' — answer it: \'I haven\'t learned this yet. But I will.\' That shift from enemy-mind to friend-mind is this shloka in action."}, {"id": "s13", "group": "g3", "chapter": "Chapter 6, Verse 17", "chapterName": "Dhyana Yoga", "chapterMeaning": "The Yoga of Meditation", "sanskrit": "युक्ताहारविहारस्य युक्तचेष्टस्य कर्मसु |\nयुक्तस्वप्नावबोधस्य योगो भवति दुःखहा ||", "transliteration": "yukta-āhāra-vihārasya · yukta-ceṣṭasya karmasu\nyukta-svapnāvabodhasya · yogo bhavati duḥkha-hā", "wordMeaning": [{"w": "yukta āhāra", "m": "regulated eating"}, {"w": "vihārasya", "m": "of recreation"}, {"w": "yukta ceṣṭasya", "m": "regulated effort in work"}, {"w": "karmasu", "m": "in duties"}, {"w": "yukta svapna", "m": "regulated sleep"}, {"w": "avabodhasya", "m": "of wakefulness"}, {"w": "yogaḥ", "m": "yoga, inner peace"}, {"w": "duḥkha-hā", "m": "destroys suffering"}], "meaning": "For one who is regulated in eating, recreation, work, sleep and wakefulness — yoga destroys all sorrow.", "moment": "Arjuna asked how to control the restless mind. Krishna\'s answer is surprisingly practical — not mystical. Balance your body first, and the mind will follow.", "krishnaSays": "A hungry student cannot concentrate. An exhausted student cannot learn. A student who plays games all night cannot think clearly the next morning. The body and mind are deeply connected. Take care of the body and you take care of the mind.", "story": "<b>🌟 PV Sindhu\'s Secret Weapon</b><br><br>When PV Sindhu won Olympic silver in 2016 and then Olympic gold in 2020, journalists asked her coach Gopichand the secret of her training.<br><br>Everyone expected to hear about footwork drills, smash technique, match strategy — the kind of things that fill sports training programmes.<br><br>Instead, Gopichand talked about sleep first. \'Sindhu sleeps 9-10 hours a night. No mobile phone before bed. No late nights. No parties. Her body is her instrument — if the instrument is not tuned, the music suffers.\'<br><br>Sindhu herself said the same thing in interviews: \'I eat simple food — dal, rice, vegetables. I sleep properly. I train. I rest. I repeat.\'<br><br>No magical technique. No secret shortcut. Just the most boring, most powerful advice in the world: balance.<br><br><i>5,000 years before sports science, Krishna gave Arjuna — and through him, every athlete and student who ever lived — the same advice. Yukta āhāra. Yukta vihāra. Yukta svapna. Regulated eating, regulated recreation, regulated sleep. That is yoga. That destroys suffering.</i>", "lesson": "Balance in food, sleep, study, play and rest — this is the secret to a strong mind and a happy life.", "lifeConnect": "Look at your day. Are you sleeping enough? Eating properly? Playing enough? Studying enough? Balance all four — and watch everything improve."}, {"id": "s14", "group": "g3", "chapter": "Chapter 6, Verse 35", "chapterName": "Dhyana Yoga", "chapterMeaning": "The Yoga of Meditation", "sanskrit": "श्रीभगवानुवाच |\nअसंशयं महाबाहो मनो दुर्निग्रहं चलम् |\nअभ्यासेन तु कौन्तेय वैराग्येण च गृह्यते ||", "transliteration": "śrī-bhagavān uvāca\nasaṁśayaṁ mahā-bāho · mano durnigrahaṁ calam\nabhyāsena tu kaunteya · vairāgyeṇa ca gṛhyate", "wordMeaning": [{"w": "asaṁśayam", "m": "undoubtedly"}, {"w": "mahā-bāho", "m": "O mighty-armed one"}, {"w": "manaḥ", "m": "the mind"}, {"w": "durnigraham calam", "m": "restless and very difficult to control"}, {"w": "abhyāsena", "m": "by practice"}, {"w": "vairāgyeṇa", "m": "by detachment"}, {"w": "gṛhyate", "m": "it can be controlled"}], "meaning": "Undoubtedly, O mighty-armed one, the mind is restless and very difficult to control. But it can be controlled by practice and by detachment.", "moment": "Arjuna had just complained: \'Krishna, the mind is more restless than the wind! Is it even possible to control it?\' Krishna gives an honest and hopeful answer: YES it is difficult. AND yes, it can be done.", "krishnaSays": "The mind is like a puppy. Left alone, it runs everywhere, chases everything, and destroys things. But trained daily, with patience and gentleness — it becomes the most loyal companion you have. You do not break the puppy. You train it.", "story": "<b>🌟 The Young Monk and the Monkey Mind</b><br><br>A young monk went to his teacher and said: \'Master, I want to meditate. But every time I sit, my mind jumps everywhere — breakfast, homework, what my friend said, a song I heard. I cannot control it.\'<br><br>The teacher said: \'Good. You have noticed the monkey. Most people never even notice it\'s jumping.\'<br><br>\'But how do I stop it?\'<br><br>\'You do not stop it. Every time the monkey jumps — you bring it back. Gently. Without anger. Without frustration. Just: here, come back. Again and again. The bringing-back IS the practice. The mind will keep jumping for years. And you will keep returning. Over months, over years, the jumps become shorter. The returns become faster.\'<br><br>That young monk practised for decades. He became one of the greatest minds of the 19th century — Swami Vivekananda, who went on to represent India at the Parliament of World Religions and changed how the world understood Hinduism forever.<br><br><i>You do not need decades. Just try 5 minutes tonight. Sit quietly. Focus on your breath. When the mind jumps — and it will — gently bring it back. That returning IS the practice. That is abhyāsa. That is this shloka.</i>", "lesson": "The mind can be controlled through consistent daily practice and letting go of what distracts you.", "lifeConnect": "Try this tonight for 5 minutes: sit quietly, focus on your breath. When your mind wanders — and it will — gently bring it back. That returning is the practice."}, {"id": "s15", "group": "g4", "chapter": "Chapter 7, Verse 8", "chapterName": "Vijnana Yoga", "chapterMeaning": "The Yoga of Knowledge and Wisdom", "sanskrit": "रसोऽहमप्सु कौन्तेय प्रभास्मि शशिसूर्ययोः |\nप्रणवः सर्ववेदेषु शब्दः खे पौरुषं नृषु ||", "transliteration": "raso \'ham apsu kaunteya · prabhāsmi śaśi-sūryayoḥ\npraṇavaḥ sarva-vedeṣu · śabdaḥ khe pauruṣaṁ nṛṣu", "wordMeaning": [{"w": "rasaḥ aham", "m": "I am the taste"}, {"w": "apsu", "m": "in water"}, {"w": "prabhā", "m": "the light"}, {"w": "śaśi-sūryayoḥ", "m": "of the moon and sun"}, {"w": "praṇavaḥ", "m": "the syllable Om"}, {"w": "śabdaḥ khe", "m": "sound in space"}, {"w": "pauruṣam nṛṣu", "m": "the strength in humans"}], "meaning": "I am the taste of water. I am the light of the sun and moon. I am the syllable Om in the Vedas. I am the sound in the sky and the strength in humans.", "moment": "Krishna had promised to tell Arjuna who God really is — completely. The answer is extraordinary: God is not in a temple somewhere far away. God is in the taste of water when you are thirsty. In the light of the sunset.", "krishnaSays": "The next time you drink a cold glass of water on a scorching day and it tastes perfect — that perfect taste is God. The golden light just after sunrise. The sound of rain on the window. Your own courage when you are frightened. All of it — God.", "story": "<b>🌟 Mirabai — The Princess Who Found God Everywhere</b><br><br>Mirabai was a Rajasthani princess born in 1498. From childhood, she felt a deep love for Lord Krishna — not as a story, but as a living presence she experienced everywhere around her.<br><br>Her royal family was horrified. \'Stop this and be a proper queen,\' they demanded. She married a Rajput prince as arranged, but continued her devotion.<br><br>When her husband died, her in-laws tried to force her to commit sati — to die with her husband. She refused. They sent her poison in a sacred cup. She drank it, singing. It did not harm her.<br><br>She left the palace and walked as a wandering devotee, singing songs of Krishna through towns and villages. Rich people\'s homes and poor people\'s homes. She saw God in the sunrise, heard God in music, tasted God in the first rains of monsoon.<br><br><i>Her bhajans — her devotional songs — are still sung 500 years later in temples, homes, and even Bollywood films across India. She found God not in rituals but in the living world. In taste, in light, in music, in strength. In this verse.</i>", "lesson": "God is not distant — God is in every beautiful, true thing you experience every day.", "lifeConnect": "Today, when you eat your favourite food, look at something beautiful, or feel brave — recognise that as God. One moment of recognition is worth more than an hour of ritual."}, {"id": "s16", "group": "g4", "chapter": "Chapter 9, Verse 22", "chapterName": "Raja Vidya Raja Guhya Yoga", "chapterMeaning": "The Yoga of Royal Knowledge", "sanskrit": "अनन्याश्चिन्तयन्तो मां ये जनाः पर्युपासते |\nतेषां नित्याभियुक्तानां योगक्षेमं वहाम्यहम् ||", "transliteration": "ananyāś cintayanto māṁ · ye janāḥ paryupāsate\nteṣāṁ nityābhiyuktānāṁ · yoga-kṣemaṁ vahāmy aham", "wordMeaning": [{"w": "ananyāḥ", "m": "without deviation, single-mindedly"}, {"w": "ye janāḥ", "m": "those persons who"}, {"w": "paryupāsate", "m": "worship devotedly"}, {"w": "teṣām", "m": "of them"}, {"w": "nityābhiyuktānām", "m": "always devoted"}, {"w": "yoga", "m": "what they need"}, {"w": "kṣemam", "m": "protection of what they have"}, {"w": "vahāmi aham", "m": "I personally carry"}], "meaning": "For those who worship Me with unwavering devotion — meditating on Me always — I personally carry what they need and protect what they have.", "moment": "This is one of the most personal promises God makes in the entire Gita. Not to armies, not to great warriors — but to ordinary, devoted people. \'I personally take care of you.\'", "krishnaSays": "This is not a blank cheque for getting everything you want. It means: if you stay connected to what is good and true — you will always have what you truly NEED. Your necessities are God\'s responsibility. Your wants are yours to work for.", "story": "<b>🌟 The Village Woman and the Three Boats</b><br><br>There was a devout woman who lived alone in a small village by a river. One monsoon, the river began to flood dangerously. Neighbours came in a boat: \'Come with us, the water is rising fast!\'<br><br>\'God will protect me,\' she said. The boat left without her.<br><br>The water rose to her doorstep. A second boat came: \'It is dangerous! Please come!\' She said: \'God will protect me.\' It left.<br><br>The water rose to her chest. A rescue helicopter came overhead. She refused again.<br><br>She drowned.<br><br>When she met God, she was furious: \'I trusted You completely! Why did You not save me?\'<br><br>God replied: \'I sent you three boats and a helicopter. What exactly were you waiting for?\'<br><br><i>This is the real meaning of yoga-kṣemam — I personally carry your welfare. But God\'s help comes THROUGH the world — through people, through opportunities, through open doors. Devotion is not passive. It is trusting AND acting on the help when it comes.</i>", "lesson": "God takes care of the devoted — but God\'s help comes through the world. Open your eyes to see it, and act on it.", "lifeConnect": "When something good happens — a kind person, an opportunity, a lucky break — recognise it as God carrying your welfare. And then act on it."}, {"id": "s17", "group": "g4", "chapter": "Chapter 9, Verse 27", "chapterName": "Raja Vidya Raja Guhya Yoga", "chapterMeaning": "The Yoga of Royal Knowledge", "sanskrit": "यत्करोषि यदश्नासि यज्जुहोषि ददासि यत् |\nयत्तपस्यसि कौन्तेय तत्कुरुष्व मदर्पणम् ||", "transliteration": "yat karoṣi yad aśnāsi · yaj juhoṣi dadāsi yat\nyat tapasyasi kaunteya · tat kuruṣva mad-arpaṇam", "wordMeaning": [{"w": "yat karoṣi", "m": "whatever you do"}, {"w": "yad aśnāsi", "m": "whatever you eat"}, {"w": "yaj juhoṣi", "m": "whatever you offer in sacrifice"}, {"w": "dadāsi yat", "m": "whatever you give"}, {"w": "yat tapasyasi", "m": "whatever austerities you perform"}, {"w": "tat kuruṣva", "m": "do all that"}, {"w": "mat-arpaṇam", "m": "as an offering to Me"}], "meaning": "Whatever you do, whatever you eat, whatever you offer, whatever you give, whatever discipline you practise — do it all as an offering to Me.", "moment": "This is Krishna making devotion the simplest thing in the world. Not a long prayer. Not a pilgrimage. Not a complicated ritual. Just this: whatever you do — do it as an offering.", "krishnaSays": "You do not have to go to a temple to be devotional. You do not have to meditate for hours. Just eat your food with gratitude. Study with dedication. Dance your Kathak as if it is offered to God. That transforms an ordinary life into a sacred one.", "story": "<b>🌟 The Cook Who Was a Mystic</b><br><br>In ancient China, there was a cook named Pao Ding who prepared meat for the king. One day the king watched him work — and was stunned.<br><br>Pao Ding moved with such grace and precision that the king thought he was watching a dancer. The blade of his knife never made a jarring sound. Everything was effortless, beautiful, exact.<br><br>The king asked: \'How have you perfected your art so completely?\'<br><br>Pao Ding put down his knife and said: \'I do not work with my eyes. My eyes have retired. I work with my mind. I have devoted myself completely to understanding the nature of what I work with. Over time, a great work needs no effort — it flows by itself.\'<br><br><i>This is exactly Chapter 9, Verse 27. Not just cooking — anything done as a complete offering, with complete attention, becomes sacred. Your Kathak when it flows like that. Your gymnastics when you are so focused that effort disappears. Your homework when you are completely absorbed. That offering — that mad-arpaṇam — transforms everything.</i>", "lesson": "Make every action an offering — eat with gratitude, work with dedication, play with complete joy.", "lifeConnect": "Tonight before dinner, take one moment to feel grateful for your food. That one second is this verse in action."}, {"id": "s18", "group": "g5", "chapter": "Chapter 10, Verse 20", "chapterName": "Vibhuti Yoga", "chapterMeaning": "The Yoga of Divine Manifestations", "sanskrit": "अहमात्मा गुडाकेश सर्वभूताशयस्थितः |\nअहमादिश्च मध्यं च भूतानामन्त एव च ||", "transliteration": "aham ātmā guḍākeśa · sarva-bhūtāśaya-sthitaḥ\naham ādiś ca madhyaṁ ca · bhūtānām anta eva ca", "wordMeaning": [{"w": "aham", "m": "I"}, {"w": "ātmā", "m": "the soul"}, {"w": "guḍākeśa", "m": "O conqueror of sleep (Arjuna)"}, {"w": "sarva-bhūta", "m": "of all living beings"}, {"w": "āśaya-sthitaḥ", "m": "situated in the heart"}, {"w": "ādiḥ ca madhyam ca", "m": "the beginning and the middle"}, {"w": "bhūtānām antaḥ", "m": "the end of all beings"}], "meaning": "I am the Soul seated in the heart of all living beings. I am the beginning, middle and end of all beings.", "moment": "Arjuna had asked Krishna to show him his divine manifestations — where exactly is God in the world? Krishna begins his answer with the most intimate truth: I am the soul inside every living being. In you. In the ant. In the tree. In your enemy.", "krishnaSays": "The divine is not outside you looking in. It is inside you, looking out through your eyes. Every time you look at another living being — you are looking at God looking back.", "story": "<b>🌟 Swami Vivekananda and the Living God</b><br><br>During the terrible Bengal famine of the 1890s, Swami Vivekananda was walking through Kolkata with some of his students. They passed a group of starving, sick people lying on the street — hollow-eyed, too weak to move.<br><br>One student said quietly: \'We should pray for them.\'<br><br>Another said: \'Let us teach them about God and give them spiritual knowledge.\'<br><br>Vivekananda stopped walking. He turned to face his students and said:<br><br>\'God is sitting there. Right there in the form of these hungry people. Do you want to pray to an image on a wall while the living God lies starving in front of your eyes? Serve them. Feeding them IS prayer. Serving them IS worship. They ARE God.\'<br><br><i>He had learned this from this very verse. God is in every living being\'s heart. To serve a person in need is to serve God directly. This became the philosophy of the Ramakrishna Mission — which still serves millions across India today, 130 years later.</i>", "lesson": "God lives in the heart of every living being. Serving others IS worshipping God.", "lifeConnect": "The next time you help someone — a classmate who is struggling, a younger child, even an animal — you are doing exactly what this verse teaches."}, {"id": "s19", "group": "g5", "chapter": "Chapter 10, Verse 41", "chapterName": "Vibhuti Yoga", "chapterMeaning": "The Yoga of Divine Manifestations", "sanskrit": "यद्यद्विभूतिमत्सत्त्वं श्रीमदूर्जितमेव वा |\nतत्तदेवावगच्छ त्वं मम तेजोऽशसम्भवम् ||", "transliteration": "yad yad vibhūtimat sattvaṁ · śrīmad ūrjitam eva vā\ntat tad evāvagaccha tvaṁ · mama tejo-\'ṁśa-sambhavam", "wordMeaning": [{"w": "yad yad", "m": "whatever"}, {"w": "vibhūtimat sattvaṁ", "m": "existence full of power and glory"}, {"w": "śrīmat", "m": "beautiful, glorious"}, {"w": "ūrjitam", "m": "powerful, energetic"}, {"w": "tat tat", "m": "all that"}, {"w": "mama tejo-aṁśa", "m": "a spark of My splendour"}, {"w": "sambhavam", "m": "born of"}], "meaning": "Know that all beautiful, glorious, and powerful things spring from just a spark of My splendour.", "moment": "Krishna had been listing his divine manifestations — \'I am the Himalayas among mountains, the Ganges among rivers, the lion among animals.\' Arjuna was overwhelmed. Krishna concludes: everything brilliant in this world is a tiny spark of Me.", "krishnaSays": "Beauty is not accidental. Power is not random. Brilliance is not luck. Everything truly magnificent is a fragment of divine energy. Every time you encounter greatness — in music, in nature, in a human being — you are catching a glimpse of God.", "story": "<b>🌟 The Night Einstein Felt God</b><br><br>Albert Einstein — the greatest scientific mind of the 20th century — was once asked by a reporter whether he believed in God.<br><br>The reporter expected either a definite yes or a definite no.<br><br>Einstein was quiet for a moment and then said: \'When I look at the universe — at the laws of physics, at the way mathematics describes reality perfectly, at the way a sunflower grows in a perfect Fibonacci spiral, at the way gravity works identically everywhere from here to the edge of the observable universe — I feel a profound awe and reverence. I cannot believe this extraordinary order and beauty is an accident. I call that intelligence, that mathematical mind behind everything, God.\'<br><br>He paused, and added: \'The most beautiful experience we can have is the mysterious. It is the fundamental emotion which stands at the cradle of true art and true science. Whoever does not know it can no longer wonder, no longer marvel — is as good as dead.\'<br><br><i>Einstein had read the Upanishads and the Bhagavad Gita. He kept them on his desk. He was experiencing this verse every time he looked at the equations of the universe. Every mathematical law, every act of extraordinary human kindness, every breathtaking piece of music — a spark of divine splendour.</i>", "lesson": "Everything truly beautiful, powerful, or magnificent is a spark of God\'s energy.", "lifeConnect": "The next time something takes your breath away — a piece of music, a starry night, a perfectly solved maths problem — say to yourself: \'That is God showing off.\' And smile."}, {"id": "s20", "group": "g6", "chapter": "Chapter 12, Verse 13", "chapterName": "Bhakti Yoga", "chapterMeaning": "The Yoga of Devotion", "sanskrit": "अद्वेष्टा सर्वभूतानां मैत्रः करुण एव च |\nनिर्ममो निरहङ्कारः समदुःखसुखः क्षमी ||", "transliteration": "adveṣṭā sarva-bhūtānāṁ · maitraḥ karuṇa eva ca\nnirmamo nirahaṅkāraḥ · sama-duḥkha-sukhaḥ kṣamī", "wordMeaning": [{"w": "adveṣṭā", "m": "without hatred for anyone"}, {"w": "sarva-bhūtānām", "m": "toward all living beings"}, {"w": "maitraḥ", "m": "friendly"}, {"w": "karuṇaḥ", "m": "compassionate"}, {"w": "nirmamaḥ", "m": "without possessiveness"}, {"w": "nirahaṅkāraḥ", "m": "without ego"}, {"w": "sama-duḥkha-sukhaḥ", "m": "equal in pain and pleasure"}, {"w": "kṣamī", "m": "forgiving"}], "meaning": "One who is without hatred toward any being, who is friendly and compassionate, who has no ego and no possessiveness, equal in pain and pleasure, and forgiving — this person is dear to Me.", "moment": "Arjuna had asked: \'Krishna, who is your favourite devotee? What kind of person do you love most?\' This verse begins Krishna\'s answer. Notice — he does not say \'the most brilliant\' or \'the most powerful.\' He describes a character.", "krishnaSays": "God\'s favourite person is not the smartest or the most talented. It is the one who is kind to all, holds no ego, forgives easily, and stays steady in both good times and bad. These are things anyone can choose to be — regardless of how clever they are.", "story": "<b>🌟 Sudha Murthy and the Student Nobody Else Believed In</b><br><br>Before she became chairman of the Infosys Foundation and one of India\'s most respected authors, Sudha Murthy spent years as a teacher.<br><br>In one of her classes, there was a student who consistently failed. Other students laughed at him openly. Some teachers had quietly given up, still teaching him but no longer expecting anything.<br><br>Sudha noticed that he learned differently — not less, just differently. She spent extra time with him, not out of pity but out of genuine curiosity: How does THIS particular mind work?<br><br>She found that he needed to see things visually, needed to move around, needed to connect concepts to real objects he could touch.<br><br>She changed her approach just for him — while keeping the same syllabus.<br><br>That student went on to become a successful engineer.<br><br>Years later he came back to find her. He said: \'Every other person in that school had decided what I was worth. You were the only one who kept looking for how I could succeed, not whether I could.\'<br><br><i>Adveṣṭā sarva-bhūtānām — no hatred toward any being. Even the student others have given up on. Even the person who is difficult. Even the one who has hurt you. This is the person God loves most.</i>", "lesson": "Be kind to everyone equally — the popular and the struggling, the easy and the difficult.", "lifeConnect": "Notice the person in your class who is usually left out. Not to pity them — but to simply see them as a person worth knowing. That noticing is this verse in action."}, {"id": "s21", "group": "g6", "chapter": "Chapter 13, Verse 28", "chapterName": "Kshetra Kshetragna Vibhaga Yoga", "chapterMeaning": "Nature, the Enjoyer and Consciousness", "sanskrit": "समं सर्वेषु भूतेषु तिष्ठन्तं परमेश्वरम् |\nविनश्यत्स्वविनश्यन्तं यः पश्यति स पश्यति ||", "transliteration": "samaṁ sarveṣu bhūteṣu · tiṣṭhantaṁ parameśvaram\nvinaśyatsv avinaśyantaṁ · yaḥ paśyati sa paśyati", "wordMeaning": [{"w": "samam", "m": "equally"}, {"w": "sarveṣu bhūteṣu", "m": "in all living beings"}, {"w": "tiṣṭhantam", "m": "existing, dwelling"}, {"w": "parameśvaram", "m": "the Supreme Lord"}, {"w": "vinaśyatsu", "m": "in the destructible"}, {"w": "avinaśyantam", "m": "the imperishable"}, {"w": "yaḥ paśyati sa paśyati", "m": "one who sees thus truly sees"}], "meaning": "One who sees the Supreme Lord equally present in all living beings — the imperishable within the perishable — that person truly sees.", "moment": "This is one of the most practical spiritual teachings in the Gita. Not \'see God in temples\' — but see God equally in all living beings. The rich and the poor. The human and the animal. Your friend and the person who has hurt you.", "krishnaSays": "True vision is not what your eyes see. It is what your understanding recognises. The person who truly sees looks at a beggar and a king and recognises the same divine spark in both.", "story": "<b>🌟 Mother Teresa and One Million Dollars</b><br><br>A journalist once accompanied Mother Teresa through the streets of Kolkata. She bent down to tend to a man lying in a gutter — deeply ill, covered in infected wounds, nearly unconscious.<br><br>The journalist watched for a few minutes and then said: \'I wouldn\'t do that for a million dollars.\'<br><br>Mother Teresa looked up at him with a gentle smile and said: \'Neither would I. But I would do it for God.\'<br><br>She did not see a poor man. She saw God — the same God she saw in the Pope who came to visit her, in the Queen of England who gave her awards, in a small child playing in the street.<br><br><i>When you see the same divine spark in every person — regardless of their body, status, wealth or appearance — you cannot truly hate anyone. You can disagree with their actions. But you see their soul. That is this verse. That is true vision.</i>", "lesson": "See the divine equally in all people — rich and poor, friend and stranger. That is true vision.", "lifeConnect": "Today, look at someone you usually overlook — a housekeeper, a guard, a street vendor — and remember: same spark inside as the most important person you know."}, {"id": "s22", "group": "g6", "chapter": "Chapter 3, Verse 27", "chapterName": "Karma Yoga", "chapterMeaning": "The Yoga of Action", "sanskrit": "प्रकृतेः क्रियमाणानि गुणैः कर्माणि सर्वशः |\nअहङ्कारविमूढात्मा कर्ताहमिति मन्यते ||", "transliteration": "prakṛteḥ kriyamāṇāni · guṇaiḥ karmāṇi sarvaśaḥ\nahaṅkāra-vimūḍhātmā · kartā aham iti manyate", "wordMeaning": [{"w": "prakṛteḥ", "m": "of material nature"}, {"w": "kriyamāṇāni", "m": "being performed"}, {"w": "guṇaiḥ", "m": "by the three modes of nature"}, {"w": "ahaṅkāra-vimūḍha", "m": "bewildered by ego"}, {"w": "ātmā", "m": "the soul"}, {"w": "kartā aham iti manyate", "m": "thinks \'I am the doer\'"}], "meaning": "All actions are performed by the qualities of nature. But one whose soul is bewildered by ego thinks: \'I am the doer.\'", "moment": "Krishna reveals something that sounds strange at first: we are not as much the \'doer\' as we think. Our talents, our intelligence, our opportunities — all flow through us, not just from us. The ego that says \'I did this all myself\' is the great illusion.", "krishnaSays": "This does not mean you have no responsibility. It means: be humble about your gifts. Your intelligence came from teachers, parents, God, and the mind you were born with. When you succeed — share the credit. When you fail — take the lesson. Neither inflate nor deflate.", "story": "<b>🌟 Newton and the Shoulders of Giants</b><br><br>Isaac Newton discovered the laws of gravity, invented calculus (a whole new branch of mathematics), and figured out how light works — all before he was 26. He may be the most productive two years any scientist has ever had.<br><br>When people celebrated him as a genius unlike any other, Newton wrote a letter to his rival Robert Hooke. In it, he wrote something that scientists still quote 350 years later:<br><br>\'If I have seen further than others, it is by standing on the shoulders of giants.\'<br><br>He meant it completely literally. Everything he knew came from Galileo, Kepler, Euclid, Archimedes, and hundreds of others across 2,000 years of human thought. He was the next person in a very long chain. He built on their work. Without them — no Newton.<br><br><i>The most brilliant people in history have always been the most humble about their gifts. The least brilliant are often the most arrogant. This is not a coincidence. Humility keeps the mind open to learning. Ego closes it shut.</i>", "lesson": "True greatness is always humble — your talents and opportunities come through you, not just from you.", "lifeConnect": "When you do well in something, celebrate — and then also think: who helped me get here? Your parents. Your teachers. Your coach. Thank them."}, {"id": "s23", "group": "g6", "chapter": "Chapter 16, Verse 1", "chapterName": "Daivāsura Sampada Vibhāga Yoga", "chapterMeaning": "Divine and Demoniac Natures", "sanskrit": "अभयं सत्त्वसंशुद्धिर्ज्ञानयोगव्यवस्थितिः |\nदानं दमश्च यज्ञश्च स्वाध्यायस्तप आर्जवम् ||", "transliteration": "abhayaṁ sattva-saṁśuddhir · jñāna-yoga-vyavasthitiḥ\ndānaṁ damaś ca yajñaś ca · svādhyāyas tapa ārjavam", "wordMeaning": [{"w": "abhayam", "m": "fearlessness"}, {"w": "sattva-saṁśuddhiḥ", "m": "purity of mind"}, {"w": "jñāna-yoga", "m": "steadfastness in knowledge and yoga"}, {"w": "dānam", "m": "charity, giving"}, {"w": "damaḥ", "m": "self-control"}, {"w": "yajñaḥ", "m": "sacrifice"}, {"w": "svādhyāyaḥ", "m": "self-study"}, {"w": "tapaḥ", "m": "discipline"}, {"w": "ārjavam", "m": "simplicity, straightforwardness"}], "meaning": "Fearlessness, purity of mind, steadfastness in knowledge, charity, self-control, sacrifice, self-study, discipline, and simplicity — these are the divine qualities.", "moment": "Arjuna asked the question every person eventually asks: what makes a person genuinely GOOD? Not just clever or successful — but truly, deeply good? Chapter 16 is Krishna\'s complete answer.", "krishnaSays": "Notice what is on this list: fearlessness, honesty, giving, self-control, simplicity. Not wealth. Not intelligence. Not power. Not popularity. The things that make a person divine are things everyone can choose to cultivate — no matter what they are born into.", "story": "<b>🌟 APJ Abdul Kalam — The President Who Ironed His Own Clothes</b><br><br>APJ Abdul Kalam was born poor, in a small fishing community in Rameswaram. His father was a boat owner. He could have been bitter about his beginnings.<br><br>Instead, he became India\'s Missile Man, and then its 11th President.<br><br>But what people who worked with him at Rashtrapati Bhavan remember most is not the missiles or the awards. It is the simplicity.<br><br>As President, Kalam insisted on ironing his own clothes. He refused to let the household staff do it. He gave away most of his presidential salary. He responded personally to thousands of letters from students. He woke at 6 AM for his entire life. He never accumulated personal wealth.<br><br>When he died in 2015 — while giving a lecture to students, which is exactly how he would have chosen to go — his total personal possessions were: some books, a veena (musical instrument), some clothes, and his writing.<br><br><i>Every single quality in this verse describes APJ Abdul Kalam. Fearlessness in his work. Purity of intention. Discipline his whole life. Simplicity as President. Giving constantly. This is the character he built — one choice at a time, over a lifetime. It is available to every person who chooses it.</i>", "lesson": "True greatness is built from character — fearlessness, honesty, giving, discipline, simplicity.", "lifeConnect": "Pick ONE quality from this verse to practise this week. Just one. Fearlessness in raising your hand in class. Simplicity in not showing off. Self-control in screen time."}, {"id": "s24", "group": "g7", "chapter": "Chapter 8, Verse 7", "chapterName": "Akshara Brahma Yoga", "chapterMeaning": "The Yoga of the Imperishable Absolute", "sanskrit": "तस्मात्सर्वेषु कालेषु मामनुस्मर युध्य च |\nमय्यर्पितमनोबुद्धिर्मामेवैष्यस्यसंशयः ||", "transliteration": "tasmāt sarveṣu kāleṣu · mām anusmara yudhya ca\nmayy arpita-mano-buddhir · mām evaiṣyasy asaṁśayaḥ", "wordMeaning": [{"w": "tasmāt", "m": "therefore"}, {"w": "sarveṣu kāleṣu", "m": "at all times"}, {"w": "mām anusmara", "m": "remember Me"}, {"w": "yudhya ca", "m": "and fight, act"}, {"w": "mayi arpita", "m": "dedicated to Me"}, {"w": "manaḥ-buddhiḥ", "m": "mind and intelligence"}, {"w": "mām eva eṣyasi", "m": "you will come to Me"}, {"w": "asaṁśayaḥ", "m": "without doubt"}], "meaning": "Therefore, always remember Me — and also fight. With mind and intelligence dedicated to Me, you will come to Me without doubt.", "moment": "Before the battle began, Krishna gave Arjuna his most practical instruction. Not \'pray all day\' and not \'forget God and just fight.\' But BOTH — remember and act.", "krishnaSays": "You can remember God in the middle of action. The student can remember God while studying. The athlete while competing. The musician while performing. The divine and the practical are not opposites — they are meant to be together.", "story": "<b>🌟 The Bird\'s Eye — Arjuna\'s First Test of Focus</b><br><br>When Arjuna was a young student at Dronacharya\'s gurukul, the teacher had one test that sorted every student.<br><br>He hung a wooden bird from a tree and asked each student to aim at the bird\'s eye with their bow.<br><br>First he asked Yudhishthira: \'What do you see?\'<br><br>\'I see the tree, the branches, the leaves, the bird, and the eye.\'<br><br>\'Put down your bow,\' said Dronacharya quietly. \'You cannot shoot.\'<br><br>He asked the same of every student. Each described more and more of the surroundings.<br><br>Then he came to Arjuna and asked: \'What do you see?\'<br><br>Arjuna said, without hesitation: \'Only the eye.\'<br><br>\'Shoot.\'<br><br>The arrow split the wooden eye perfectly.<br><br><i>That focus — \'only the eye\' — is what Krishna\'s instruction means. Remember Me at all times does not mean sit and chant all day. It means: dedicate your complete attention to whatever you are doing. Whether you are at your desk or on the gymnastics mat or in your Kathak class — be completely there. That complete presence IS the remembering.</i>", "lesson": "True focus means dedicating your full attention to what you are doing — that focused dedication is remembering God.", "lifeConnect": "The next time you sit down to study or practice — take one breath and say: \'This is for something greater than just a grade.\' Then be completely present."}, {"id": "s25", "group": "g7", "chapter": "Chapter 14, Verse 6", "chapterName": "Gunatraya Vibhaga Yoga", "chapterMeaning": "The Three Modes of Nature", "sanskrit": "तत्र सत्त्वं निर्मलत्वात्प्रकाशकमनामयम् |\nसुखसङ्गेन बध्नाति ज्ञानसङ्गेन चानघ ||", "transliteration": "tatra sattvaṁ nirmalatvāt · prakāśakam anāmayam\nsukha-saṅgena badhnāti · jñāna-saṅgena cānagha", "wordMeaning": [{"w": "tatra", "m": "among these three modes"}, {"w": "sattvam", "m": "the mode of goodness"}, {"w": "nirmalatvāt", "m": "being without stain, pure"}, {"w": "prakāśakam", "m": "illuminating"}, {"w": "anāmayam", "m": "free from suffering"}, {"w": "sukha-saṅgena", "m": "through attachment to happiness"}, {"w": "jñāna-saṅgena", "m": "through attachment to knowledge"}, {"w": "badhnāti", "m": "binds"}], "meaning": "Of the three modes, Sattva — being purest — is illuminating and free from suffering. But even it binds, through attachment to happiness and knowledge.", "moment": "Krishna introduces something profound — all of nature, including human beings, operates through three qualities: Sattva (clarity and goodness), Rajas (passion and restlessness), Tamas (inertia and darkness). Understanding these helps a person understand themselves.", "krishnaSays": "Think of three types of food: food that gives you energy and clarity (Sattva). Food that excites you but makes you restless (Rajas). Food that makes you dull and sleepy (Tamas). Now apply the same idea to your activities. Some give you clarity. Some make you anxious. Some make you dull. Choose more Sattva.", "story": "<b>🌟 Three Students, One Exam, Three Different Minds</b><br><br>Three friends had an important Science test the next morning. Each reacted differently.<br><br><b>Tamasic Tanya</b> looked at her textbook, felt immediately overwhelmed, thought \'I\'ll never understand all of this,\' and went to bed at 8 PM. She slept 12 hours, woke up still foggy, and went to the exam unprepared. She knew things but hadn\'t organised them.<br><br><b>Rajasic Riya</b> stayed up until 2 AM cramming frantically. She made hundreds of notes in different colours. She drank three glasses of cold coffee. She went to bed for 3 hours feeling both overprepared and underprepared. At the exam, she panicked and forgot half of what she had studied.<br><br><b>Sattvic Sasha</b> sat down at 5 PM and studied the most important topics steadily for 2.5 hours. She ate a light dinner. She reviewed her notes for 30 minutes before bed. She slept for 8 hours. She woke feeling clear and ready. At the exam, she remembered almost everything she had studied.<br><br>Tanya was lazy. Riya was frantic. Sasha was neither — she was steady.<br><br><i>The daily report you fill every day — sleep, screen time, food, study — is literally a Sattva tracking system. Every section is a check: am I being Tamasic, Rajasic, or Sattvic today?</i>", "lesson": "Cultivate Sattva — clarity, steadiness and goodness — in how you eat, sleep, study and play.", "lifeConnect": "Look at your day: which parts were Sattvic (clear, productive, joyful)? Which were Rajasic (rushed, anxious)? Which were Tamasic (avoiding, dull)? Aim for more Sattva."}, {"id": "s26", "group": "g7", "chapter": "Chapter 15, Verse 7", "chapterName": "Purushottama Yoga", "chapterMeaning": "The Yoga of the Supreme Person", "sanskrit": "ममैवांशो जीवलोके जीवभूतः सनातनः |\nमनःषष्ठानीन्द्रियाणि प्रकृतिस्थानि कर्षति ||", "transliteration": "mamaivāṁśo jīva-loke · jīva-bhūtaḥ sanātanaḥ\nmanaḥ-ṣaṣṭhānīndriyāṇi · prakṛti-sthāni karṣati", "wordMeaning": [{"w": "mama eva aṁśaḥ", "m": "a fragment of Myself"}, {"w": "jīva-loke", "m": "in the world of living beings"}, {"w": "jīva-bhūtaḥ", "m": "having become a living entity"}, {"w": "sanātanaḥ", "m": "eternal"}, {"w": "manaḥ-ṣaṣṭhāni indriyāṇi", "m": "the six senses including the mind"}, {"w": "prakṛti-sthāni", "m": "situated in material nature"}, {"w": "karṣati", "m": "struggling"}], "meaning": "The living beings in this world are My eternal fragments. They are struggling with the six senses — including the mind — situated in material nature.", "moment": "This verse is Krishna\'s most personal statement about every living being: you are a fragment of Me. Not metaphorically. Literally — a piece of the divine consciousness, playing in the world.", "krishnaSays": "You are not random. You are not accidental. You are a fragment — a shard — of the infinite divine consciousness, wrapped in a human body, navigating the world through your five senses and your mind. That is both humbling and extraordinary.", "story": "<b>🌟 The Piece of Gold That Forgot It Was Gold</b><br><br>Once upon a time, a piece of pure gold fell from a great ornament and landed in a muddy riverbank. Covered in dirt, surrounded by ordinary stones, it began to forget what it was. It looked at the pebbles and the clay and thought: \'I must be like them. I am just another piece of the earth.\'<br><br>Years passed. Seasons changed. Then a goldsmith came, dug through the mud, found it, and held it up to the light.<br><br>The gold shone brilliantly — as purely as it always had. Not a speck of mud had changed it inside. It was still exactly what it had always been.<br><br>The goldsmith smiled and said: \'Ah. Pure gold. This has always been pure gold. All the mud was on the surface. The gold itself — untouched.\'<br><br><i>This is the story of every human soul. You are the gold. The mud is confusion, fear, ego, forgetting. The goldsmith is wisdom — a teacher, a book, a moment of clarity. This verse is your reminder: you are a fragment of the divine. Not because of what you achieve. Because of what you ARE. You have always been gold.</i>", "lesson": "You are a fragment of the divine — not by what you achieve, but by what you are.", "lifeConnect": "On the days you feel worthless or invisible or not good enough — read this verse. You are a piece of God\'s own consciousness. Act like it."}, {"id": "s27", "group": "g7", "chapter": "Chapter 17, Verse 14", "chapterName": "Shraddhatraya Vibhaga Yoga", "chapterMeaning": "Three Kinds of Faith", "sanskrit": "देवद्विजगुरुप्राज्ञपूजनं शौचमार्जवम् |\nब्रह्मचर्यमहिंसा च शारीरं तप उच्यते ||", "transliteration": "deva-dvija-guru-prājña · pūjanaṁ śaucam ārjavam\nbrahmacaryam ahiṁsā ca · śārīraṁ tapa ucyate", "wordMeaning": [{"w": "deva-dvija-guru-prājña", "m": "God, the learned, teachers, the wise"}, {"w": "pūjanam", "m": "worship, respect"}, {"w": "śaucam", "m": "cleanliness"}, {"w": "ārjavam", "m": "simplicity, honesty"}, {"w": "brahmacarya", "m": "sense control, discipline"}, {"w": "ahiṁsā", "m": "non-violence"}, {"w": "śārīram tapaḥ", "m": "discipline of the body"}], "meaning": "Worship of God, teachers, and the wise; cleanliness; simplicity; sense-control; and non-violence — these constitute the discipline of the body.", "moment": "In the final chapters, Krishna explains three types of everything. Here he describes what it means to discipline the body — not punishing it, but honouring it.", "krishnaSays": "Your body is the vehicle your soul uses in this life. Take care of it not out of vanity — but because it is a gift. Eat well, sleep well, keep it clean, do not harm others with it. That is the discipline of the body.", "story": "<b>🌟 Milkha Singh — The Boy Who Ran Away From Everything and Then Ran Toward Everything</b><br><br>Milkha Singh watched his parents being killed in the 1947 Partition violence when he was a child. He ran away, begged for food, lived illegally on trains. He had every reason to fall apart completely and permanently.<br><br>Instead, he ran. Literally.<br><br>He joined the Indian Army, where he discovered he could run faster than anyone around him. His commander suggested athletics. He trained with a ferocity that came from the deepest place — the place where grief and will meet.<br><br>He woke at 4 AM every day. He ran until he could not stand. He slept properly. He ate carefully. He disciplined his body with extraordinary rigour for years, not weeks.<br><br>He became the Flying Sikh — the fastest Indian runner of the 20th century, who came within a fraction of a second of an Olympic medal in Rome in 1960.<br><br>When asked how, he always said the same thing: \'I woke up and ran. Every day. That was my prayer. That was my discipline. That was my answer to everything that had been taken from me.\'<br><br><i>Śārīraṁ tapaḥ — the discipline of the body. Your gymnastics practice. Your Taekwondo. Your Kathak. Not just sport — a response to life.</i>", "lesson": "Honour your body through discipline, cleanliness, and non-violence — it is the vehicle your soul uses in this life.", "lifeConnect": "Your gymnastics and Kathak practice are not just activities. They are the discipline of the body that this verse describes. Show up for them even when you do not feel like it."}, {"id": "s28", "group": "g7", "chapter": "Chapter 18, Verse 66", "chapterName": "Moksha Sanyasa Yoga", "chapterMeaning": "Liberation Through Renunciation", "sanskrit": "सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज |\nअहं त्वां सर्वपापेभ्यो मोक्षयिष्यामि मा शुचः ||", "transliteration": "sarva-dharmān parityajya · mām ekaṁ śaraṇaṁ vraja\nahaṁ tvāṁ sarva-pāpebhyo · mokṣayiṣyāmi mā śucaḥ", "wordMeaning": [{"w": "sarva-dharmān", "m": "all varieties of duty and religion"}, {"w": "parityajya", "m": "abandoning"}, {"w": "mām ekam", "m": "Me alone"}, {"w": "śaraṇam vraja", "m": "take shelter"}, {"w": "aham", "m": "I"}, {"w": "tvām", "m": "you"}, {"w": "sarva-pāpebhyaḥ", "m": "from all sinful reactions"}, {"w": "mokṣayiṣyāmi", "m": "will liberate"}, {"w": "mā śucaḥ", "m": "do not fear, do not grieve"}], "meaning": "Abandon all varieties of duty and simply surrender to Me. I shall deliver you from all sinful reactions. Do not fear.", "moment": "These are the most famous words in the Bhagavad Gita. The last great instruction. After 17 chapters of profound philosophy — this is the final answer. Let go. Trust. I will carry you.", "krishnaSays": "This is not asking you to become passive. It is asking you to do your absolute best — and then trust that something greater than you is also at work. Do your part, fully and joyfully. Then let go of the anxiety about the result. That is surrender. That is freedom.", "story": "<b>🌟 The Closing Scene — And Then the Battle Began</b><br><br>After Krishna finished speaking all 700 verses of the Bhagavad Gita — after all the philosophy, all the stories, all the teaching — he turned to Arjuna and asked simply:<br><br>\'Have I cleared your confusion? Now tell me — what will you do?\'<br><br>The battlefield was silent. Every soldier on both sides waited.<br><br>Arjuna sat quietly for a long moment. And then he said words that are among the most moving in all of world literature:<br><br><i>\'Naṣṭo mohaḥ smṛtir labdhā — My delusion is destroyed. By Your grace, I have remembered who I am. I will do as You say.\'</i><br><br>He picked up his bow Gandiva from the floor of the chariot where he had put it down in grief.<br><br>The battle of Kurukshetra began.<br><br><i>This is the whole story of the Gita in one scene. A person is lost and confused and paralysed. Wisdom speaks — through a teacher, a book, a moment of clarity. The person listens, really listens. Confusion dissolves. They act.</i><br><br>Every time you feel lost — open the Gita. Every time you feel paralysed — read one verse. It has been answering human questions for 5,000 years. It will answer yours too.<br><br><b>This is not the end of the Gita. This is where YOUR journey begins. 🕉️</b>", "lesson": "Do your absolute best — and then surrender the result with complete trust. That is freedom. That is the final answer of the Gita.", "lifeConnect": "After your next exam, your next performance, your next big effort — when it is done, take a breath and say: \'I gave my best. Now I let go.\' That is this verse. That is the Gita."}, {"id": "s29", "group": "g6", "chapter": "Chapter 12, Verse 15", "chapterName": "Bhakti Yoga", "chapterMeaning": "The Yoga of Devotion", "sanskrit": "यस्मान्नोद्विजते लोको लोकान्नोद्विजते च यः |\nहर्षामर्षभयोद्वेगैर्मुक्तो यः स च मे प्रियः ||", "transliteration": "yasmān nodvijate loko · lokān nodvijate ca yaḥ\nharṣāmarṣa-bhayodvegair · mukto yaḥ sa ca me priyaḥ", "wordMeaning": [{"w": "yasmān", "m": "from whom"}, {"w": "na udvijate lokaḥ", "m": "the world is not disturbed"}, {"w": "lokāt na udvijate", "m": "is not disturbed by the world"}, {"w": "harṣa", "m": "happiness"}, {"w": "amarṣa", "m": "envy"}, {"w": "bhaya", "m": "fear"}, {"w": "udvegaiḥ mukta", "m": "free from agitation"}, {"w": "sa me priyaḥ", "m": "that person is dear to Me"}], "meaning": "One who does not disturb the world and who is not disturbed by the world — free from happiness, envy, fear and anxiety — such a person is very dear to Me.", "moment": "Continuing his description of his most beloved devotee, Krishna adds another quality: the person who neither troubles others nor is troubled by others. A stable, unshakeable, peaceful presence.", "krishnaSays": "Think about the people in your life who you love spending time with most. They probably share this quality — they are steady. They do not bring drama. They do not panic. They do not make others feel small. And they are not easily broken by what others do or say.", "story": "<b>🌟 The Bamboo and the Oak in the Storm</b><br><br>A mighty oak tree and a slender bamboo grew side by side at the edge of a forest.<br><br>The oak was proud. \'I stand firm against every storm,\' it said. \'I am strong. Nothing moves me.\'<br><br>The bamboo said nothing. It simply swayed gently in even the lightest breeze.<br><br>One day, a great typhoon came — the worst storm in a century. The wind roared and the rain lashed.<br><br>The great oak, refusing to bend, snapped. Its roots, unable to give even a little, came free from the earth. The enormous tree came crashing down.<br><br>The bamboo bent almost to the ground. In the morning, when the storm had passed, it slowly straightened and stood exactly where it had always stood — unharmed and whole.<br><br><i>The oak disturbed the forest when it fell, crushing everything around it. The bamboo neither disturbed nor was disturbed.<br><br>This is the quality Krishna describes: not rigid and brittle, but flexible and rooted. Stable enough to not be shaken by everything others do, and calm enough to not shake others either.</i>", "lesson": "Be a steady, peaceful presence — not easily disturbed, and not disturbing to others.", "lifeConnect": "When someone tries to provoke you or upset you — try the bamboo response: bend, let it pass, straighten. Don\'t snap. Don\'t fall."}, {"id": "s30", "group": "g7", "chapter": "Chapter 18, Verse 78", "chapterName": "Moksha Sanyasa Yoga", "chapterMeaning": "Liberation Through Renunciation", "sanskrit": "यत्र योगेश्वरः कृष्णो यत्र पार्थो धनुर्धरः |\nतत्र श्रीर्विजयो भूतिर्ध्रुवा नीतिर्मतिर्मम ||", "transliteration": "yatra yogeśvaraḥ kṛṣṇo · yatra pārtho dhanur-dharaḥ\ntatra śrīr vijayo bhūtir · dhruvā nītir matir mama", "wordMeaning": [{"w": "yatra", "m": "wherever"}, {"w": "yoga-īśvaraḥ kṛṣṇaḥ", "m": "the Lord of Yoga, Krishna, is present"}, {"w": "pārthaḥ dhanur-dharaḥ", "m": "Arjuna the archer"}, {"w": "tatra", "m": "there"}, {"w": "śrīḥ", "m": "opulence, beauty"}, {"w": "vijayaḥ", "m": "victory"}, {"w": "bhūtiḥ", "m": "extraordinary power"}, {"w": "dhruvā nītiḥ", "m": "sound morality"}, {"w": "matiḥ mama", "m": "this is my opinion"}], "meaning": "Wherever there is Krishna, the Lord of Yoga, and wherever there is Arjuna, the archer — there will certainly be opulence, victory, extraordinary power and sound morality. This is my opinion.", "moment": "These are the final words of the Bhagavad Gita, spoken by Sanjaya — the narrator. After everything that has been said, he delivers his verdict: wherever wisdom (Krishna) and dedicated action (Arjuna) come together — victory follows.", "krishnaSays": "The Gita ends not with a mystical statement but a practical one. Victory — real, lasting victory — requires two things together: wisdom AND action. Knowledge AND dedication. God AND the willing student. You cannot win with wisdom alone if you do not act. You cannot win with effort alone if it has no wisdom guiding it.", "story": "<b>🌟 The Last Line of the Gita and the First Line of Your Story</b><br><br>Sanjaya had narrated the entire Bhagavad Gita to the blind king Dhritarashtra. Every word. Every verse. The king had been listening in silence.<br><br>When Sanjaya finished, he said: \'Having heard all of this, O King, wherever there is Krishna and wherever there is Arjuna — there is victory. There is prosperity. There is power. There is righteousness. This is my firm conviction.\'<br><br>The blind king sat in silence.<br><br>Because he understood what Sanjaya was really saying: it was not just about that battlefield. It was about every battlefield. Every challenge. Every exam. Every performance. Every difficult day.<br><br>Wherever wisdom (Krishna) meets willing, dedicated action (Arjuna) — that combination is undefeatable.<br><br><i>You, Vaanya, are Arjuna. The Gita — these 30 shlokas you have been learning — is Krishna speaking to you. When you bring what you have learned here to what you do every day — your studies, your Kathak, your gymnastics, your relationships with your family — that is where the real victory is.<br><br>Yatra yogeśvaraḥ kṛṣṇaḥ. Yatra pārtho dhanur-dharaḥ.<br>Wherever wisdom meets action — there is victory.<br><br>Go be both. 🕉️</i>", "lesson": "Wisdom and dedicated action together are undefeatable. Know and then do — that is the complete teaching of the Gita.", "lifeConnect": "You have now studied these shlokas. The next step is to live them — one choice at a time, one day at a time. That is where the real journey begins."}]');
 
 const CREATIVE_OPTIONS=[
   {id:'draw',icon:'🎨',title:'Drawing / Painting',desc:'Draw anything you imagine — nature, a story scene, your favourite character.',pts:20},
@@ -2394,6 +2414,7 @@ function showSyncStatus(state) {
 let brainPtsToday = 0;
 let sudokuPts = 0, logicPtsTotal = 0, riddlePtsTotal = 0;
 let worksheetPts = 0; // pts from daily MCQ worksheets
+let geetaProgress = {}; // { shlokaId: {status,date,pts} }
 let sudokuFrozen = false; // once completed today, freeze
 let logicFrozen  = false; // once completed today, freeze
 let parentUnlocked = false; // PIN authenticated this session
@@ -2480,6 +2501,7 @@ function showTab(id,btn){
       if(wall)wall.style.display='none';
       if(content)content.style.display='block';
       renderParentTab();
+      renderParentShlokaApproval();
     } else {
       if(wall)wall.style.display='block';
       if(content)content.style.display='none';
@@ -2642,35 +2664,413 @@ function buildCreativeOptions(){
   });
 }
 
-function buildShlokaDisplay(){
-  // Pick shloka based on day-of-year so it changes automatically each day
-  const today = new Date();
-  const startOfYear = new Date(today.getFullYear(), 0, 0);
-  const dayOfYear = Math.floor((today - startOfYear) / 86400000);
-  currentShloka = dayOfYear % SHLOKAS.length;
 
-  // Also respect the selected report date if available
-  const rptDate = document.getElementById('rpt-date')?.value;
-  if(rptDate){
-    const d = new Date(rptDate + 'T12:00:00');
-    const sy = new Date(d.getFullYear(), 0, 0);
-    const doy = Math.floor((d - sy) / 86400000);
-    currentShloka = doy % SHLOKAS.length;
+// ════════════════════════════════════════════
+// GEETA TAB — COMPLETE SYSTEM v3
+// 30 shlokas · Browse · Learn · Parent approve
+// ════════════════════════════════════════════
+
+let geetaActiveGroup = null;
+let geetaSceneOpen = false;
+
+function _geetaLoadProgress(date){
+  try {
+    const d = date || (document.getElementById('rpt-date')?.value ||
+      new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0]);
+    const existing = savedDays.find(x => x.date === d);
+    if(existing && existing.geetaProgress)
+      geetaProgress = JSON.parse(existing.geetaProgress);
+    else
+      geetaProgress = {};
+  } catch(e){ geetaProgress = {}; }
+}
+
+function _geetaTotalPts(){
+  return Object.values(geetaProgress).reduce((s,v)=>{
+    if(v.status==='mastered') return s+25;
+    if(v.status==='inprogress') return s+10;
+    return s;
+  },0);
+}
+
+// ── Main build ────────────────────────────────────────────────────
+function buildShlokaDisplay(){
+  _geetaLoadProgress();
+  _buildGroupFilterBtns();
+  _renderBrowseGrid();
+  _updateGeetaHeader();
+  _updateMasteredList();
+  _updateNudge();
+  // Set default scene
+  const sceneEl = document.getElementById('geeta-scene-text');
+  if(sceneEl && GITA_CHAPTER_SCENE[0]) sceneEl.innerHTML = GITA_CHAPTER_SCENE[0];
+}
+
+function _updateGeetaHeader(){
+  const mastered = Object.values(geetaProgress).filter(v=>v.status==='mastered').length;
+  const pct = Math.round(mastered/30*100);
+  const bar = document.getElementById('geeta-master-bar');
+  if(bar) bar.style.width = pct+'%';
+  const lbl = document.getElementById('geeta-master-lbl');
+  if(lbl) lbl.textContent = mastered+' / 30 shlokas mastered';
+  const badge = document.getElementById('geeta-pts-badge');
+  if(badge) badge.textContent = _geetaTotalPts();
+}
+
+function _updateNudge(){
+  const mastered = Object.values(geetaProgress).filter(v=>v.status==='mastered').length;
+  const inprog   = Object.values(geetaProgress).filter(v=>v.status==='inprogress').length;
+  const sub = document.getElementById('geeta-nudge-sub');
+  if(!sub) return;
+  if(mastered===30) sub.textContent = '🎉 You have mastered all 30 shlokas! Incredible!';
+  else if(inprog>0) sub.textContent = '📖 You are learning '+inprog+' shloka(s) — recite to Mamma/Papa for approval & 25 pts!';
+  else sub.textContent = 'Tap any shloka below to start · Earn 10 pts when learning · 25 pts when approved ✅';
+}
+
+// ── Group filter buttons ──────────────────────────────────────────
+function _buildGroupFilterBtns(){
+  const container = document.getElementById('geeta-group-filters');
+  if(!container || container.children.length > 1) return;
+  GITA_GROUPS.forEach(g=>{
+    const btn = document.createElement('button');
+    btn.id = 'gfbtn-'+g.id;
+    btn.onclick = ()=>filterGeetaGroup(g.id, btn);
+    btn.style.cssText = `text-align:left;padding:5px 8px;border-radius:7px;
+      border:1.5px solid ${g.border};background:${g.light};
+      font-size:10px;font-weight:800;color:${g.color};cursor:pointer;width:100%`;
+    btn.textContent = g.icon+' '+g.name;
+    container.appendChild(btn);
+  });
+}
+
+function filterGeetaGroup(groupId, btn){
+  geetaActiveGroup = groupId;
+  // Update scene context
+  if(groupId){
+    const gIdx = GITA_GROUPS.findIndex(g=>g.id===groupId);
+    const sceneEl = document.getElementById('geeta-scene-text');
+    if(sceneEl && GITA_CHAPTER_SCENE[gIdx]) sceneEl.innerHTML = GITA_CHAPTER_SCENE[gIdx];
+    // Auto-open scene
+    const sceneBody = document.getElementById('geeta-scene-body');
+    const arrow = document.getElementById('geeta-scene-arrow');
+    if(sceneBody && sceneBody.style.display==='none'){
+      sceneBody.style.display='block'; geetaSceneOpen=true;
+      if(arrow) arrow.style.transform='rotate(180deg)';
+    }
+  }
+  const lbl = document.getElementById('geeta-filter-lbl');
+  if(lbl){
+    if(groupId){
+      const g = GITA_GROUPS.find(x=>x.id===groupId);
+      lbl.textContent = (g?.icon||'')+' '+SHLOKAS.filter(s=>s.group===groupId).length+' shlokas';
+    } else lbl.textContent = 'All 30';
+  }
+  _renderBrowseGrid();
+}
+
+// ── Browse grid ───────────────────────────────────────────────────
+function _renderBrowseGrid(){
+  const grid = document.getElementById('shloka-browse-grid');
+  if(!grid) return;
+  const groups = geetaActiveGroup
+    ? [GITA_GROUPS.find(g=>g.id===geetaActiveGroup)].filter(Boolean)
+    : GITA_GROUPS;
+  let html = '';
+  groups.forEach(g=>{
+    const list = SHLOKAS.filter(s=>s.group===g.id);
+    html += `<div style="margin-bottom:8px">
+      <div style="font-size:10px;font-weight:900;color:${g.color};text-transform:uppercase;
+        letter-spacing:.07em;padding:4px 8px;background:${g.light};border-radius:7px;
+        margin-bottom:4px;border:1px solid ${g.border}">
+        ${g.icon} ${g.name} <span style="font-weight:600;opacity:.7">· ${g.chapters}</span>
+      </div>`;
+    list.forEach(s=>{
+      const prog = geetaProgress[s.id];
+      const status = prog?.status||'new';
+      const icon = status==='mastered'?'✅':status==='inprogress'?'📖':'🔒';
+      const statusColor = status==='mastered'?'#065F46':status==='inprogress'?'#92400E':'#9CA3AF';
+      const statusBg = status==='mastered'?'#ECFDF5':status==='inprogress'?'#FFFBEB':'#F9FAFB';
+      const border = status==='mastered'?'#6EE7B7':status==='inprogress'?'#FCD34D':'#E5E7EB';
+      const firstLine = (s.sanskrit||'').split('\n')[0].substring(0,40)+'...';
+      html += `<div onclick="_openShloka('${s.id}')" style="cursor:pointer;background:#fff;
+        border-radius:10px;border:1.5px solid ${border};padding:9px 12px;margin-bottom:4px;
+        display:flex;align-items:center;gap:9px;transition:all .18s"
+        onmouseover="this.style.borderColor='${g.color}';this.style.transform='translateX(2px)'"
+        onmouseout="this.style.borderColor='${border}';this.style.transform=''">
+        <div style="font-size:18px">${icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:10px;font-weight:900;color:${g.color}">${s.chapter}</div>
+          <div style="font-size:11px;font-weight:800;color:#1F2937;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.chapterMeaning}</div>
+          <div style="font-size:10px;color:#9CA3AF;font-style:italic;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${firstLine}</div>
+        </div>
+        <div style="font-size:9px;font-weight:900;padding:2px 7px;border-radius:50px;
+          background:${statusBg};color:${statusColor};white-space:nowrap;flex-shrink:0">
+          ${status==='mastered'?'MASTERED':status==='inprogress'?'LEARNING':'TAP'}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  grid.innerHTML = html;
+}
+
+// ── Shloka detail overlay ─────────────────────────────────────────
+function _openShloka(shlokaId){
+  const s = SHLOKAS.find(x=>x.id===shlokaId);
+  if(!s) return;
+  const g = GITA_GROUPS.find(x=>x.id===s.group)||{color:'#065F46',light:'#ECFDF5',icon:'🕉️'};
+  const prog = geetaProgress[s.id];
+  const status = prog?.status||'new';
+
+  const wordRows = (s.wordMeaning||[]).map(w=>
+    `<tr>
+      <td style="padding:3px 8px;font-weight:800;color:#1F2937;font-size:12px;white-space:nowrap;font-style:italic">${w.w}</td>
+      <td style="padding:3px 8px;color:#4B5563;font-size:12px">${w.m}</td>
+    </tr>`).join('');
+
+  let actionHtml = '';
+  if(status==='new'){
+    actionHtml = `<div style="text-align:center;margin-top:20px;padding:16px;
+      background:#F0FDF4;border-radius:16px;border:2px solid #6EE7B7">
+      <div style="font-size:16px;font-weight:900;color:#065F46;margin-bottom:6px">
+        🕉️ Do you want to learn this shloka today?
+      </div>
+      <div style="font-size:12px;color:#374151;margin-bottom:16px;line-height:1.6">
+        Recite it to Mamma or Papa to earn <b>25 pts!</b><br>
+        <span style="font-size:11px;color:#6B7280">You earn 10 pts while learning, 25 pts when approved</span>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button onclick="_geetaStartLearn('${s.id}')"
+          style="background:linear-gradient(135deg,#065F46,#10B981);color:#fff;border:none;
+            padding:14px 30px;border-radius:50px;font-size:15px;font-weight:900;cursor:pointer;
+            font-family:'Nunito',sans-serif;box-shadow:0 4px 16px rgba(16,185,129,.4)">
+          📖 Yes, I want to learn it!
+        </button>
+        <button onclick="closeShloka(null,true)"
+          style="background:#F9FAFB;color:#374151;border:1.5px solid #D1D5DB;
+            padding:14px 24px;border-radius:50px;font-size:14px;font-weight:800;cursor:pointer;
+            font-family:'Nunito',sans-serif">
+          Maybe later
+        </button>
+      </div>
+    </div>`;
+  } else if(status==='inprogress'){
+    actionHtml = `<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:14px;
+      padding:14px;margin-top:20px;text-align:center">
+      <div style="font-size:14px;font-weight:900;color:#92400E">📖 You are learning this shloka!</div>
+      <div style="font-size:12px;color:#78350F;margin-top:6px;line-height:1.6">
+        Recite it to Mamma or Papa. When they approve —<br>it moves to Mastered and you earn <b>25 pts!</b><br>
+        <span style="font-size:11px;color:#92400E;opacity:.8">(Currently earning 10 pts)</span>
+      </div>
+    </div>`;
+  } else {
+    actionHtml = `<div style="background:#ECFDF5;border:1.5px solid #6EE7B7;border-radius:14px;
+      padding:14px;margin-top:20px;text-align:center">
+      <div style="font-size:14px;font-weight:900;color:#065F46">✅ You have mastered this shloka!</div>
+      <div style="font-size:12px;color:#047857;margin-top:4px">
+        Mastered on ${prog?.date||''}. You earned 25 pts! 🎉
+      </div>
+    </div>`;
   }
 
-  const s = SHLOKAS[currentShloka];
-  document.getElementById('shloka-display').innerHTML=`
-    <div class="shloka-card">
-      <div class="shloka-text">${s.text.replace(/\n/g,'<br>')}</div>
-      <div style="font-size:11px;opacity:.8;margin-bottom:8px;font-style:italic">${s.transliteration}</div>
-      <div class="shloka-meaning"><b>Meaning:</b> ${s.meaning}</div>
-      <div class="shloka-src">${s.chapter}</div>
+  const html = `
+    <div style="background:linear-gradient(135deg,${g.color},${g.color}CC);padding:18px 22px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:26px">${g.icon}</div>
+        <div>
+          <div style="font-size:11px;font-weight:900;color:rgba(255,255,255,.8);
+            text-transform:uppercase;letter-spacing:.08em">${g.name} · ${g.chapters}</div>
+          <div style="font-size:16px;font-weight:900;color:#fff">${s.chapter}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.85);margin-top:2px">
+            ${s.chapterName} — <i>${s.chapterMeaning}</i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:18px 22px">
+
+      <div style="background:#FFF7ED;border-left:4px solid #F97316;border-radius:0 12px 12px 0;
+        padding:12px 14px;margin-bottom:16px">
+        <div style="font-size:10px;font-weight:900;color:#C2410C;text-transform:uppercase;
+          letter-spacing:.08em;margin-bottom:5px">🏹 What Was Happening</div>
+        <div style="font-size:13px;color:#374151;line-height:1.85">${s.moment}</div>
+      </div>
+
+      <div style="background:linear-gradient(135deg,#F5F3FF,#EFF6FF);border:2px solid #C4B5FD;
+        border-radius:16px;padding:16px;margin-bottom:14px;text-align:center">
+        <div style="font-size:10px;font-weight:900;color:#4C1D95;text-transform:uppercase;
+          letter-spacing:.08em;margin-bottom:10px">🕉️ The Shloka</div>
+        <div style="font-size:17px;font-weight:900;color:#1F2937;line-height:2.1;
+          font-family:serif">${(s.sanskrit||'').replace(/\n/g,'<br>')}</div>
+        <div style="height:1px;background:#C4B5FD;margin:11px 0"></div>
+        <div style="font-size:12px;color:#4C1D95;font-style:italic;line-height:1.8">
+          ${(s.transliteration||'').replace(/\n/g,'<br>')}
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:900;color:#065F46;text-transform:uppercase;
+          letter-spacing:.08em;margin-bottom:7px">📖 Word by Word</div>
+        <table style="width:100%;border-collapse:collapse;background:#F0FDF4;border-radius:11px;overflow:hidden">
+          <tr style="background:#065F46">
+            <th style="padding:5px 8px;text-align:left;font-size:10px;color:#fff;font-weight:800">Sanskrit</th>
+            <th style="padding:5px 8px;text-align:left;font-size:10px;color:#fff;font-weight:800">Meaning</th>
+          </tr>
+          ${wordRows}
+        </table>
+      </div>
+
+      <div style="background:#F0FDF4;border:1.5px solid #6EE7B7;border-radius:13px;
+        padding:12px 14px;margin-bottom:13px">
+        <div style="font-size:10px;font-weight:900;color:#065F46;text-transform:uppercase;
+          letter-spacing:.08em;margin-bottom:5px">💬 The Meaning</div>
+        <div style="font-size:13px;color:#064E3B;line-height:1.85;font-style:italic">
+          "${s.meaning}"
+        </div>
+      </div>
+
+      <div style="background:linear-gradient(135deg,#EFF6FF,#F5F3FF);border:1.5px solid #93C5FD;
+        border-radius:13px;padding:12px 14px;margin-bottom:13px">
+        <div style="font-size:10px;font-weight:900;color:#1D4ED8;text-transform:uppercase;
+          letter-spacing:.08em;margin-bottom:5px">🔵 What Krishna Is Really Saying</div>
+        <div style="font-size:13px;color:#1E3A8A;line-height:1.85">${s.krishnaSays}</div>
+      </div>
+
+      <div style="background:#fff;border:2px solid #FDE68A;border-radius:15px;
+        padding:14px;margin-bottom:13px">
+        <div style="font-size:10px;font-weight:900;color:#92400E;text-transform:uppercase;
+          letter-spacing:.08em;margin-bottom:7px">📚 The Story</div>
+        <div style="font-size:13px;color:#374151;line-height:1.9">${s.story}</div>
+      </div>
+
+      <div style="background:linear-gradient(135deg,#065F46,#047857);border-radius:13px;
+        padding:12px 14px;margin-bottom:12px">
+        <div style="font-size:10px;font-weight:900;color:rgba(167,243,208,.9);text-transform:uppercase;
+          letter-spacing:.08em;margin-bottom:5px">⭐ The Lesson</div>
+        <div style="font-size:14px;font-weight:800;color:#fff;line-height:1.6">${s.lesson}</div>
+      </div>
+
+      <div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:13px;
+        padding:12px 14px;margin-bottom:4px">
+        <div style="font-size:10px;font-weight:900;color:#92400E;text-transform:uppercase;
+          letter-spacing:.08em;margin-bottom:5px">🌟 Vaanya's Life — How This Applies to YOU</div>
+        <div style="font-size:13px;color:#78350F;line-height:1.85">${s.lifeConnect}</div>
+      </div>
+
+      ${actionHtml}
     </div>`;
 
-  // Update the day badge
-  const badge = document.getElementById('shloka-day-badge');
-  if(badge) badge.innerHTML = `🕉️ Shloka ${currentShloka+1}<br><span style="font-size:9px;opacity:.8">of ${SHLOKAS.length}</span>`;
+  document.getElementById('shloka-overlay-content').innerHTML = html;
+  document.getElementById('shloka-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
 }
+
+function _geetaStartLearn(shlokaId){
+  const today = new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
+  geetaProgress[shlokaId] = {status:'inprogress', date:today, pts:10};
+  _saveGeetaProgress();
+  closeShloka(null,true);
+  toast('📖 Shloka set as Learning! Recite to Mamma/Papa for 25 pts!');
+}
+
+function closeShloka(event, force){
+  if(!force && event && event.target !== document.getElementById('shloka-overlay')) return;
+  document.getElementById('shloka-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+  _renderBrowseGrid();
+  _updateGeetaHeader();
+  _updateNudge();
+}
+
+function _saveGeetaProgress(){
+  calcDayPts();
+  _updateGeetaHeader();
+  _updateMasteredList();
+}
+
+// ── Mastered list ─────────────────────────────────────────────────
+function _updateMasteredList(){
+  const mastered = SHLOKAS.filter(s=>geetaProgress[s.id]?.status==='mastered');
+  const badge = document.getElementById('mastered-count-badge');
+  if(badge) badge.textContent = mastered.length+'/30';
+  const inner = document.getElementById('mastered-list-inner');
+  if(!inner) return;
+  if(!mastered.length){
+    inner.innerHTML = '<div style="text-align:center;padding:14px;font-size:11px;color:#9CA3AF">No shlokas mastered yet.<br>Start learning — get Mamma/Papa to approve! 🕉️</div>';
+    return;
+  }
+  inner.innerHTML = mastered.map(s=>{
+    const g = GITA_GROUPS.find(x=>x.id===s.group)||{color:'#065F46'};
+    return `<div style="display:flex;align-items:center;gap:7px;padding:7px;
+      background:#ECFDF5;border-radius:9px;margin-bottom:4px;border:1px solid #A7F3D0">
+      <div>✅</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;font-weight:900;color:${g.color}">${s.chapter}</div>
+        <div style="font-size:10px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.lesson.substring(0,55)}...</div>
+      </div>
+      <div style="font-size:9px;color:#065F46;font-weight:800;flex-shrink:0">+25 pts</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleMasteredList(){
+  const body = document.getElementById('mastered-list-body');
+  const arrow = document.getElementById('mastered-arrow');
+  if(!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open?'none':'block';
+  if(arrow) arrow.style.transform = open?'':'rotate(180deg)';
+  if(!open) _updateMasteredList();
+}
+
+function toggleGeetaScene(){
+  const body = document.getElementById('geeta-scene-body');
+  const arrow = document.getElementById('geeta-scene-arrow');
+  if(!body) return;
+  geetaSceneOpen = !geetaSceneOpen;
+  body.style.display = geetaSceneOpen?'block':'none';
+  if(arrow) arrow.style.transform = geetaSceneOpen?'rotate(180deg)':'';
+}
+
+// ── Parent tab: shloka approval ───────────────────────────────────
+function renderParentShlokaApproval(){
+  const container = document.getElementById('parent-shloka-approval-section');
+  if(!container) return;
+  _geetaLoadProgress();
+  const inProgress = SHLOKAS.filter(s=>geetaProgress[s.id]?.status==='inprogress');
+  if(!inProgress.length){
+    container.innerHTML = '<div style="font-size:12px;color:#9CA3AF;text-align:center;padding:12px">No shlokas awaiting approval right now.<br><span style="font-size:11px">Vaanya needs to tap a shloka on the Geeta tab and start learning it first.</span></div>';
+    return;
+  }
+  container.innerHTML = inProgress.map(s=>`
+    <div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:13px;
+      padding:13px;margin-bottom:9px">
+      <div style="font-size:13px;font-weight:900;color:#92400E;margin-bottom:3px">${s.chapter}</div>
+      <div style="font-size:12px;font-weight:800;color:#78350F;margin-bottom:4px">${s.chapterName}</div>
+      <div style="font-size:12px;color:#374151;margin-bottom:4px;font-style:italic">"${s.meaning.substring(0,100)}..."</div>
+      <div style="font-size:11px;color:#78350F;margin-bottom:10px;line-height:1.5">
+        Ask Vaanya to recite this shloka. If she recites it correctly — tap Approve below.
+      </div>
+      <button onclick="_parentApproveShloka('${s.id}')"
+        style="background:linear-gradient(135deg,#065F46,#10B981);color:#fff;border:none;
+          padding:10px 22px;border-radius:10px;font-size:13px;font-weight:900;cursor:pointer;
+          font-family:'Nunito',sans-serif">
+        ✅ Approve — Mark as Mastered (+25 pts)
+      </button>
+    </div>`).join('');
+}
+
+function _parentApproveShloka(shlokaId){
+  const today = new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
+  geetaProgress[shlokaId] = {status:'mastered', date:today, pts:25};
+  _saveGeetaProgress();
+  renderParentShlokaApproval();
+  toast('✅ Shloka approved! Vaanya earned 25 pts! Wonderful! 🎉');
+}
+
+
 
 function buildEarnGuide(){
   const tb=document.getElementById('earn-guide');if(!tb)return;
@@ -2875,7 +3275,14 @@ function calcDayPts(){
   pts+=parentPts;breakdown.parent=parentPts;
 
   // Shloka — pts from parent award dropdown
-  let shlokaPts = parseInt(document.getElementById('shloka-pts-award')?.value||0)||0;
+  // Geeta shloka pts from geetaProgress (inprogress=10, mastered=25)
+  let shlokaPts = Object.values(geetaProgress||{}).reduce((s,v)=>{
+    if(v.status==='mastered') return s+25;
+    if(v.status==='inprogress') return s+10;
+    return s;
+  },0);
+  const _legacyShPts = parseInt(document.getElementById('shloka-pts-award')?.value||0)||0;
+  shlokaPts = Math.max(shlokaPts, _legacyShPts);
   pts+=shlokaPts; breakdown.shloka=shlokaPts;
   const shRes=document.getElementById('shloka-pts-result');
   if(shRes) shRes.textContent = shlokaPts>0 ? '+'+shlokaPts+' pts awarded ✅' : '';
@@ -3090,6 +3497,7 @@ function collectFormData(date, pts){
     savedRiddlePts:    riddlePtsTotal,
     savedWorksheetPts: worksheetPts,
     savedWsAnswered:   JSON.stringify(_wsAnswered||{}),
+    geetaProgress:     JSON.stringify(geetaProgress||{}),
     savedAt:new Date().toISOString()
   };
 }
@@ -4198,7 +4606,7 @@ function clearDay(){
   const prApp=document.getElementById('approved-section');if(prApp)prApp.style.display='none';
   const freeMsg=document.getElementById('free-act-msg');if(freeMsg)freeMsg.innerHTML='';
   const prRatRes=document.getElementById('parent-rating-result');if(prRatRes)prRatRes.innerHTML='';
-  creativeChosen=null;brainPtsToday=0;sudokuPts=0;logicPtsTotal=0;riddlePtsTotal=0;mathsPtsToday=0;worksheetPts=0;todayApproved=false;
+  creativeChosen=null;brainPtsToday=0;sudokuPts=0;logicPtsTotal=0;riddlePtsTotal=0;mathsPtsToday=0;worksheetPts=0;geetaProgress={};todayApproved=false;
   sudokuFrozen=false;logicFrozen=false;logicCurrentPuzzles=[];mathsFrozen=false;mathsChecked=false;mathsSelected=[];
   genSudoku('easy');genLogicPuzzles();initMathsSprint();
   const sAwd=document.getElementById('shloka-pts-award');if(sAwd)sAwd.value='0';
@@ -5788,6 +6196,9 @@ function loadDraftDay(d){
   if(d.savedWorksheetPts !== undefined) worksheetPts    = d.savedWorksheetPts;
   if(d.savedWsAnswered){
     try{ Object.assign(_wsAnswered, JSON.parse(d.savedWsAnswered)); }catch(e){}
+  }
+  if(d.geetaProgress){
+    try{ Object.assign(geetaProgress, JSON.parse(d.geetaProgress)); }catch(e){}
   }
   brainPtsToday = sudokuPts + logicPtsTotal + riddlePtsTotal + mathsPtsToday + worksheetPts;
   updateBrainDisplay();
