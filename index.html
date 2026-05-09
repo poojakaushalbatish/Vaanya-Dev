@@ -2241,6 +2241,9 @@ let worksheetPts = 0; // pts from daily MCQ worksheets
 let parentUnlocked = false; // PIN authenticated this session
 let aiSkillPts = 0; // set by AI skill evaluator
 let reflPts1=0,reflPts2=0,reflPts3=0; // per-reflection pts
+let todayApproved = false; // true once parent has approved today's report
+let pinBuf = ''; // PIN entry buffer
+const PCLS = ['pp','pt','pa','ppk','pg','pr','pb']; // all pill colour classes
 // AI removed — no external API calls
 let sudokuGrid=null, sudokuSolution=null, selectedCell=null, sudokuDifficulty='easy';
 let creativeChosen=null;
