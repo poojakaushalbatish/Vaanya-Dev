@@ -2620,8 +2620,15 @@ function _geetaLoadProgress(){
     const d=(document.getElementById('rpt-date')?.value)||
       new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
     const existing=savedDays.find(x=>x.date===d);
-    geetaProgress=existing&&existing.geetaProgress?JSON.parse(existing.geetaProgress):{};
-  }catch(e){geetaProgress={};}
+    const fromCloud=existing&&existing.geetaProgress?JSON.parse(existing.geetaProgress):{};
+    // Merge with localStorage so in-progress shlokas survive refresh even before cloud loads
+    let fromLocal={};
+    try{ const raw=localStorage.getItem('vaanya_geeta_progress'); if(raw) fromLocal=JSON.parse(raw)||{}; }catch(e){}
+    // Cloud wins on mastered; local wins on inprogress if cloud has nothing
+    geetaProgress={...fromLocal,...fromCloud};
+  }catch(e){
+    try{ const raw=localStorage.getItem('vaanya_geeta_progress'); geetaProgress=raw?JSON.parse(raw):{}; }catch(e2){ geetaProgress={}; }
+  }
 }
 function _geetaTotalPts(){
   return Object.values(geetaProgress).reduce((s,v)=>
@@ -2706,10 +2713,11 @@ function _renderBrowseGrid(){
       const line1=(s.sanskrit||'').split('\n')[0].substring(0,38)+'...';
       const nameTxt=isLocked?'#9CA3AF':g.color;
       const titleTxt=isLocked?'#9CA3AF':'#1F2937';
+      const lessonPreview=(s.lesson||'').substring(0,72)+(s.lesson&&s.lesson.length>72?'…':'');
       if(isLocked){
-        html+='<div onclick="_showLockedMsg()" style="'+cur+op+'background:#fff;border-radius:10px;border:1.5px solid '+bord+';padding:9px 12px;margin-bottom:4px;display:flex;align-items:center;gap:9px;transition:all .18s"><div style="font-size:18px">'+icon+'</div><div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:900;color:'+nameTxt+'">'+s.chapter+'</div><div style="font-size:11px;font-weight:800;color:'+titleTxt+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.chapterMeaning+'</div><div style="font-size:10px;color:#9CA3AF;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+line1+'</div></div><div style="font-size:9px;font-weight:900;padding:2px 7px;border-radius:50px;background:'+sb+';color:'+sc+';white-space:nowrap;flex-shrink:0">'+lbl+'</div></div>';
+        html+='<div onclick="_showLockedMsg()" style="'+cur+op+'background:#fff;border-radius:10px;border:1.5px solid '+bord+';padding:9px 12px;margin-bottom:4px;display:flex;align-items:center;gap:9px;transition:all .18s"><div style="font-size:18px">'+icon+'</div><div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:900;color:'+nameTxt+'">'+s.chapter+'</div><div style="font-size:11px;font-weight:800;color:'+titleTxt+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.chapterMeaning+'</div><div style="font-size:10px;color:#9CA3AF;line-height:1.4;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">'+lessonPreview+'</div></div><div style="font-size:9px;font-weight:900;padding:2px 7px;border-radius:50px;background:'+sb+';color:'+sc+';white-space:nowrap;flex-shrink:0">'+lbl+'</div></div>';
       }else{
-        html+='<div onclick="_openShloka(\''+s.id+'\')" onmouseover="this.style.borderColor=\''+g.color+'\';this.style.transform=\'translateX(2px)\'" onmouseout="this.style.borderColor=\''+bord+'\';this.style.transform=\'\'" style="'+cur+'background:#fff;border-radius:10px;border:1.5px solid '+bord+';padding:9px 12px;margin-bottom:4px;display:flex;align-items:center;gap:9px;transition:all .18s"><div style="font-size:18px">'+icon+'</div><div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:900;color:'+nameTxt+'">'+s.chapter+'</div><div style="font-size:11px;font-weight:800;color:'+titleTxt+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.chapterMeaning+'</div><div style="font-size:10px;color:#9CA3AF;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+line1+'</div></div><div style="font-size:9px;font-weight:900;padding:2px 7px;border-radius:50px;background:'+sb+';color:'+sc+';white-space:nowrap;flex-shrink:0">'+lbl+'</div></div>';
+        html+='<div onclick="_openShloka(\''+s.id+'\')" onmouseover="this.style.borderColor=\''+g.color+'\';this.style.transform=\'translateX(2px)\'" onmouseout="this.style.borderColor=\''+bord+'\';this.style.transform=\'\'" style="'+cur+'background:#fff;border-radius:10px;border:1.5px solid '+bord+';padding:9px 12px;margin-bottom:4px;display:flex;align-items:center;gap:9px;transition:all .18s"><div style="font-size:18px">'+icon+'</div><div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:900;color:'+nameTxt+'">'+s.chapter+'</div><div style="font-size:11px;font-weight:800;color:'+titleTxt+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.chapterMeaning+'</div><div style="font-size:10px;color:#6B7280;line-height:1.4;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">'+lessonPreview+'</div></div><div style="font-size:9px;font-weight:900;padding:2px 7px;border-radius:50px;background:'+sb+';color:'+sc+';white-space:nowrap;flex-shrink:0">'+lbl+'</div></div>';
       }
     });
     html+='</div>';
@@ -2729,9 +2737,12 @@ function _openShloka(shlokaId){
   if(status==='new'&&inProgressId&&inProgressId!==s.id){_showLockedMsg();return;}
   const g=GITA_GROUPS.find(x=>x.id===s.group)||{color:'#065F46',light:'#ECFDF5',icon:'\uD83D\uDE4F',border:'#6EE7B7',name:'',chapters:''};
   const wordRows=(s.wordMeaning||[]).map(function(w){return '<tr><td style="padding:3px 8px;font-weight:800;color:#1F2937;font-size:12px;white-space:nowrap;font-style:italic">'+w.w+'</td><td style="padding:3px 8px;color:#4B5563;font-size:12px">'+w.m+'</td></tr>';}).join('');
+  // Auto-start learning if new — no prompt needed
+  if(status==='new'&&!inProgressId){ _geetaStartLearn(s.id,true); }
   let actionHtml='';
   if(status==='new'){
-    actionHtml='<div style="text-align:center;margin-top:20px;padding:16px;background:#F0FDF4;border-radius:16px;border:2px solid #6EE7B7"><div style="font-size:16px;font-weight:900;color:#065F46;margin-bottom:6px">\uD83D\uDE4F Do you want to learn this shloka today?</div><div style="font-size:12px;color:#374151;margin-bottom:14px;line-height:1.6">Tap Yes \u00B7 Recite to Mamma or Papa \u00B7 They approve \u2192 you earn <b>25 pts!</b><br><span style="font-size:11px;color:#6B7280">You earn 10 pts while learning, 25 when approved \u2728</span></div><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button onclick="_geetaStartLearn(\''+s.id+'\')" style="background:linear-gradient(135deg,#065F46,#10B981);color:#fff;border:none;padding:14px 28px;border-radius:50px;font-size:14px;font-weight:900;cursor:pointer;font-family:\'Nunito\',sans-serif;box-shadow:0 4px 16px rgba(16,185,129,.4)">\uD83D\uDCD6 Yes, I want to learn it!</button><button onclick="closeShloka(null,true)" style="background:#F9FAFB;color:#374151;border:1.5px solid #D1D5DB;padding:14px 22px;border-radius:50px;font-size:13px;font-weight:800;cursor:pointer;font-family:\'Nunito\',sans-serif">Maybe later</button></div></div>';
+    // Just started — show inprogress banner immediately
+    actionHtml='<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#92400E">\uD83D\uDCD6 You are now learning this shloka!</div><div style="font-size:12px;color:#78350F;margin-top:6px;line-height:1.6">Recite it to Mamma or Papa. When they approve \u2192 Mastered! Earning 10 pts now \u2728</div></div>';
   }else if(status==='inprogress'){
     actionHtml='<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#92400E">\uD83D\uDCD6 You are learning this shloka!</div><div style="font-size:12px;color:#78350F;margin-top:6px;line-height:1.6">Recite it to Mamma or Papa. When they approve \u2192 Mastered! Earning 10 pts now \u2728</div></div>';
   }else{
@@ -2756,12 +2767,31 @@ function _openShloka(shlokaId){
   document.body.style.overflow='hidden';
 }
 
-function _geetaStartLearn(shlokaId){
+function _geetaStartLearn(shlokaId, silent){
   const today=new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
   geetaProgress[shlokaId]={status:'inprogress',date:today,pts:10};
   _saveGeetaProgress();
-  closeShloka(null,true);
-  toast('\uD83D\uDCD6 Learning started! Recite to Mamma or Papa for 25 pts! \uD83D\uDE4F');
+  _persistGeetaToLocalStorage();
+  if(!silent){
+    closeShloka(null,true);
+    toast('\uD83D\uDCD6 Learning started! Recite to Mamma or Papa for 25 pts! \uD83D\uDE4F');
+  }
+}
+
+// Persist geetaProgress to localStorage so it survives page refresh
+function _persistGeetaToLocalStorage(){
+  try{
+    const key='vaanya_geeta_progress';
+    localStorage.setItem(key, JSON.stringify(geetaProgress));
+  }catch(e){}
+}
+
+// Load geetaProgress from localStorage as fallback
+function _loadGeetaFromLocalStorage(){
+  try{
+    const raw=localStorage.getItem('vaanya_geeta_progress');
+    if(raw){ const parsed=JSON.parse(raw); if(parsed&&typeof parsed==='object') geetaProgress=parsed; }
+  }catch(e){}
 }
 
 function closeShloka(event,force){
@@ -2825,6 +2855,7 @@ function _parentApproveShloka(shlokaId){
   const today=new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
   geetaProgress[shlokaId]={status:'mastered',date:today,pts:25};
   _saveGeetaProgress();
+  _persistGeetaToLocalStorage();
   renderParentShlokaApproval();_renderBrowseGrid();
   toast('\u2705 Shloka approved! Vaanya earned 25 pts! \uD83C\uDF89');
 }
