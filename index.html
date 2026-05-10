@@ -1520,7 +1520,43 @@ tr:hover td{background:#FAFBFF}
 <!-- PARENT CONTENT — shown after PIN -->
 <div id="parent-content" style="display:none">
 
-<!-- Header banner -->
+<!-- ══════════════════════════════════════════════
+     PENDING APPROVALS QUEUE — shown when past days are waiting
+══════════════════════════════════════════════ -->
+<div id="pending-queue-sec" style="display:none;background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border:2px solid #FCD34D;border-radius:18px;padding:18px 20px;margin-bottom:16px">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+    <div style="font-size:28px">⏳</div>
+    <div style="flex:1">
+      <div style="font-size:15px;font-weight:900;color:#92400E">Reports Waiting for Approval</div>
+      <div style="font-size:12px;color:#78350F;margin-top:2px;line-height:1.5">Select a pending date below, review Vaanya's work, then Approve or Reject.</div>
+    </div>
+    <div id="pending-count-badge" style="background:#F59E0B;color:#fff;font-size:12px;font-weight:900;padding:4px 12px;border-radius:50px;flex-shrink:0"></div>
+  </div>
+  <!-- Pending date cards -->
+  <div id="pending-date-cards" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px"></div>
+  <!-- Currently reviewing banner -->
+  <div id="pending-reviewing-bar" style="display:none;background:#fff;border:1.5px solid #FCD34D;border-radius:12px;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:11px;font-weight:900;color:#92400E;text-transform:uppercase;letter-spacing:.06em">Now reviewing</div>
+      <div style="font-size:15px;font-weight:900;color:#1F2937" id="pending-reviewing-date">—</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="approvePendingReport()"
+        style="background:linear-gradient(135deg,#10B981,#047857);color:#fff;border:none;border-radius:10px;padding:11px 22px;font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 4px 12px rgba(16,185,129,.4)">
+        ✅ APPROVE
+      </button>
+      <button onclick="rejectPendingReport()"
+        style="background:linear-gradient(135deg,#EF4444,#B91C1C);color:#fff;border:none;border-radius:10px;padding:11px 22px;font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 4px 12px rgba(239,68,68,.4)">
+        ❌ REJECT
+      </button>
+    </div>
+  </div>
+  <!-- Summary of loaded pending report -->
+  <div id="pending-report-summary" style="display:none;margin-top:12px;background:#fff;border:1.5px solid #FDE68A;border-radius:12px;padding:14px 16px">
+    <div style="font-size:11px;font-weight:900;color:#92400E;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Report summary</div>
+    <div id="pending-summary-chips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+  </div>
+</div>
 <div style="background:linear-gradient(135deg,#1E1B4B,#4F46E5,#7C3AED);border-radius:var(--rad);padding:20px 22px;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
   <div style="font-size:48px">👩‍👧‍👦</div>
   <div style="flex:1">
@@ -5859,6 +5895,7 @@ function showParentTabWithPin(btn){
   if(parentUnlocked){
     // Already authenticated this session — go straight in
     showTab('parent', btn);
+    renderPendingQueue();
     renderParentTab();
     return;
   }
@@ -5880,6 +5917,7 @@ function openPinModalParent(){
     const content = document.getElementById('parent-content');
     if(wall) wall.style.display='none';
     if(content) content.style.display='block';
+    renderPendingQueue();
     renderParentTab();
     toast('Welcome! Review Vaanya report 📋');
   };
@@ -5889,7 +5927,112 @@ function openPinModalParent(){
 
 
 // ════════════════════════════════════════════
-// PARENT COMMENTS ON PROGRESS TAB
+// PENDING APPROVALS QUEUE
+// ════════════════════════════════════════════
+let _pendingReviewDate = null; // date currently loaded for review in parent tab
+
+function renderPendingQueue(){
+  const pending = savedDays.filter(d => d.approved !== true);
+  const sec = document.getElementById('pending-queue-sec');
+  const badge = document.getElementById('pending-count-badge');
+  const cards = document.getElementById('pending-date-cards');
+  if(!sec) return;
+
+  if(!pending.length){
+    sec.style.display = 'none';
+    return;
+  }
+  sec.style.display = 'block';
+  if(badge) badge.textContent = pending.length + ' pending';
+
+  if(cards){
+    cards.innerHTML = pending.map(d => {
+      const isActive = _pendingReviewDate === d.date;
+      return `<button onclick="loadPendingForReview('${d.date}')"
+        style="background:${isActive?'#F59E0B':'#fff'};color:${isActive?'#fff':'#92400E'};
+          border:2px solid ${isActive?'#D97706':'#FCD34D'};border-radius:10px;
+          padding:9px 14px;font-size:12px;font-weight:900;cursor:pointer;
+          font-family:'Nunito',sans-serif;transition:all .18s;min-width:120px;text-align:left">
+        <div style="font-size:10px;opacity:.8;margin-bottom:2px">⏳ Pending</div>
+        <div>${fmtDate(d.date)}</div>
+        <div style="font-size:13px;font-weight:900;margin-top:3px;color:${isActive?'#fff':'#10B981'}">${d.pts||0} pts</div>
+      </button>`;
+    }).join('');
+  }
+}
+
+function loadPendingForReview(date){
+  const d = savedDays.find(x => x.date === date);
+  if(!d){ toast('Could not find report for ' + date); return; }
+
+  _pendingReviewDate = date;
+
+  // Set the rpt-date input so approveReport() picks it up correctly
+  const dateEl = document.getElementById('rpt-date');
+  if(dateEl) dateEl.value = date;
+
+  // Load all form fields from saved data
+  unlockForm();
+  loadDraftDay(d);
+
+  // Show reviewing bar
+  const bar = document.getElementById('pending-reviewing-bar');
+  const lbl = document.getElementById('pending-reviewing-date');
+  const summary = document.getElementById('pending-report-summary');
+  const chips = document.getElementById('pending-summary-chips');
+  if(bar){ bar.style.display = 'flex'; }
+  if(lbl){ lbl.textContent = fmtDate(date) + ' · ' + (d.pts||0) + ' pts'; }
+
+  // Build summary chips
+  if(chips){
+    const items = [
+      d.ttVal && d.ttVal !== '0'  ? '📅 Timetable: ' + d.ttVal + ' pts' : null,
+      d.testGot && d.testTot      ? '📝 Test: ' + d.testGot + '/' + d.testTot : null,
+      (d.savedSudokuPts||0) + (d.savedLogicPts||0) + (d.savedRiddlePts||0) + (d.savedMathsPts||0) > 0
+        ? '🧠 Brain: ' + ((d.savedSudokuPts||0)+(d.savedLogicPts||0)+(d.savedRiddlePts||0)+(d.savedMathsPts||0)) + ' pts' : null,
+      d.shlokaReflect             ? '🕉️ Shloka filled' : null,
+      d.creativeChosen            ? '🎨 Creative: ' + d.creativeChosen : null,
+      d.parentComment             ? '💬 Comment: "' + d.parentComment.substring(0,40) + (d.parentComment.length>40?'…':'"') : null,
+    ].filter(Boolean);
+    chips.innerHTML = items.map(t =>
+      `<span style="font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;
+        background:#FFFBEB;color:#92400E;border:1.5px solid #FDE68A">${t}</span>`
+    ).join('');
+  }
+  if(summary) summary.style.display = 'block';
+
+  // Refresh the date cards to highlight active
+  renderPendingQueue();
+  // Scroll to top of parent content
+  document.getElementById('parent-content')?.scrollIntoView({behavior:'smooth', block:'start'});
+  // Refresh renderParentTab to show loaded data
+  renderParentTab();
+  toast('📋 Loaded ' + fmtDate(date) + ' — review and Approve or Reject below ⬇️');
+}
+
+async function approvePendingReport(){
+  if(!_pendingReviewDate){ toast('No pending report selected.'); return; }
+  // approveReport() already reads from rpt-date which we set in loadPendingForReview
+  await approveReport();
+  // After approval, clean up queue
+  _pendingReviewDate = null;
+  const bar = document.getElementById('pending-reviewing-bar');
+  const summary = document.getElementById('pending-report-summary');
+  if(bar) bar.style.display = 'none';
+  if(summary) summary.style.display = 'none';
+  renderPendingQueue();
+}
+
+async function rejectPendingReport(){
+  if(!_pendingReviewDate){ toast('No pending report selected.'); return; }
+  await rejectReport();
+  _pendingReviewDate = null;
+  const bar = document.getElementById('pending-reviewing-bar');
+  const summary = document.getElementById('pending-report-summary');
+  if(bar) bar.style.display = 'none';
+  if(summary) summary.style.display = 'none';
+  renderPendingQueue();
+}
 // ════════════════════════════════════════════
 function renderParentComments(days){
   const el = document.getElementById('parent-comments-list');
