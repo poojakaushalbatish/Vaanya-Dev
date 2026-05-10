@@ -1645,7 +1645,7 @@ tr:hover td{background:#FAFBFF}
   <div id="parent-rating-result" style="margin-bottom:14px;font-size:14px;font-weight:800;padding:10px;border-radius:var(--rads)"></div>
   <div class="fl">Mamma &amp; Papa's comments on today's performance</div>
   <textarea id="parent-comment" placeholder="Write your thoughts here... e.g. 'Proud of you for completing all homework! Tomorrow focus on shloka practice...'" style="min-height:80px;margin-bottom:4px" oninput="calcDayPts()"></textarea>
-  <div style="font-size:10px;color:var(--muted)">Comments add +25 pts when filled</div>
+  <div style="font-size:10px;color:var(--muted)">Your thoughts help Vaanya grow 💛</div>
 </div>
 
 <!-- Approve / Reject -->
@@ -2052,7 +2052,7 @@ const EARN_GUIDE=[
   ['Exercise / Outdoor','10 pts','Per activity day'],
   ['Screen time within limits','20 pts','Daily reward'],
   
-  ['Parent comment filled','25 pts','After PIN approval'],
+  ['Parent rating — Excellent','80 pts','After PIN approval'],
   ['Geeta Shloka — written','25 pts','MANDATORY −20 if skipped'],
   ['Creative activity done','20 pts','MANDATORY −20 if skipped'],
   ['Brain Lab completed','30 pts','MANDATORY −15 if skipped'],
@@ -3043,10 +3043,10 @@ function calcDayPts(){
 
   // Reflection removed from daily report
 
-  // Parent comment
+  // Parent comment — no points, just a note from Mamma & Papa
   const pc=(document.getElementById('parent-comment')?.value||'').trim();
   let parentPts=0;
-  if(pc.length>5)parentPts=25;
+  // parentPts intentionally 0 — comments are feedback only, not scored
   pts+=parentPts;breakdown.parent=parentPts;
 
   // Shloka — pts from parent award dropdown
@@ -3100,7 +3100,6 @@ function renderBreakdown(bd,total){
     {label:'🤸 Physical activity',pts:bd.gym||0,col:'var(--a)'},
     {label:'📺 Screen & free time',pts:bd.screen||0,col:'var(--pk)'},
     {label:'💭 Reflection',pts:0,col:'var(--t)'},
-    {label:'✍️ Parent comment',pts:bd.parent||0,col:'var(--b)'},
     {label:'🕉️ Shloka',pts:bd.shloka||0,col:'var(--o)'},
     {label:'🎨 Creative',pts:bd.creative||0,col:'var(--pk)'},
     {label:'🧠 Brain Lab',pts:bd.brain||0,col:'var(--b)'},
@@ -3800,7 +3799,7 @@ function renderParentTab(){
   let brPts=brainPtsToday;
   const parentRating=parseInt(document.getElementById('parent-rating')?.value||0);
   const parentComment=(document.getElementById('parent-comment')?.value||'').trim();
-  const parentCommentPts=parentComment.length>5?25:0;
+  const parentCommentPts=0; // comments are feedback only — no points awarded
 
   // Update header chips
   const el1=document.getElementById('pr-daily-pts');if(el1)el1.textContent=dailyPts;
@@ -3815,7 +3814,6 @@ function renderParentTab(){
     {label:'🧠 Brain Lab',pts:brPts,max:55,col:'#3B82F6',detail:'Puzzles, Sudoku, Riddles completed today'},
     {label:'🕉️ Geeta & Creative',pts:soulPts,max:45,col:'#7C3AED',detail:`Shloka: ${shlokaPts} · Creative: ${crPts}`},
     {label:'⭐ Parent Rating',pts:parentRating,max:80,col:parentRating>=0?'#10B981':'#EF4444',detail:parentRating>=0?`+${parentRating} pts bonus from Parents Review`:`${parentRating} pts deducted by Parents Review`},
-    {label:'💬 Parent Comment',pts:parentCommentPts,max:25,col:'#06B6D4',detail:parentCommentPts>0?'Comment written — +25 pts!':'No comment yet'},
   ];
   bars.innerHTML=sections.map(s=>{
     const pct=s.max>0?Math.min(100,Math.max(0,Math.round(s.pts/s.max*100))):0;
