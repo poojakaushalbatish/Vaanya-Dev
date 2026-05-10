@@ -5049,6 +5049,12 @@ async function saveBrainDraft(){
   const istToday = istNow.toISOString().split('T')[0];
   let date = document.getElementById('rpt-date')?.value || istToday;
   if(!date) date = istToday;
+  // GUARD: never overwrite an approved report from a sub-tab save
+  const _existingB = savedDays.find(d => d.date === date);
+  if(_existingB && _existingB.approved === true){
+    toast('✅ Report already approved — brain pts are locked in!');
+    return;
+  }
   const pts=calcDayPts();
   const data = collectFormData(date, pts);
   // Upsert into savedDays
@@ -5184,6 +5190,12 @@ function checkGeetaSaveReady(){
 async function saveGeetaDraft(){
   const date = document.getElementById('rpt-date')?.value;
   if(!date){ toast('Please set a date on the Daily Report tab first!'); return; }
+  // GUARD: never overwrite an approved report
+  const _existingG = savedDays.find(d => d.date === date);
+  if(_existingG && _existingG.approved === true){
+    toast('✅ Report already approved — shloka work is locked in!');
+    return;
+  }
   // Guard: past-shlokas is mandatory
   const pastVal = (document.getElementById('past-shlokas')?.value||'').trim();
   if(!pastVal){ toast('✍️ Please write at least one past shloka first!'); return; }
@@ -5202,6 +5214,12 @@ async function saveGeetaDraft(){
 async function saveCreativeDraft(){
   const date = document.getElementById('rpt-date')?.value;
   if(!date){ toast('Please set a date on the Daily Report tab first!'); return; }
+  // GUARD: never overwrite an approved report
+  const _existingC = savedDays.find(d => d.date === date);
+  if(_existingC && _existingC.approved === true){
+    toast('✅ Report already approved — creative work is locked in!');
+    return;
+  }
   const pts = calcDayPts();
   const data = collectFormData(date, pts);
   const idx = savedDays.findIndex(d=>d.date===date);
