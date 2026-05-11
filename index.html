@@ -1577,6 +1577,39 @@ tr:hover td{background:#FAFBFF}
   <div id="parent-breakdown-bars"></div>
 </div>
 
+<!-- Parent Sudoku Unlock -->
+<div class="sec" id="parent-sudoku-sec" style="border-color:#818CF8;background:linear-gradient(135deg,#EEF2FF,#fff)">
+  <div class="sh">
+    <div class="si" style="background:#EEF2FF;color:#3730A3">🔢</div>
+    Sudoku — Parent Override
+    <span id="sudoku-freeze-badge" style="margin-left:auto;font-size:10px;font-weight:800;padding:3px 10px;border-radius:10px;border:1px solid #A5B4FC;background:#EEF2FF;color:#3730A3">Checking status…</span>
+  </div>
+  <div id="parent-sudoku-status" style="font-size:13px;color:#4B5563;font-weight:700;margin-bottom:12px;line-height:1.6">
+    Loading…
+  </div>
+  <!-- Unlock button — only shown when frozen -->
+  <div id="parent-sudoku-unlock-wrap" style="display:none">
+    <div style="background:#FFF7ED;border:1.5px solid #FCD34D;border-radius:12px;padding:12px 16px;margin-bottom:12px;font-size:12px;color:#92400E;font-weight:700;line-height:1.6">
+      ⚠️ This gives Vaanya <b>one more attempt</b> today. The sudoku will lock again automatically when she presses Check.
+      Previous pts are reset so she can earn the full score on the fresh attempt.
+    </div>
+    <button onclick="parentUnlockSudoku()"
+      style="width:100%;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border:none;
+        border-radius:14px;padding:14px 18px;font-size:14px;font-weight:900;cursor:pointer;
+        font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(79,70,229,.4);letter-spacing:.03em">
+      🔓 Unlock Sudoku — Give One More Attempt
+    </button>
+  </div>
+  <!-- Already unlocked notice -->
+  <div id="parent-sudoku-unlocked-notice" style="display:none;background:#ECFDF5;border:1.5px solid #6EE7B7;border-radius:12px;padding:12px 16px;font-size:13px;font-weight:800;color:#065F46">
+    ✅ Sudoku is currently unlocked — Vaanya can attempt it now. It will lock automatically when she checks.
+  </div>
+  <!-- Already open (not yet attempted) notice -->
+  <div id="parent-sudoku-open-notice" style="display:none;background:#EFF6FF;border:1.5px solid #93C5FD;border-radius:12px;padding:12px 16px;font-size:13px;font-weight:800;color:#1E3A8A">
+    📖 Sudoku has not been attempted yet today — Vaanya can access it freely.
+  </div>
+</div>
+
 <!-- Shloka reflection — from child -->
 <div class="sec" style="border-color:#6EE7B7;background:linear-gradient(135deg,#F0FDF4,#fff)">
   <div class="sh"><div class="si" style="background:#ECFDF5;color:#065F46">🕉️</div>
@@ -1604,7 +1637,7 @@ tr:hover td{background:#FAFBFF}
       🎯 Award Shloka Points (max 25 pts)
       <span style="flex:1;height:1px;background:linear-gradient(90deg,#6EE7B7,transparent)"></span>
     </div>
-    <select id="shloka-pts-award" onchange="calcDayPts()"
+    <select id="shloka-pts-award" onchange="calcDayPts();if(parentUnlocked)renderParentShlokaApproval();"
       style="width:100%;padding:11px 14px;font-size:13px;font-weight:800;
         border:1.5px solid #A7F3D0;border-radius:12px;background:#fff;color:#064E3B;
         font-family:'Nunito',sans-serif;cursor:pointer;margin-bottom:8px">
@@ -2586,6 +2619,21 @@ function totalEarned(){
     .reduce((a,d) => a + (parseInt(d.pts)||0), 0);
 }
 
+// ── One-time data repair ─────────────────────────────────────────────────────
+// Removes s13 (Ch 6 V17) that was wrongly approved — runs once, marks done.
+(function _oneTimeShlokaRepair(){
+  try{
+    if(localStorage.getItem('vaanya_shloka_repair_v1')) return; // already done
+    // Remove s13 from permanent mastered store
+    const mastered = JSON.parse(localStorage.getItem('vaanya_geeta_mastered')||'{}');
+    if(mastered['s13']){ delete mastered['s13']; localStorage.setItem('vaanya_geeta_mastered', JSON.stringify(mastered)); }
+    // Remove s13 from progress store
+    const prog = JSON.parse(localStorage.getItem('vaanya_geeta_progress')||'{}');
+    if(prog['s13']){ delete prog['s13']; localStorage.setItem('vaanya_geeta_progress', JSON.stringify(prog)); }
+    localStorage.setItem('vaanya_shloka_repair_v1','done');
+  }catch(e){}
+})();
+
 function buildAll(){
   buildStars('creative-stars',5);
   buildCreativeOptions();buildShlokaDisplay();
@@ -2656,30 +2704,104 @@ let geetaSceneOpen   = false;
 
 function _geetaLoadProgress(){
   try{
-    const d=(document.getElementById('rpt-date')?.value)||
+    // ── Step 1: Build cumulative map from ALL approved days ───────────────────
+    const cumulative = {};
+    savedDays
+      .filter(d => d.approved === true)
+      .sort((a,b) => new Date(a.date) - new Date(b.date))
+      .forEach(d => {
+        try{
+          const prog = d.geetaProgress ? JSON.parse(d.geetaProgress) : {};
+          Object.entries(prog).forEach(([id, val]) => {
+            const cur = cumulative[id];
+            // Priority: mastered > relearning > inprogress > new
+            // Once mastered, only relearning or mastered can replace it
+            if(!cur){
+              cumulative[id] = val;
+            } else if(cur.status === 'inprogress' && (val.status === 'mastered' || val.status === 'relearning')){
+              cumulative[id] = val;
+            } else if(cur.status === 'relearning' && val.status === 'mastered'){
+              cumulative[id] = val;
+            } else if(cur.status === 'mastered' && val.status === 'relearning'){
+              cumulative[id] = val; // parent explicitly demoted it
+            }
+          });
+        }catch(e){}
+      });
+
+    // ── Step 2: Today's unapproved draft may have inprogress/relearning ──────
+    const todayStr = (document.getElementById('rpt-date')?.value) ||
       new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
-    const existing=savedDays.find(x=>x.date===d);
-    const fromCloud=existing&&existing.geetaProgress?JSON.parse(existing.geetaProgress):{};
-    // Merge with localStorage so in-progress shlokas survive refresh even before cloud loads
-    let fromLocal={};
-    try{ const raw=localStorage.getItem('vaanya_geeta_progress'); if(raw) fromLocal=JSON.parse(raw)||{}; }catch(e){}
-    // Cloud wins on mastered; local wins on inprogress if cloud has nothing
-    geetaProgress={...fromLocal,...fromCloud};
+    const todayDraft = savedDays.find(x => x.date === todayStr && x.approved !== true);
+    const fromToday = todayDraft && todayDraft.geetaProgress
+      ? JSON.parse(todayDraft.geetaProgress) : {};
+
+    // ── Step 3: localStorage for mid-session changes ──────────────────────────
+    let fromLocal = {};
+    try{
+      const raw = localStorage.getItem('vaanya_geeta_progress');
+      if(raw) fromLocal = JSON.parse(raw) || {};
+    }catch(e){}
+
+    // Merge — cumulative approved wins over local/today for mastered/relearning
+    const merged = {...fromLocal, ...fromToday, ...cumulative};
+    // Final pass: mastered/relearning from cumulative always wins
+    Object.entries(cumulative).forEach(([id, val]) => {
+      if(val.status === 'mastered' || val.status === 'relearning') merged[id] = val;
+    });
+    geetaProgress = merged;
+
+    // ── One-time cloud repair: remove s13 if wrongly mastered ──────────────
+    // This was incorrectly approved via the generic fallback button.
+    if(geetaProgress['s13'] && geetaProgress['s13'].status === 'mastered'){
+      if(!localStorage.getItem('vaanya_s13_cloud_repair_v1')){
+        delete geetaProgress['s13'];
+        localStorage.setItem('vaanya_s13_cloud_repair_v1','done');
+        // Patch will be pushed to Supabase on next saveGeetaDraft or approveReport
+        _persistGeetaToLocalStorage();
+      }
+    }
+
   }catch(e){
-    try{ const raw=localStorage.getItem('vaanya_geeta_progress'); geetaProgress=raw?JSON.parse(raw):{}; }catch(e2){ geetaProgress={}; }
+    try{
+      const raw = localStorage.getItem('vaanya_geeta_progress');
+      geetaProgress = raw ? JSON.parse(raw) : {};
+    }catch(e2){ geetaProgress = {}; }
   }
 }
 function _geetaTotalPts(){
   return Object.values(geetaProgress).reduce((s,v)=>
-    s+(v.status==='mastered'?25:v.status==='inprogress'?10:0),0);
+    s+(v.status==='mastered'?25:v.status==='inprogress'?10:v.status==='relearning'?10:0),0);
 }
 function _geetaInProgressId(){
+  // Returns shlokaId where status === 'inprogress' (the one NEW shloka being learned)
   const e=Object.entries(geetaProgress).find(([,v])=>v.status==='inprogress');
   return e?e[0]:null;
+}
+function _geetaReLearningIds(){
+  // Returns all shlokaIds where status === 'relearning'
+  return Object.entries(geetaProgress).filter(([,v])=>v.status==='relearning').map(([id])=>id);
 }
 
 function buildShlokaDisplay(){
   _geetaLoadProgress();
+  // Merge permanent mastered store — but NEVER overwrite a 'relearning' status
+  // (parent intentionally demoted it; don't let the permanent store undo that)
+  try{
+    const mastered = JSON.parse(localStorage.getItem('vaanya_geeta_mastered')||'{}');
+    Object.entries(mastered).forEach(([id, val]) => {
+      const cur = geetaProgress[id];
+      // Only apply if not already tracked, or if current is just 'inprogress' from today
+      // Never overwrite 'relearning' — that's an intentional parent demotion
+      if(!cur){
+        geetaProgress[id] = val;
+      } else if(cur.status === 'inprogress' && val.status === 'mastered'){
+        // Approved day record wins over a stale inprogress draft
+        geetaProgress[id] = val;
+      }
+      // relearning and mastered from cumulative already handled in _geetaLoadProgress
+    });
+  }catch(e){}
   _buildGroupFilterBtns();
   _renderBrowseGrid();
   _updateGeetaHeader();
@@ -2733,6 +2855,8 @@ function _renderBrowseGrid(){
   const grid=document.getElementById('shloka-browse-grid');
   if(!grid)return;
   const inProgressId=_geetaInProgressId();
+  const relearningIds=_geetaReLearningIds();
+  const hasBlocker=inProgressId||relearningIds.length>0; // any active shloka blocks new ones
   const groups=geetaActiveGroup?[GITA_GROUPS.find(g=>g.id===geetaActiveGroup)].filter(Boolean):GITA_GROUPS;
   let html='';
   groups.forEach(function(g){
@@ -2741,15 +2865,24 @@ function _renderBrowseGrid(){
     list.forEach(function(s){
       const prog=geetaProgress[s.id];
       const status=prog?prog.status:'new';
-      const isLocked=(status==='new')&&inProgressId&&inProgressId!==s.id;
-      const icon=status==='mastered'?'&#x2705;':status==='inprogress'?'&#x1F4D6;':isLocked?'&#x1F512;':'&#x1F513;';
-      const sc=status==='mastered'?'#065F46':status==='inprogress'?'#92400E':isLocked?'#9CA3AF':'#6B7280';
-      const sb=status==='mastered'?'#ECFDF5':status==='inprogress'?'#FFFBEB':'#F9FAFB';
-      const bord=status==='mastered'?'#6EE7B7':status==='inprogress'?'#FCD34D':'#E5E7EB';
-      const op=isLocked?'opacity:.5;':'';
-      const cur=isLocked?'cursor:not-allowed;':'cursor:pointer;';
-      const lbl=status==='mastered'?'MASTERED':status==='inprogress'?'LEARNING':isLocked?'LOCKED':'TAP TO START';
-      const line1=(s.sanskrit||'').split('\n')[0].substring(0,38)+'...';
+      const isRelearning=status==='relearning';
+      const isInProgress=status==='inprogress';
+      const isMastered=status==='mastered';
+      // Lock new shlokas if any shloka is in learning or relearning
+      const isLocked=(status==='new')&&hasBlocker&&inProgressId!==s.id&&!relearningIds.includes(s.id);
+
+      let icon,sc,sb,bord,lbl,cur,op;
+      if(isMastered){
+        icon='&#x2705;';sc='#065F46';sb='#ECFDF5';bord='#6EE7B7';lbl='MASTERED';cur='cursor:pointer;';op='';
+      }else if(isRelearning){
+        icon='&#x1F504;';sc='#1D4ED8';sb='#EFF6FF';bord='#93C5FD';lbl='RELEARNING';cur='cursor:pointer;';op='';
+      }else if(isInProgress){
+        icon='&#x1F4D6;';sc='#92400E';sb='#FFFBEB';bord='#FCD34D';lbl='LEARNING';cur='cursor:pointer;';op='';
+      }else if(isLocked){
+        icon='&#x1F512;';sc='#9CA3AF';sb='#F9FAFB';bord='#E5E7EB';lbl='LOCKED';cur='cursor:not-allowed;';op='opacity:.5;';
+      }else{
+        icon='&#x1F513;';sc='#6B7280';sb='#F9FAFB';bord='#E5E7EB';lbl='TAP TO START';cur='cursor:pointer;';op='';
+      }
       const nameTxt=isLocked?'#9CA3AF':g.color;
       const titleTxt=isLocked?'#9CA3AF':'#1F2937';
       const lessonPreview=(s.lesson||'').substring(0,72)+(s.lesson&&s.lesson.length>72?'…':'');
@@ -2765,27 +2898,36 @@ function _renderBrowseGrid(){
 }
 
 function _showLockedMsg(){
-  toast('\uD83D\uDD12 Finish your current shloka first! Recite it to Mamma or Papa to unlock the next one. \uD83D\uDE4F');
+  const relearningIds=_geetaReLearningIds();
+  if(relearningIds.length>0){
+    toast('🔒 Re-master your Relearning shloka(s) first before starting a new one! Ask Mamma or Papa to approve. 🙏');
+  }else{
+    toast('🔒 Finish your current shloka first! Recite it to Mamma or Papa to unlock the next one. 🙏');
+  }
 }
 
 function _openShloka(shlokaId){
   const s=SHLOKAS.find(x=>x.id===shlokaId);if(!s)return;
-  const inProgressId=_geetaInProgressId();
   const prog=geetaProgress[s.id];
   const status=prog?prog.status:'new';
-  if(status==='new'&&inProgressId&&inProgressId!==s.id){_showLockedMsg();return;}
   const g=GITA_GROUPS.find(x=>x.id===s.group)||{color:'#065F46',light:'#ECFDF5',icon:'\uD83D\uDE4F',border:'#6EE7B7',name:'',chapters:''};
   const wordRows=(s.wordMeaning||[]).map(function(w){return '<tr><td style="padding:3px 8px;font-weight:800;color:#1F2937;font-size:12px;white-space:nowrap;font-style:italic">'+w.w+'</td><td style="padding:3px 8px;color:#4B5563;font-size:12px">'+w.m+'</td></tr>';}).join('');
+  const inProgressId=_geetaInProgressId();
+  const relearningIds=_geetaReLearningIds();
+  const hasBlocker=inProgressId||relearningIds.length>0;
+  // Locked if new and any shloka is active (learning or relearning)
+  if(status==='new'&&hasBlocker&&inProgressId!==s.id&&!relearningIds.includes(s.id)){_showLockedMsg();return;}
   // Auto-start learning if new — no prompt needed
-  if(status==='new'&&!inProgressId){ _geetaStartLearn(s.id,true); }
+  if(status==='new'&&!hasBlocker){ _geetaStartLearn(s.id,true); }
   let actionHtml='';
   if(status==='new'){
-    // Just started — show inprogress banner immediately
-    actionHtml='<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#92400E">\uD83D\uDCD6 You are now learning this shloka!</div><div style="font-size:12px;color:#78350F;margin-top:6px;line-height:1.6">Recite it to Mamma or Papa. When they approve \u2192 Mastered! Earning 10 pts now \u2728</div></div>';
+    actionHtml='<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#92400E">📖 You are now learning this shloka!</div><div style="font-size:12px;color:#78350F;margin-top:6px;line-height:1.6">Recite it to Mamma or Papa. When they approve → Mastered! Earning 10 pts now ✨</div></div>';
   }else if(status==='inprogress'){
-    actionHtml='<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#92400E">\uD83D\uDCD6 You are learning this shloka!</div><div style="font-size:12px;color:#78350F;margin-top:6px;line-height:1.6">Recite it to Mamma or Papa. When they approve \u2192 Mastered! Earning 10 pts now \u2728</div></div>';
+    actionHtml='<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#92400E">📖 You are learning this shloka!</div><div style="font-size:12px;color:#78350F;margin-top:6px;line-height:1.6">Recite it to Mamma or Papa. When they approve → Mastered! Earning 10 pts now ✨</div></div>';
+  }else if(status==='relearning'){
+    actionHtml='<div style="background:#EFF6FF;border:1.5px solid #93C5FD;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#1D4ED8">🔄 You are re-learning this shloka!</div><div style="font-size:12px;color:#1E3A8A;margin-top:6px;line-height:1.6">Mamma or Papa moved this back for practice. Recite it to them again. When they approve → Re-Mastered! ✨</div></div>';
   }else{
-    actionHtml='<div style="background:#ECFDF5;border:1.5px solid #6EE7B7;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#065F46">\u2705 You have mastered this shloka!</div><div style="font-size:12px;color:#047857;margin-top:4px">Mastered on '+(prog?prog.date:'')+'. You earned 25 pts! \uD83C\uDF89</div></div>';
+    actionHtml='<div style="background:#ECFDF5;border:1.5px solid #6EE7B7;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#065F46">✅ You have mastered this shloka!</div><div style="font-size:12px;color:#047857;margin-top:4px">Mastered on '+(prog?prog.date:'')+'. You earned 25 pts! 🎉</div></div>';
   }
   const san=(s.sanskrit||'').replace(/\n/g,'<br>');
   const trl=(s.transliteration||'').replace(/\n/g,'<br>');
@@ -2817,19 +2959,34 @@ function _geetaStartLearn(shlokaId, silent){
   }
 }
 
-// Persist geetaProgress to localStorage so it survives page refresh
+// Persist geetaProgress to localStorage so it survives page refresh.
+// Mastered shlokas go into a SEPARATE permanent key — they are never re-promoted
+// if the parent has since demoted them to relearning.
 function _persistGeetaToLocalStorage(){
   try{
-    const key='vaanya_geeta_progress';
-    localStorage.setItem(key, JSON.stringify(geetaProgress));
+    localStorage.setItem('vaanya_geeta_progress', JSON.stringify(geetaProgress));
+    // Permanent mastered store — only write status=mastered, never relearning/inprogress
+    const existingMastered = JSON.parse(localStorage.getItem('vaanya_geeta_mastered')||'{}');
+    Object.entries(geetaProgress).forEach(([id, val]) => {
+      if(val.status === 'mastered'){
+        existingMastered[id] = val;
+      } else {
+        // Explicitly remove from permanent store if demoted
+        delete existingMastered[id];
+      }
+    });
+    localStorage.setItem('vaanya_geeta_mastered', JSON.stringify(existingMastered));
   }catch(e){}
 }
 
-// Load geetaProgress from localStorage as fallback
+// Load geetaProgress from localStorage as fallback, merging permanent mastered store
 function _loadGeetaFromLocalStorage(){
   try{
-    const raw=localStorage.getItem('vaanya_geeta_progress');
-    if(raw){ const parsed=JSON.parse(raw); if(parsed&&typeof parsed==='object') geetaProgress=parsed; }
+    const raw = localStorage.getItem('vaanya_geeta_progress');
+    const progress = raw ? JSON.parse(raw) : {};
+    const mastered = JSON.parse(localStorage.getItem('vaanya_geeta_mastered')||'{}');
+    // Mastered always wins
+    geetaProgress = {...progress, ...mastered};
   }catch(e){}
 }
 
@@ -2845,16 +3002,85 @@ function _saveGeetaProgress(){
 }
 
 function _updateMasteredList(){
-  const list=SHLOKAS.filter(s=>geetaProgress[s.id]&&geetaProgress[s.id].status==='mastered');
+  const masteredList=SHLOKAS.filter(s=>geetaProgress[s.id]&&geetaProgress[s.id].status==='mastered');
+  const relearningList=SHLOKAS.filter(s=>geetaProgress[s.id]&&geetaProgress[s.id].status==='relearning');
   const badge=document.getElementById('mastered-count-badge');
-  if(badge)badge.textContent=list.length+'/30';
+  if(badge)badge.textContent=masteredList.length+'/30';
   const inner=document.getElementById('mastered-list-inner');
   if(!inner)return;
-  if(!list.length){inner.innerHTML='<div style="text-align:center;padding:14px;font-size:11px;color:#9CA3AF">No shlokas mastered yet. Start learning!</div>';return;}
-  inner.innerHTML=list.map(function(s){
-    const g=GITA_GROUPS.find(x=>x.id===s.group)||{color:'#065F46'};
-    return '<div onclick="_openShloka(\''+s.id+'\')" style="display:flex;align-items:center;gap:7px;padding:7px;background:#ECFDF5;border-radius:9px;margin-bottom:4px;border:1px solid #A7F3D0;cursor:pointer" onmouseover="this.style.background=\'#D1FAE5\'" onmouseout="this.style.background=\'#ECFDF5\'"><div>\u2705</div><div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:900;color:'+g.color+'">'+s.chapter+'</div><div style="font-size:10px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.lesson.substring(0,55)+'...</div></div><div style="font-size:9px;color:#065F46;font-weight:800;flex-shrink:0">+25</div></div>';
-  }).join('');
+  if(!masteredList.length&&!relearningList.length){
+    inner.innerHTML='<div style="text-align:center;padding:14px;font-size:11px;color:#9CA3AF">No shlokas mastered yet. Start learning!</div>';
+    return;
+  }
+  let html='';
+  if(masteredList.length){
+    html+='<div style="font-size:10px;font-weight:900;color:#065F46;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">✅ Mastered ('+masteredList.length+')</div>';
+    html+=masteredList.map(function(s){
+      const g=GITA_GROUPS.find(x=>x.id===s.group)||{color:'#065F46'};
+      return '<div style="display:flex;align-items:center;gap:7px;padding:7px;background:#ECFDF5;border-radius:9px;margin-bottom:4px;border:1px solid #A7F3D0">'
+        +'<div onclick="_openShloka(\''+s.id+'\')" style="display:flex;align-items:center;gap:7px;flex:1;min-width:0;cursor:pointer">'
+        +'<div style="font-size:14px">✅</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:900;color:'+g.color+'">'+s.chapter+'</div>'
+        +'<div style="font-size:10px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.lesson.substring(0,50)+'...</div></div>'
+        +'<div style="font-size:9px;color:#065F46;font-weight:800;flex-shrink:0">+25</div></div>'
+        +(parentUnlocked?'<button onclick="event.stopPropagation();_moveToRelearning(\''+s.id+'\')" title="Move to Relearning" '
+          +'style="background:#EFF6FF;border:1px solid #93C5FD;border-radius:6px;font-size:9px;cursor:pointer;color:#1D4ED8;padding:3px 7px;flex-shrink:0;font-weight:900;font-family:\'Nunito\',sans-serif">🔄 Relearn</button>':'')
+        +'</div>';
+    }).join('');
+  }
+  if(relearningList.length){
+    html+='<div style="font-size:10px;font-weight:900;color:#1D4ED8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;'+(masteredList.length?'margin-top:10px;':'')+'">🔄 Relearning ('+relearningList.length+')</div>';
+    html+=relearningList.map(function(s){
+      const g=GITA_GROUPS.find(x=>x.id===s.group)||{color:'#1D4ED8'};
+      return '<div style="display:flex;align-items:center;gap:7px;padding:7px;background:#EFF6FF;border-radius:9px;margin-bottom:4px;border:1px solid #93C5FD">'
+        +'<div onclick="_openShloka(\''+s.id+'\')" style="display:flex;align-items:center;gap:7px;flex:1;min-width:0;cursor:pointer">'
+        +'<div style="font-size:14px">🔄</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:900;color:'+g.color+'">'+s.chapter+'</div>'
+        +'<div style="font-size:10px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.lesson.substring(0,50)+'...</div></div>'
+        +'<div style="font-size:9px;color:#1D4ED8;font-weight:800;flex-shrink:0">10 pts</div></div>'
+        +'</div>';
+    }).join('');
+  }
+  inner.innerHTML=html;
+}
+
+// Move a mastered shloka to Relearning (parent action only)
+async function _moveToRelearning(shlokaId){
+  if(!parentUnlocked){ toast('PIN required.'); return; }
+  const shloka=SHLOKAS.find(s=>s.id===shlokaId);
+  const name=shloka?shloka.chapter+' — '+shloka.chapterName:shlokaId;
+  const confirmed=window.confirm('Move "'+name+'" to Relearning?\n\n• Vaanya will need to recite it again\n• 10 pts will be deducted\n• You can Re-Master it after she recites correctly');
+  if(!confirmed) return;
+
+  const today=new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
+  geetaProgress[shlokaId]={status:'relearning', date:today, pts:10, demotedFrom:'mastered'};
+  _saveGeetaProgress();
+  _persistGeetaToLocalStorage(); // removes from permanent mastered store
+
+  // Patch all savedDays records
+  savedDays.forEach(d=>{
+    try{
+      const prog=d.geetaProgress?JSON.parse(d.geetaProgress):{};
+      if(prog[shlokaId]){
+        prog[shlokaId]={status:'relearning', date:today, pts:10, demotedFrom:'mastered'};
+        d.geetaProgress=JSON.stringify(prog);
+      }
+    }catch(e){}
+  });
+  // Also patch most recent approved record
+  const mostRecent=savedDays.find(d=>d.approved===true);
+  if(mostRecent){
+    try{
+      const prog=mostRecent.geetaProgress?JSON.parse(mostRecent.geetaProgress):{};
+      prog[shlokaId]={status:'relearning', date:today, pts:10, demotedFrom:'mastered'};
+      mostRecent.geetaProgress=JSON.stringify(prog);
+      await saveToSupabase({...mostRecent});
+    }catch(e){}
+  }
+  localStorage.setItem('vaanya_days', JSON.stringify(savedDays));
+  calcDayPts();
+  _renderBrowseGrid();
+  toast('🔄 Moved to Relearning! 10 pts deducted. Ask Vaanya to recite again when ready.');
 }
 
 function toggleMasteredList(){
@@ -2879,24 +3105,202 @@ function toggleGeetaScene(){
 function renderParentShlokaApproval(){
   const container=document.getElementById('parent-shloka-approval-section');
   if(!container)return;
-  _geetaLoadProgress();
-  const pending=SHLOKAS.filter(s=>geetaProgress[s.id]&&geetaProgress[s.id].status==='inprogress');
-  if(!pending.length){
+
+  // ── Collect ALL inprogress shlokas across every saved day ──────────────────
+  // Key: shlokaId → {status, date, fromDate} — mastered always beats inprogress
+  const allProgress={};
+
+  // 1. Scan all savedDays (approved or not) oldest→newest
+  [...savedDays]
+    .sort((a,b)=>new Date(a.date)-new Date(b.date))
+    .forEach(d=>{
+      try{
+        const prog=d.geetaProgress?JSON.parse(d.geetaProgress):{};
+        Object.entries(prog).forEach(([id,val])=>{
+          const cur=allProgress[id];
+          if(!cur) allProgress[id]={...val, fromDate:d.date};
+          else if(cur.status!=='mastered' && val.status==='mastered')
+            allProgress[id]={...val, fromDate:d.date}; // mastered wins
+          else if(cur.status==='inprogress' && val.status==='inprogress')
+            allProgress[id]={...val, fromDate:d.date}; // keep most recent inprogress date
+        });
+      }catch(e){}
+    });
+
+  // 2. Also fold in live in-memory geetaProgress (may have unsaved local changes)
+  Object.entries(geetaProgress).forEach(([id,val])=>{
+    const cur=allProgress[id];
+    if(!cur) allProgress[id]={...val, fromDate:'today'};
+    else if(val.status==='mastered') allProgress[id]={...val, fromDate:cur.fromDate};
+    else if(!cur || cur.status!=='mastered') allProgress[id]={...val, fromDate:cur?.fromDate||'today'};
+  });
+
+  // 3. Check if dropdown is set to 25 — if so, the parent intends to approve something
+  const dropdownVal=parseInt(document.getElementById('shloka-pts-award')?.value||0)||0;
+
+  // Find pending (inprogress) shlokas
+  const pending=SHLOKAS.filter(s=>allProgress[s.id]&&(allProgress[s.id].status==='inprogress'||allProgress[s.id].status==='relearning'));
+
+  // If no inprogress shloka found but dropdown is 25pts,
+  // check geetaProgress directly for anything marked inprogress in any source
+  const inProgressId=_geetaInProgressId();
+  const extraShloka = (dropdownVal>=25 && !pending.length && inProgressId)
+    ? SHLOKAS.find(s=>s.id===inProgressId) : null;
+
+  const displayList = extraShloka
+    ? [...pending, extraShloka].filter((s,i,a)=>a.findIndex(x=>x.id===s.id)===i)
+    : pending;
+
+  if(!displayList.length){
+    // Last resort: if dropdown says 25 but we genuinely can't find the shloka,
+    // show a generic approve button
+    if(dropdownVal>=25){
+      container.innerHTML=`<div style="background:#FFFBEB;border:2px solid #FCD34D;border-radius:13px;padding:14px;margin-bottom:9px">
+        <div style="font-size:13px;font-weight:900;color:#92400E;margin-bottom:6px">🕉️ Shloka Approval</div>
+        <div style="font-size:12px;color:#78350F;margin-bottom:12px;line-height:1.6">
+          You have set 25 pts for shloka. Tap below to officially mark the shloka as <b>Mastered</b> and unlock the next one in the Geeta tab.
+        </div>
+        <button onclick="_parentApproveCurrentShloka()"
+          style="width:100%;background:linear-gradient(135deg,#065F46,#10B981);color:#fff;border:none;
+          padding:13px 22px;border-radius:12px;font-size:14px;font-weight:900;cursor:pointer;
+          font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(16,185,129,.35)">
+          ✅ Mark as Mastered &amp; Unlock Next Shloka
+        </button></div>`;
+      return;
+    }
     container.innerHTML='<div style="font-size:12px;color:#9CA3AF;text-align:center;padding:12px">No shlokas awaiting approval. Vaanya needs to start learning one first.</div>';
     return;
   }
-  container.innerHTML=pending.map(function(s){
-    return '<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:13px;padding:13px;margin-bottom:9px"><div style="font-size:13px;font-weight:900;color:#92400E;margin-bottom:2px">'+s.chapter+'</div><div style="font-size:12px;font-weight:800;color:#78350F;margin-bottom:4px">'+s.chapterName+'</div><div style="font-size:12px;color:#374151;margin-bottom:4px;font-style:italic">&ldquo;'+s.meaning.substring(0,100)+'...&rdquo;</div><div style="font-size:11px;color:#78350F;margin-bottom:10px;line-height:1.5">Ask Vaanya to recite this shloka. If she recites correctly \u2014 tap Approve.</div><button onclick="_parentApproveShloka(\''+s.id+'\')" style="background:linear-gradient(135deg,#065F46,#10B981);color:#fff;border:none;padding:10px 22px;border-radius:10px;font-size:13px;font-weight:900;cursor:pointer;font-family:\'Nunito\',sans-serif">\u2705 Approve \u2014 Mark as Mastered (+25 pts)</button></div>';
+
+  container.innerHTML=displayList.map(function(s){
+    const prog=allProgress[s.id]||{};
+    const isRelearning=prog.status==='relearning';
+    const since=prog.fromDate&&prog.fromDate!=='today'?' · '+(isRelearning?'relearning since ':'learning since ')+fmtDate(prog.fromDate):'';
+    const btnLabel=isRelearning?'✅ Re-Master — Mark as Mastered Again':'✅ Approve — Mark as Mastered & Unlock Next Shloka';
+    const cardBg=isRelearning?'#EFF6FF':'#FFFBEB';
+    const cardBord=isRelearning?'#93C5FD':'#FCD34D';
+    const headerCol=isRelearning?'#1D4ED8':'#92400E';
+    const subCol=isRelearning?'#1E3A8A':'#78350F';
+    const noteText=isRelearning?'Vaanya has been re-practicing this shloka. If she recites it correctly — tap Re-Master below.':'Ask Vaanya to recite this shloka. If correct — tap Approve below.';
+    return '<div style="background:'+cardBg+';border:2px solid '+cardBord+';border-radius:13px;padding:14px;margin-bottom:9px">'
+      +'<div style="font-size:13px;font-weight:900;color:'+headerCol+';margin-bottom:2px">'+s.chapter+since+'</div>'
+      +'<div style="font-size:12px;font-weight:800;color:'+subCol+';margin-bottom:6px">'+s.chapterName+'</div>'
+      +'<div style="font-size:12px;color:#374151;margin-bottom:6px;font-style:italic">&ldquo;'+s.meaning.substring(0,120)+'...&rdquo;</div>'
+      +'<div style="font-size:11px;color:'+subCol+';margin-bottom:12px;line-height:1.6">'+noteText+'</div>'
+      +'<button onclick="_parentApproveShloka(\''+s.id+'\')" '
+      +'style="width:100%;background:linear-gradient(135deg,#065F46,#10B981);color:#fff;border:none;'
+      +'padding:13px 22px;border-radius:12px;font-size:14px;font-weight:900;cursor:pointer;'
+      +'font-family:\'Nunito\',sans-serif;box-shadow:0 4px 14px rgba(16,185,129,.35);letter-spacing:.03em">'
+      +btnLabel+'</button>'
+      +'</div>';
   }).join('');
 }
 
-function _parentApproveShloka(shlokaId){
+// Fallback: called when dropdown=25 but shloka can't be identified from scan.
+// Shows which shloka will be approved and requires explicit confirm.
+async function _parentApproveCurrentShloka(){
+  // Try in-memory geetaProgress first
+  let id = _geetaInProgressId();
+
+  // If not in memory, scan the loaded day's cloud record directly
+  if(!id){
+    const loadedDate = document.getElementById('rpt-date')?.value;
+    if(loadedDate){
+      const rec = savedDays.find(d=>d.date===loadedDate);
+      if(rec && rec.geetaProgress){
+        try{
+          const prog = JSON.parse(rec.geetaProgress);
+          const entry = Object.entries(prog).find(([,v])=>v.status==='inprogress');
+          if(entry) id = entry[0];
+        }catch(e){}
+      }
+    }
+  }
+
+  // Also check vaanya_geeta_progress localStorage
+  if(!id){
+    try{
+      const local = JSON.parse(localStorage.getItem('vaanya_geeta_progress')||'{}');
+      const entry = Object.entries(local).find(([,v])=>v.status==='inprogress');
+      if(entry) id = entry[0];
+    }catch(e){}
+  }
+
+  if(!id){
+    toast('⚠️ Could not find the shloka in learning. Please scroll to the Shloka Mastery Approval section above and use the Approve button there.');
+    return;
+  }
+
+  // Find the shloka details so parent can confirm the right one
+  const shloka = SHLOKAS.find(s=>s.id===id);
+  const name = shloka ? shloka.chapter + ' — ' + shloka.chapterName : id;
+  const confirmed = window.confirm('✅ Approve this shloka as MASTERED?\n\n' + name + '\n\nThis will unlock the next shloka for Vaanya.');
+  if(!confirmed) return;
+
+  await _parentApproveShloka(id);
+}
+
+async function _parentApproveShloka(shlokaId){
   const today=new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
-  geetaProgress[shlokaId]={status:'mastered',date:today,pts:25};
+  const existingProg=geetaProgress[shlokaId]||{};
+  const wasRelearning=existingProg.status==='relearning';
+
+  // Re-mastering a relearning shloka: restore pts (net 0 change, not +25 again)
+  // Mastering a new inprogress shloka: +25 pts
+  const masteredEntry={status:'mastered', date:today, pts:25,
+    remastered: wasRelearning ? true : undefined};
+
+  geetaProgress[shlokaId]=masteredEntry;
   _saveGeetaProgress();
   _persistGeetaToLocalStorage();
-  renderParentShlokaApproval();_renderBrowseGrid();
-  toast('\u2705 Shloka approved! Vaanya earned 25 pts! \uD83C\uDF89');
+
+  // Patch all savedDays records that reference this shlokaId
+  const patched=[];
+  savedDays.forEach(d=>{
+    try{
+      const prog=d.geetaProgress?JSON.parse(d.geetaProgress):{};
+      if(prog[shlokaId]){
+        prog[shlokaId]=masteredEntry;
+        d.geetaProgress=JSON.stringify(prog);
+        patched.push(d);
+      }
+    }catch(e){}
+  });
+
+  // Also patch the currently loaded date (rpt-date) even if empty there
+  const loadedDate=document.getElementById('rpt-date')?.value||today;
+  let loadedRec=savedDays.find(d=>d.date===loadedDate);
+  if(!patched.find(d=>d.date===loadedDate)){
+    if(loadedRec){
+      try{
+        const prog=loadedRec.geetaProgress?JSON.parse(loadedRec.geetaProgress):{};
+        prog[shlokaId]=masteredEntry;
+        loadedRec.geetaProgress=JSON.stringify(prog);
+        patched.push(loadedRec);
+      }catch(e){}
+    }
+  }
+  localStorage.setItem('vaanya_days', JSON.stringify(savedDays));
+
+  // Push to Supabase
+  for(const d of patched){
+    try{ await saveToSupabase({...d}); }catch(e){ console.warn('Shloka patch failed',d.date,e); }
+  }
+
+  // Update dropdown + pts
+  const awd=document.getElementById('shloka-pts-award');
+  if(awd) awd.value='25';
+  calcDayPts();
+
+  // Refresh Geeta tab
+  buildShlokaDisplay();
+  renderParentShlokaApproval();
+
+  if(wasRelearning){
+    toast('✅ Re-Mastered! '+SHLOKAS.find(s=>s.id===shlokaId)?.chapter+' — pts restored 🎉');
+  }else{
+    toast('✅ Shloka Mastered! Cloud updated. New shlokas now unlocked in Geeta tab 🎉');
+  }
 }
 
 
@@ -3086,7 +3490,7 @@ function calcDayPts(){
   pts+=parentPts;breakdown.parent=parentPts;
 
   // Shloka — pts from parent award dropdown
-  let shlokaPts=Object.values(geetaProgress||{}).reduce(function(s,v){return s+(v.status==='mastered'?25:v.status==='inprogress'?10:0);},0);
+  let shlokaPts=Object.values(geetaProgress||{}).reduce(function(s,v){return s+(v.status==='mastered'?25:v.status==='inprogress'?10:v.status==='relearning'?10:0);},0);
   var _lgPts=parseInt(document.getElementById('shloka-pts-award')?.value||0)||0;
   shlokaPts=Math.max(shlokaPts,_lgPts);
   pts+=shlokaPts; breakdown.shloka=shlokaPts;
@@ -3298,6 +3702,7 @@ function collectFormData(date, pts){
     sDetsJSON:  JSON.stringify(SS_SUBJECTS.map((_,i)=>document.getElementById('ssdet-'+i)?.value||'')),
     // Brain lab pts — saved as plain numbers so they survive the Supabase filter
     savedSudokuPts:    sudokuPts,
+    savedSudokuFrozen: sudokuFrozen,  // persist freeze state so it survives refresh
     savedLogicPts:     logicPtsTotal,
     savedMathsPts:     mathsPtsToday,
     savedRiddlePts:    riddlePtsTotal,
@@ -3452,6 +3857,20 @@ async function approveReport(){
   const date=document.getElementById('rpt-date').value;
   if(!date){toast("Please set today\'s date first!");return;}
   todayApproved=true;
+
+  // ── Auto-promote shloka: if parent awarded 25 pts via dropdown,
+  //    mark the in-progress shloka as mastered in geetaProgress now,
+  //    BEFORE collectFormData snapshots it. This keeps the two systems in sync.
+  const shlokaPtsEl = document.getElementById('shloka-pts-award');
+  const shlokaPtsVal = parseInt(shlokaPtsEl?.value||0)||0;
+  if(shlokaPtsVal >= 25){
+    const inProgId = _geetaInProgressId();
+    if(inProgId){
+      geetaProgress[inProgId] = {status:'mastered', date:date, pts:25};
+      _persistGeetaToLocalStorage();
+    }
+  }
+
   const pts=calcDayPts();
 
   const shD=!!document.getElementById('shloka-done')?.querySelector('.pg');
@@ -3865,6 +4284,10 @@ function renderParentTab(){
       <div style="font-size:10px;color:var(--muted);margin-top:3px">${s.detail}</div>
     </div>`;
   }).join('');
+  // Refresh sudoku unlock panel every time parent tab renders
+  refreshParentSudokuPanel();
+  // Refresh shloka approval panel — shows inprogress shlokas from any day
+  renderParentShlokaApproval();
 }
 
 // ════════════════════════════════════════════
@@ -4443,6 +4866,7 @@ function toast(msg){
 // SUDOKU ENGINE
 // ════════════════════════════════════════════
 function genSudoku(diff){
+  if(sudokuFrozen){ toast('🔒 Sudoku is locked for today! Ask Mamma or Papa to unlock one more attempt.'); return; }
   sudokuDifficulty=diff;
   document.getElementById('sudoku-msg').textContent='';
   const base=generateSudokuPuzzle(diff);
@@ -4544,6 +4968,7 @@ function enterSudokuNum(n){
   else cell.classList.remove('entered');
 }
 function checkSudoku(){
+  if(sudokuFrozen){ toast('🔒 Sudoku is locked for today!'); return; }
   let allCorrect=true,allFilled=true;
   const cells=document.querySelectorAll('.sc-cell');
   for(let r=0;r<9;r++)for(let c=0;c<9;c++){
@@ -4560,9 +4985,15 @@ function checkSudoku(){
     msg.innerHTML=`<span style="color:#10B981;font-size:16px">🎉 PERFECT! +${30+bonus} pts!</span>`;
     toast('Sudoku solved! +'+(30+bonus)+' brain pts!');
     updateBrainDisplay();calcDayPts();
-    freezeSudoku();
-  }else if(!allFilled){msg.innerHTML='<span style="color:#F97316">Fill all cells first!</span>';}
-  else{msg.innerHTML='<span style="color:#EF4444">Some cells have errors. Keep trying! 💪</span>';}
+  } else if(!allFilled){
+    msg.innerHTML='<span style="color:#F97316">Some cells are empty — sudoku checked & locked now! 🔒</span>';
+  } else {
+    msg.innerHTML='<span style="color:#EF4444">Some cells have errors — sudoku checked & locked now! 🔒</span>';
+  }
+  // Always freeze after Check, regardless of result
+  freezeSudoku();
+  // Persist freeze state immediately
+  saveBrainDraft();
 }
 function revealSudokuHint(){
   sudokuPts=Math.max(0,sudokuPts-5);
@@ -5052,9 +5483,33 @@ function freezeSudoku(){
   document.querySelectorAll('.sc-cell:not(.given)').forEach(c=>{c.onclick=null;c.style.cursor='default';});
   // Disable difficulty + action buttons inside puzzle-sudoku
   document.querySelectorAll('#puzzle-sudoku .btn').forEach(b=>{b.disabled=true;b.style.opacity='.4';b.style.cursor='not-allowed';});
-  // Show frozen badge
+  // Show frozen badge + parent unlock hint
   const msg=document.getElementById('sudoku-msg');
-  if(msg) msg.innerHTML='<span style="background:#ECFDF5;color:#065F46;border:1.5px solid #6EE7B7;border-radius:10px;padding:6px 14px;font-size:13px;font-weight:800">✅ Sudoku done for today! Points locked in. Come back tomorrow! 🔒</span>';
+  const diff=sudokuDifficulty||'easy';
+  const diffLabel={easy:'Easy',medium:'Medium',hard:'Hard'}[diff]||diff;
+  if(msg) msg.innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+      <span style="background:#ECFDF5;color:#065F46;border:1.5px solid #6EE7B7;border-radius:10px;
+        padding:8px 14px;font-size:13px;font-weight:800;display:inline-block">
+        ✅ Sudoku (${diffLabel}) checked &amp; locked for today! ${sudokuPts>0?'🏆 '+sudokuPts+' pts earned!':'Come back tomorrow!'} 🔒
+      </span>
+      <span style="color:#9CA3AF;font-size:11px;font-weight:700">
+        🔐 Mamma or Papa can unlock one more attempt from the Parents Review tab.
+      </span>
+    </div>`;
+}
+
+function unfreezeSudoku(){
+  sudokuFrozen = false;
+  sudokuPts = 0; // reset pts so the fresh attempt can earn full points
+  brainPtsToday = sudokuPts + logicPtsTotal + riddlePtsTotal + mathsPtsToday + worksheetPts;
+  // Re-enable all buttons and cells
+  document.querySelectorAll('.npbtn').forEach(b=>{b.disabled=false;b.style.opacity='';b.style.cursor='';});
+  document.querySelectorAll('#puzzle-sudoku .btn').forEach(b=>{b.disabled=false;b.style.opacity='';b.style.cursor='';});
+  // Generate a fresh puzzle at easy (parent can pick difficulty after)
+  genSudoku('easy');
+  updateBrainDisplay(); calcDayPts();
+  toast('🔓 Sudoku unlocked! Vaanya gets one more attempt. It will lock again after she checks.');
 }
 
 function freezeLogic(){
@@ -5879,6 +6334,11 @@ function loadDraftDay(d){
   if(d.savedWsAnswered){
     try{ Object.assign(_wsAnswered, JSON.parse(d.savedWsAnswered)); }catch(e){}
   }
+  // ── Restore sudoku freeze state ──────────────────────────────
+  if(d.savedSudokuFrozen === true || (d.savedSudokuPts > 0 && d.savedSudokuFrozen !== false)){
+    sudokuFrozen = false; // reset so freezeSudoku() can run
+    freezeSudoku();
+  }
   brainPtsToday = sudokuPts + logicPtsTotal + riddlePtsTotal + mathsPtsToday + worksheetPts;
   updateBrainDisplay();
 
@@ -6033,6 +6493,47 @@ async function rejectPendingReport(){
   if(summary) summary.style.display = 'none';
   renderPendingQueue();
 }
+// ════════════════════════════════════════════
+// PARENT SUDOKU UNLOCK
+// ════════════════════════════════════════════
+function refreshParentSudokuPanel(){
+  const badge          = document.getElementById('sudoku-freeze-badge');
+  const status         = document.getElementById('parent-sudoku-status');
+  const unlockW        = document.getElementById('parent-sudoku-unlock-wrap');
+  const unlockedNotice = document.getElementById('parent-sudoku-unlocked-notice');
+  const openNotice     = document.getElementById('parent-sudoku-open-notice');
+  if(!status) return;
+
+  if(sudokuFrozen){
+    if(badge){ badge.textContent='🔒 Locked'; badge.style.background='#FEF2F2'; badge.style.color='#B91C1C'; badge.style.borderColor='#FCA5A5'; }
+    const diffLabel = {easy:'Easy',medium:'Medium',hard:'Hard'}[sudokuDifficulty||'easy']||'—';
+    status.innerHTML = `Vaanya completed her sudoku attempt today (<b>${sudokuPts} pts</b>, <b>${diffLabel}</b> difficulty).<br>
+      <span style="color:#6B7280;font-size:12px">The sudoku is locked. You can grant one more attempt below.</span>`;
+    if(unlockW) unlockW.style.display='block';
+    if(unlockedNotice) unlockedNotice.style.display='none';
+    if(openNotice) openNotice.style.display='none';
+  } else if(sudokuPts > 0){
+    if(badge){ badge.textContent='🔓 Unlocked'; badge.style.background='#ECFDF5'; badge.style.color='#065F46'; badge.style.borderColor='#6EE7B7'; }
+    status.textContent = 'Sudoku is currently unlocked — Vaanya is on her bonus attempt.';
+    if(unlockW) unlockW.style.display='none';
+    if(unlockedNotice) unlockedNotice.style.display='block';
+    if(openNotice) openNotice.style.display='none';
+  } else {
+    if(badge){ badge.textContent='📖 Not attempted'; badge.style.background='#EFF6FF'; badge.style.color='#1E3A8A'; badge.style.borderColor='#93C5FD'; }
+    status.textContent = 'Vaanya has not attempted today\'s sudoku yet. No unlock needed.';
+    if(unlockW) unlockW.style.display='none';
+    if(unlockedNotice) unlockedNotice.style.display='none';
+    if(openNotice) openNotice.style.display='block';
+  }
+}
+
+function parentUnlockSudoku(){
+  unfreezeSudoku();
+  saveBrainDraft();           // persist unfrozen state immediately
+  refreshParentSudokuPanel();
+  toast('🔓 Sudoku unlocked! Vaanya gets one more attempt — will lock again after she checks.');
+}
+
 // ════════════════════════════════════════════
 function renderParentComments(days){
   const el = document.getElementById('parent-comments-list');
