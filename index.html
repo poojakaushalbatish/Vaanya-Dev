@@ -2177,7 +2177,9 @@ const RIDDLES=[
 // ════════════════════════════════════════════
 const SUPABASE_URL = 'https://mlxoxzbpzpjfjwsppmgi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1seG94emJwenBqZmp3c3BwbWdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NTMyMTIsImV4cCI6MjA5MjQyOTIxMn0._w5nd9ZWcmTnK1k_pwq4rEc5P4oJxGawou36dvLVU-E';
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const _supabase = (typeof supabase !== 'undefined')
+  ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+  : null;
 
 // Local state — loaded from Supabase on startup
 let savedDays     = [];
@@ -2186,6 +2188,7 @@ let totalSpent    = 0;
 let dbReady       = false;
 
 async function loadFromSupabase() {
+  if(!_supabase){ console.warn('Supabase not loaded — offline mode'); dbReady=true; return false; }
   try {
     showSyncStatus('loading');
     // Load daily reports
@@ -2240,6 +2243,7 @@ async function loadFromSupabase() {
 }
 
 async function saveToSupabase(data) {
+  if(!_supabase){ console.warn('Supabase not available — save skipped'); return false; }
   try {
     showSyncStatus('saving');
 
@@ -2473,6 +2477,7 @@ function showTab(id,btn){
       if(content)content.style.display='block';
       renderParentTab();
       renderParentShlokaApproval();
+      renderParentShlokaMgmt();
     } else {
       if(wall)wall.style.display='block';
       if(content)content.style.display='none';
@@ -7209,9 +7214,15 @@ updateSidePanels(0);
 loadFromSupabase().then(ok => {
   if (ok) {
     updateTopBar();
-    // After cloud load: check today's date for draft or session data
     const today = document.getElementById('rpt-date')?.value;
     if(today) _onLoadRestoreDate(today);
+    // If parent tab is open and unlocked, re-render it now that savedDays is loaded
+    if(parentUnlocked && document.getElementById('tab-parent')?.classList.contains('active')){
+      renderParentTab();
+      renderParentShlokaApproval();
+      renderParentShlokaMgmt();
+      renderPendingQueue();
+    }
   } else {
     // Fallback: try localStorage backup
     try {
