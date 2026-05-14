@@ -2668,6 +2668,16 @@ function totalEarned(){
 })();
 
 function buildAll(){
+  // Reset all in-memory pts to 0 — will be restored from cloud/session after load
+  brainPtsToday=0; sudokuPts=0; logicPtsTotal=0; riddlePtsTotal=0;
+  mathsPtsToday=0; worksheetPts=0; aiSkillPts=0;
+  // Seed geetaProgress from permanent mastered store — ensures mastered shlokas
+  // are always shown correctly even before cloud data arrives
+  geetaProgress={};
+  try{
+    const permMastered=JSON.parse(localStorage.getItem('vaanya_geeta_mastered')||'{}');
+    Object.entries(permMastered).forEach(([id,v])=>{ geetaProgress[id]=v; });
+  }catch(e){}
   buildStars('creative-stars',5);
   buildCreativeOptions();buildShlokaDisplay();
   genSudoku('easy');genLogicPuzzles();genRiddles();initMathsSprint();
@@ -3525,17 +3535,33 @@ function calcDayPts(){
   // parentPts intentionally 0 — comments are feedback only, not scored
   pts+=parentPts;breakdown.parent=parentPts;
 
-  // Shloka — pts from geetaProgress (cumulative) OR parent award dropdown, whichever is higher
-  // But only count the dropdown when it's been explicitly set (non-zero)
-  // to avoid double-counting mastered pts that are already in geetaProgress
+  // Shloka — only count activity that belongs to the currently loaded date.
+  // Rules:
+  //   mastered  → only if mastered ON the loaded date (parent approved today)
+  //   inprogress/relearning → only if started ON or AFTER the loaded date
+  //                            OR shloka has no date (edge case)
+  // Historical mastered shlokas from previous days do NOT add to today's score.
+  // The parent dropdown overrides everything when explicitly set.
   const _lgPts=parseInt(document.getElementById('shloka-pts-award')?.value||0)||0;
-  let shlokaPts=Object.values(geetaProgress||{}).reduce(function(s,v){return s+(v.status==='mastered'?25:v.status==='inprogress'?10:v.status==='relearning'?10:0);},0);
-  // If parent dropdown is set, use it directly (it reflects the current session's intent)
-  // Don't add it on top of geetaProgress — they describe the same shloka
-  if(_lgPts>0) shlokaPts=Math.max(shlokaPts,_lgPts);
+  const _loadedDate=(document.getElementById('rpt-date')?.value)||
+    new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
+  let shlokaPts=0;
+  if(_lgPts>0){
+    // Parent has explicitly set a value — use it directly, no auto-calc
+    shlokaPts=_lgPts;
+  } else {
+    // Auto-calc from geetaProgress — only count today's activity
+    Object.values(geetaProgress||{}).forEach(function(v){
+      if(v.status==='mastered' && v.date===_loadedDate){
+        shlokaPts+=25; // mastered today
+      } else if((v.status==='inprogress'||v.status==='relearning') && (!v.date||v.date>=_loadedDate)){
+        shlokaPts+=10; // actively learning on or after today
+      }
+    });
+  }
   pts+=shlokaPts; breakdown.shloka=shlokaPts;
   const shRes=document.getElementById('shloka-pts-result');
-  if(shRes) shRes.textContent = _lgPts>0 ? '+'+_lgPts+' pts awarded ✅' : (shlokaPts>0?'+'+shlokaPts+' pts ✅':'');
+  if(shRes) shRes.textContent=_lgPts>0?'+'+_lgPts+' pts awarded ✅':(shlokaPts>0?'+'+shlokaPts+' pts ✅':'');
 
   // Creative — pts from parent award dropdown
   let crPts = parseInt(document.getElementById('creative-pts-award')?.value||0)||0;
@@ -6209,9 +6235,18 @@ function silentClearDay(){
   const skYes=document.getElementById('skill-yes-box');if(skYes)skYes.style.display='none';
   const skNo=document.getElementById('skill-no-msg');if(skNo)skNo.style.display='none';
   creativeChosen=null; brainPtsToday=0; todayApproved=false; aiSkillPts=0;
-  sudokuFrozen=false; logicFrozen=false; logicCurrentPuzzles=[]; mathsFrozen=false; mathsChecked=false; mathsSelected=[]; mathsPtsToday=0; mathsStarted=false; clearInterval(mathsTimerInt); try{sessionStorage.removeItem(MATHS_SESSION_KEY);}catch(e){}
+  sudokuPts=0; logicPtsTotal=0; riddlePtsTotal=0; mathsPtsToday=0; worksheetPts=0;
+  sudokuFrozen=false; logicFrozen=false; logicCurrentPuzzles=[]; mathsFrozen=false; mathsChecked=false; mathsSelected=[]; mathsStarted=false; clearInterval(mathsTimerInt); try{sessionStorage.removeItem(MATHS_SESSION_KEY);}catch(e){}
   genSudoku('easy'); genLogicPuzzles(); initMathsSprint();
   reflPts1=0; reflPts2=0; reflPts3=0;
+  // Reset geetaProgress to ONLY the permanent mastered store — clears today's inprogress
+  // so shloka pts don't phantom-add after a clear
+  geetaProgress={};
+  try{
+    const mastered=JSON.parse(localStorage.getItem('vaanya_geeta_mastered')||'{}');
+    Object.entries(mastered).forEach(([id,v])=>{ geetaProgress[id]=v; });
+  }catch(e){}
+  buildShlokaDisplay(); // refresh Geeta tab to reflect cleared state
   if(dateVal) document.getElementById('rpt-date').value=dateVal;
   calcDayPts();
   // Re-enable session tracking after a short delay
@@ -6352,8 +6387,20 @@ function loadDraftDay(d){
 
   // ── Parent award dropdowns ────────────────────────────────────
   if(d.shlokaPtsAwarded!==undefined) setVal('shloka-pts-award', String(d.shlokaPtsAwarded));
-  if(d.geetaProgress){try{geetaProgress=JSON.parse(d.geetaProgress);}catch(e){geetaProgress={};}}
-  if(d.creativePtsAwarded!==undefined) setVal('creative-pts-award', String(d.creativePtsAwarded));
+  // Restore geetaProgress from draft, but NEVER let stale inprogress beat a mastered entry.
+  // The permanent mastered store (localStorage) always wins over any draft value.
+  if(d.geetaProgress){
+    try{
+      const draftProg=JSON.parse(d.geetaProgress);
+      const permMastered=JSON.parse(localStorage.getItem('vaanya_geeta_mastered')||'{}');
+      // Start with draft progress
+      geetaProgress={...draftProg};
+      // Overwrite with permanent mastered — mastered always wins
+      Object.entries(permMastered).forEach(([id,v])=>{
+        geetaProgress[id]=v; // mastered from localStorage beats anything in draft
+      });
+    }catch(e){ geetaProgress={}; }
+  }  if(d.creativePtsAwarded!==undefined) setVal('creative-pts-award', String(d.creativePtsAwarded));
   // Only restore parentRating if actually set (non-zero means parent rated)
   if(d.parentRating && d.parentRating !== 0) setVal('parent-rating', String(d.parentRating));
   else { const pr=document.getElementById('parent-rating'); if(pr) pr.selectedIndex=0; }
@@ -6799,6 +6846,17 @@ function _onLoadRestoreDate(date){
   }
 
   // Fresh day — no data anywhere
+  // Reset all in-memory pts so nothing carries over from previous session
+  brainPtsToday=0; sudokuPts=0; logicPtsTotal=0; riddlePtsTotal=0;
+  mathsPtsToday=0; worksheetPts=0; aiSkillPts=0;
+  // Seed geetaProgress from permanent mastered only — no inprogress on a fresh day
+  geetaProgress={};
+  try{
+    const permMastered=JSON.parse(localStorage.getItem('vaanya_geeta_mastered')||'{}');
+    Object.entries(permMastered).forEach(([id,v])=>{ geetaProgress[id]=v; });
+  }catch(e){}
+  buildShlokaDisplay();
+  calcDayPts();
   toast('☁️ Data loaded from cloud!');
 }
 
