@@ -1636,12 +1636,12 @@ tr:hover td{background:#FAFBFF}
 ═══════════════════════════════════════ -->
 <div class="tab" id="tab-creative">
 
-<!-- HEADER -->
+<!-- ── HEADER BANNER ── -->
 <div style="background:linear-gradient(135deg,#4C1D95,#6D28D9,#7C3AED);border-radius:18px;padding:18px 22px;margin-bottom:16px;color:#fff;border:2px solid rgba(196,181,253,.3);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
   <div style="font-size:44px;line-height:1">🎨</div>
   <div style="flex:1">
     <div style="font-size:20px;font-weight:900;margin-bottom:3px">Creative Moments</div>
-    <div style="font-size:11px;color:#DDD6FE;font-weight:700;line-height:1.6">Create something beautiful today · Your work is saved forever · Parents will award your points!</div>
+    <div style="font-size:11px;color:#DDD6FE;font-weight:700;line-height:1.6">Create something beautiful today · Upload a photo · Parents will award your points!</div>
   </div>
   <div style="background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:12px;padding:8px 16px;text-align:center;flex-shrink:0">
     <div style="font-size:18px;font-weight:900;line-height:1">+20</div>
@@ -1649,8 +1649,10 @@ tr:hover td{background:#FAFBFF}
   </div>
 </div>
 
-<!-- SELECTOR CARD -->
+<!-- ── ACTIVITY SELECTOR CARD ── -->
 <div style="background:#fff;border-radius:18px;border:2px solid #DDD6FE;margin-bottom:14px;overflow:hidden;box-shadow:0 4px 20px rgba(124,58,237,.06)">
+
+  <!-- Card header -->
   <div style="background:linear-gradient(135deg,#EDE9FE,#F5F3FF);padding:14px 18px;border-bottom:1.5px solid #DDD6FE;display:flex;align-items:center;gap:10px">
     <div style="width:32px;height:32px;background:linear-gradient(135deg,#7C3AED,#5B21B6);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">✨</div>
     <div style="flex:1">
@@ -1658,8 +1660,11 @@ tr:hover td{background:#FAFBFF}
       <div style="font-size:11px;color:#7C3AED;font-weight:700;margin-top:1px">Pick one activity and give it your best!</div>
     </div>
   </div>
+
   <div style="padding:18px 18px 20px">
-    <div style="position:relative;margin-bottom:0">
+
+    <!-- ── DROPDOWN ── -->
+    <div style="position:relative;margin-bottom:18px">
       <select id="creative-activity-select" onchange="onCreativeSelect(this.value)"
         style="width:100%;padding:14px 48px 14px 18px;font-size:14px;font-weight:800;
           border:2px solid #C4B5FD;border-radius:14px;background:#F5F3FF;color:#3B0764;
@@ -1673,26 +1678,83 @@ tr:hover td{background:#FAFBFF}
         <option value="mandala">🌸  Mandala Art</option>
         <option value="journal">📔  Diary / Gratitude Journal</option>
       </select>
+      <!-- Custom chevron -->
       <div style="position:absolute;right:16px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:14px;color:#7C3AED">&#9660;</div>
     </div>
+
+    <!-- ── SELECTED ACTIVITY DISPLAY CARD (shown after pick) ── -->
+    <div id="creative-activity-card" style="display:none;border-radius:14px;padding:16px 18px;margin-bottom:18px;border:2px solid #DDD6FE;background:linear-gradient(135deg,#F5F3FF,#EFF6FF)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div id="creative-card-icon" style="font-size:36px;line-height:1"></div>
+        <div>
+          <div id="creative-card-title" style="font-size:15px;font-weight:900;color:#3B0764"></div>
+          <div id="creative-card-desc" style="font-size:12px;color:#6D28D9;font-weight:700;margin-top:2px;line-height:1.5"></div>
+        </div>
+      </div>
+      <!-- Thin colour bar for personality -->
+      <div id="creative-card-bar" style="height:4px;border-radius:4px;background:linear-gradient(90deg,#8B5CF6,#EC4899);margin-bottom:0"></div>
+    </div>
+
+    <!-- ── DESCRIBE YOUR WORK ── -->
+    <div id="creative-detail" style="display:none">
+      <div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#5B21B6;margin-bottom:7px">🌟 Tell me about what I created today</div>
+      <textarea id="creative-desc"
+        style="width:100%;background:#F5F3FF;border:1.5px solid #DDD6FE;border-radius:12px;
+          padding:12px 14px;color:#3B0764;font-size:13px;font-family:'Nunito',sans-serif;
+          resize:none;min-height:90px;margin-bottom:16px;line-height:1.7;outline:none;box-sizing:border-box"
+        placeholder="Describe your work in detail..."></textarea>
+
+      <!-- ── UPLOAD PHOTO ── -->
+      <div style="border:2px dashed #C4B5FD;border-radius:14px;padding:20px;text-align:center;
+        background:#F5F3FF;margin-bottom:12px;cursor:pointer;transition:background .15s"
+        onclick="document.getElementById('creative-img-upload').click()"
+        onmouseover="this.style.background='#EDE9FE'" onmouseout="this.style.background='#F5F3FF'">
+        <div style="font-size:34px;margin-bottom:8px">📷</div>
+        <div style="font-size:13px;font-weight:900;color:#5B21B6;margin-bottom:4px">Upload a photo of your work</div>
+        <div style="font-size:11px;color:#8B5CF6;font-weight:700">Tap to take a photo or choose from gallery</div>
+        <input type="file" id="creative-img-upload" accept="image/*" capture="environment"
+          style="display:none" onchange="previewCreativeImg(this)">
+      </div>
+
+      <!-- Image preview -->
+      <div id="creative-img-preview" style="display:none;margin-bottom:14px;text-align:center">
+        <img id="creative-img-show" style="max-width:100%;border-radius:14px;border:3px solid #8B5CF6;box-shadow:0 6px 20px rgba(124,58,237,.2)">
+        <div style="margin-top:8px;font-size:11px;font-weight:800;color:#5B21B6">
+          ✅ Photo uploaded! Parents will see this.
+          <button onclick="clearCreativeImg()" style="background:none;border:none;color:#EF4444;font-size:11px;font-weight:800;cursor:pointer;margin-left:8px;font-family:'Nunito',sans-serif">✕ Remove</button>
+        </div>
+      </div>
+
+      <!-- Parents note -->
+      <div style="background:linear-gradient(135deg,#EDE9FE,#EFF6FF);border:1.5px solid #C4B5FD;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:0">
+        <div style="font-size:22px">👩‍👧‍👦</div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:900;color:#4C1D95">Show your work to Mamma &amp; Papa!</div>
+          <div style="font-size:11px;color:#6D28D9;font-weight:700;margin-top:2px">Points will be awarded after they review your photo 🎨</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- hidden compat elements — JS reads these -->
+    <div id="creative-options" style="display:none"></div>
+    <div id="creative-done" style="display:none"></div>
+    <div id="creative-stars" style="display:none"></div>
   </div>
 </div>
 
-<!-- ACTIVITY CONTENT AREA — rendered by JS -->
-<div id="creative-content-area"></div>
-
-<!-- hidden compat -->
-<div id="creative-options" style="display:none"></div>
-<div id="creative-done" style="display:none"></div>
-<div id="creative-stars" style="display:none"></div>
-<div id="creative-detail" style="display:none">
-  <textarea id="creative-desc" style="display:none"></textarea>
-  <div id="creative-img-preview" style="display:none">
-    <img id="creative-img-show">
-  </div>
-  <input type="file" id="creative-img-upload" accept="image/*" capture="environment" style="display:none" onchange="previewCreativeImg(this)">
+<!-- ── SAVE BUTTON ── -->
+<div style="margin-top:6px;text-align:center">
+  <button onclick="saveCreativeDraft()"
+    style="background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;
+      border-radius:14px;padding:15px 48px;font-size:15px;font-weight:900;cursor:pointer;
+      font-family:'Nunito',sans-serif;box-shadow:0 4px 16px rgba(124,58,237,.35);letter-spacing:.03em;
+      transition:all .2s"
+    onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(124,58,237,.45)'"
+    onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(124,58,237,.35)'">
+    💾 Save My Creative Work
+  </button>
+  <div id="creative-save-msg" style="margin-top:10px;font-size:12px;font-weight:700;color:#7C3AED;min-height:20px"></div>
 </div>
-<div id="creative-save-msg" style="margin-top:10px;font-size:12px;font-weight:700;color:#7C3AED;min-height:20px;text-align:center"></div>
 
 </div><!-- end tab-creative -->
 
@@ -3140,423 +3202,95 @@ function getStarVal(id){
 }
 
 // ── Dropdown-based creative selection ──────────────────────────────────────
-
-// ════════════════════════════════════════════════════════════
-// CREATIVE MOMENTS — per-activity panels + Supabase save
-// ════════════════════════════════════════════════════════════
 const _CREATIVE_MAP = {
-  draw:    {icon:'🎨',title:'Drawing / Painting',        desc:'Draw anything you imagine — nature, a story scene, your favourite character!', bar:'linear-gradient(90deg,#F59E0B,#EF4444)', type:'photo'},
-  poem:    {icon:'✍️', title:'Write a Poem',              desc:'Write a short poem in Hindi or English about anything you love.',              bar:'linear-gradient(90deg,#8B5CF6,#EC4899)', type:'text'},
-  story:   {icon:'📖',title:'Write a Story or Paragraph', desc:'Make up characters and an adventure in 5–10 sentences or more!',               bar:'linear-gradient(90deg,#3B82F6,#06B6D4)', type:'text'},
-  craft:   {icon:'✂️', title:'Paper Craft / Origami',     desc:'Make something with paper — origami, a greeting card, a collage.',            bar:'linear-gradient(90deg,#10B981,#059669)', type:'photo'},
-  mandala: {icon:'🌸',title:'Mandala Art',                desc:'Create a beautiful mandala or rangoli pattern using colours!',                 bar:'linear-gradient(90deg,#EC4899,#8B5CF6)', type:'photo'},
-  journal: {icon:'📔',title:'Diary / Gratitude Journal',  desc:'Write what you are grateful for today and a happy memory!',                   bar:'linear-gradient(90deg,#F97316,#F59E0B)', type:'journal'},
+  draw:    {icon:'🎨',title:'Drawing / Painting',       desc:'Draw anything you imagine — nature, a story scene, your favourite character.',bar:'linear-gradient(90deg,#F59E0B,#EF4444)'},
+  poem:    {icon:'✍️', title:'Write a Poem',             desc:'Write a short poem in Hindi or English about anything you love.',bar:'linear-gradient(90deg,#8B5CF6,#EC4899)'},
+  story:   {icon:'📖',title:'Write a Story or Paragraph',desc:'Write a short story (5–10 sentences) — make up characters and an adventure!',bar:'linear-gradient(90deg,#3B82F6,#06B6D4)'},
+  craft:   {icon:'✂️', title:'Paper Craft / Origami',    desc:'Make something with paper — origami, a card, a collage.',bar:'linear-gradient(90deg,#10B981,#059669)'},
+  mandala: {icon:'🌸',title:'Mandala Art',               desc:'Create a beautiful mandala or rangoli pattern on paper using colours.',bar:'linear-gradient(90deg,#EC4899,#8B5CF6)'},
+  journal: {icon:'📔',title:'Diary / Gratitude Journal', desc:'Write 3 things you are grateful for today and one happy memory from this week.',bar:'linear-gradient(90deg,#F97316,#F59E0B)'},
 };
 
-// In-memory state for the active creative session
-let _creativeActiveKey = '';
-let _creativePhotoData = null;   // base64 for photo activities
-let _creativeSaved     = false;
-
-// Themes per activity type
-const _CREATIVE_THEMES = {
-  photo: {bg:'#FFF7ED',border:'#FED7AA',accent:'#F97316',btnBg:'linear-gradient(135deg,#F97316,#EF4444)',inputBg:'#FFF7ED'},
-  text:  {bg:'#F5F3FF',border:'#DDD6FE',accent:'#7C3AED',btnBg:'linear-gradient(135deg,#7C3AED,#5B21B6)',inputBg:'#FDFCFF'},
-  journal:{bg:'linear-gradient(135deg,#FFF9EC,#FFF0FB)',border:'#FCD34D',accent:'#F59E0B',btnBg:'linear-gradient(135deg,#F59E0B,#EC4899)',inputBg:'#FFFEF0'},
-};
-
-// ── Render the content panel for the chosen activity ───────────────────────
 function onCreativeSelect(val){
-  _creativeActiveKey = val;
-  _creativePhotoData = null;
-  _creativeSaved     = false;
-
-  // Sync creativeChosen for points calc
+  const card   = document.getElementById('creative-activity-card');
+  const detail = document.getElementById('creative-detail');
+  const sel    = document.getElementById('creative-activity-select');
+  if(!val){
+    if(card)  card.style.display='none';
+    if(detail)detail.style.display='none';
+    creativeChosen=null; calcDayPts(); return;
+  }
   const opt = _CREATIVE_MAP[val];
-  creativeChosen = opt ? opt.title : null;
+  if(!opt) return;
+  creativeChosen = opt.title;
 
-  const area = document.getElementById('creative-content-area');
-  if(!area) return;
+  // Populate the activity card
+  const iconEl  = document.getElementById('creative-card-icon');
+  const titleEl = document.getElementById('creative-card-title');
+  const descEl  = document.getElementById('creative-card-desc');
+  const barEl   = document.getElementById('creative-card-bar');
+  if(iconEl)  iconEl.textContent = opt.icon;
+  if(titleEl) titleEl.textContent = opt.title;
+  if(descEl)  descEl.textContent = opt.desc;
+  if(barEl)   barEl.style.background = opt.bar;
 
-  if(!val || !opt){
-    area.innerHTML = '';
-    calcDayPts();
-    return;
-  }
-
-  // Update dropdown border colour
-  const selEl = document.getElementById('creative-activity-select');
-  if(selEl) selEl.style.borderColor = '#8B5CF6';
-
-  // Render appropriate panel
-  if(opt.type === 'photo'){
-    area.innerHTML = _buildPhotoPanel(val, opt);
-  } else if(opt.type === 'text'){
-    area.innerHTML = _buildNotepadPanel(val, opt);
-  } else if(opt.type === 'journal'){
-    area.innerHTML = _buildJournalPanel(val, opt);
-  }
-
-  calcDayPts();
-}
-
-// ── PHOTO PANEL (Drawing, Craft, Mandala) ──────────────────────────────────
-function _buildPhotoPanel(key, opt){
-  const colors = {
-    draw:    {bg:'#FFF7ED',bdr:'#FED7AA',acnt:'#F97316',grd:'linear-gradient(135deg,#FFF7ED,#FEF3C7)'},
-    craft:   {bg:'#ECFDF5',bdr:'#A7F3D0',acnt:'#059669',grd:'linear-gradient(135deg,#ECFDF5,#EFF6FF)'},
-    mandala: {bg:'#FDF2F8',bdr:'#F9A8D4',acnt:'#EC4899',grd:'linear-gradient(135deg,#FDF2F8,#F5F3FF)'},
-  }[key] || {bg:'#F5F3FF',bdr:'#DDD6FE',acnt:'#7C3AED',grd:'linear-gradient(135deg,#F5F3FF,#EFF6FF)'};
-
-  return `
-<div style="background:${colors.bg};border:2px solid ${colors.bdr};border-radius:18px;overflow:hidden;margin-bottom:14px;box-shadow:0 4px 20px rgba(0,0,0,.05)">
-  <!-- Panel header -->
-  <div style="background:${colors.grd};padding:14px 18px;border-bottom:1.5px solid ${colors.bdr};display:flex;align-items:center;gap:12px">
-    <div style="font-size:32px;line-height:1">${opt.icon}</div>
-    <div style="flex:1">
-      <div style="font-size:15px;font-weight:900;color:#1E1B4B">${opt.title}</div>
-      <div style="font-size:11px;color:#6B7280;font-weight:700;margin-top:2px">${opt.desc}</div>
-    </div>
-    <div style="width:4px;height:40px;border-radius:4px;background:${opt.bar};flex-shrink:0"></div>
-  </div>
-  <div style="padding:18px">
-    <!-- Upload zone -->
-    <div id="cm-upload-zone" style="border:3px dashed ${colors.bdr};border-radius:16px;padding:32px 20px;text-align:center;background:#fff;cursor:pointer;transition:all .2s;margin-bottom:14px"
-      onclick="document.getElementById('cm-photo-input').click()"
-      onmouseover="this.style.background='${colors.bg}';this.style.borderColor='${colors.acnt}'"
-      onmouseout="this.style.background='#fff';this.style.borderColor='${colors.bdr}'">
-      <div style="font-size:48px;margin-bottom:12px">📷</div>
-      <div style="font-size:15px;font-weight:900;color:${colors.acnt};margin-bottom:5px">Upload your ${opt.title} photo</div>
-      <div style="font-size:12px;color:#9CA3AF;font-weight:700">Tap here to take a photo or pick from gallery</div>
-      <input type="file" id="cm-photo-input" accept="image/*" capture="environment" style="display:none" onchange="onCreativePhotoChosen(this)">
-    </div>
-    <!-- Preview (hidden initially) -->
-    <div id="cm-photo-preview" style="display:none;margin-bottom:14px;text-align:center">
-      <img id="cm-photo-img" style="max-width:100%;border-radius:14px;border:3px solid ${colors.acnt};box-shadow:0 8px 28px rgba(0,0,0,.15)">
-      <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px">
-        <span style="font-size:12px;font-weight:800;color:${colors.acnt}">\u2705 Photo ready to save!</span>
-        <button onclick="onCreativePhotoChosen(null)" style="background:none;border:none;color:#EF4444;font-size:11px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif">\u2715 Remove</button>
-      </div>
-    </div>
-    <!-- Parents note -->
-    <div style="background:linear-gradient(135deg,${colors.bg},#fff);border:1.5px solid ${colors.bdr};border-radius:12px;padding:11px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px">
-      <div style="font-size:20px">\U0001f469\u200d\U0001f467\u200d\U0001f466</div>
-      <div style="font-size:12px;color:#374151;font-weight:700;line-height:1.5">Mamma &amp; Papa will see this photo and award your points! \U0001f3a8</div>
-    </div>
-    <!-- Action buttons -->
-    <div id="cm-action-btns" style="display:none;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <button onclick="cancelCreativeWork()" style="padding:13px;border-radius:13px;border:2px solid ${colors.bdr};background:#fff;color:#6B7280;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .15s"
-        onmouseover="this.style.borderColor='${colors.acnt}';this.style.color='${colors.acnt}'"
-        onmouseout="this.style.borderColor='${colors.bdr}';this.style.color='#6B7280'">\u274c Cancel</button>
-      <button onclick="saveCreativeWork()" id="cm-save-btn" style="padding:13px;border-radius:13px;border:none;background:${opt.bar};color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.18);transition:all .2s"
-        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 20px rgba(0,0,0,.22)'"
-        onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(0,0,0,.18)'">\U0001f4be Save My Work</button>
-    </div>
-    <div id="cm-status" style="margin-top:10px;text-align:center;font-size:12px;font-weight:800;min-height:18px"></div>
-  </div>
-</div>`;
-}
-
-// ── TEXT NOTEPAD PANEL (Poem / Story) ─────────────────────────────────────
-function _buildNotepadPanel(key, opt){
-  const isPoem = key === 'poem';
-  const noteStyle = isPoem
-    ? `background:linear-gradient(180deg,#FDF8FF 0%,#F5F0FF 100%);border:2px solid #C4B5FD;`
-    : `background:linear-gradient(180deg,#F0F9FF 0%,#E0F2FE 100%);border:2px solid #93C5FD;`;
-  const acnt  = isPoem ? '#7C3AED' : '#2563EB';
-  const grd   = isPoem ? 'linear-gradient(135deg,#8B5CF6,#7C3AED)' : 'linear-gradient(135deg,#3B82F6,#1D4ED8)';
-  const lnClr = isPoem ? '#DDD6FE' : '#BFDBFE';
-  const placeholder = isPoem
-    ? 'Write your poem here...\n\nEvery great poem starts with one honest line.\nLet your heart speak — in Hindi or English!'
-    : 'Write your story here...\n\nOnce upon a time...\n\nLet your imagination take you on an adventure!';
-
-  return `
-<div style="background:#fff;border:2px solid ${isPoem?'#DDD6FE':'#93C5FD'};border-radius:18px;overflow:hidden;margin-bottom:14px;box-shadow:0 4px 20px rgba(0,0,0,.06)">
-  <!-- Header -->
-  <div style="background:${grd};padding:14px 18px;display:flex;align-items:center;gap:12px">
-    <div style="font-size:28px;line-height:1">${opt.icon}</div>
-    <div style="flex:1">
-      <div style="font-size:15px;font-weight:900;color:#fff">${opt.title}</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.8);font-weight:700;margin-top:1px">${opt.desc}</div>
-    </div>
-    <div style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:800;color:#fff">Notepad \U0001f4dd</div>
-  </div>
-  <div style="padding:18px">
-    <!-- Notepad -->
-    <div style="${noteStyle}border-radius:14px;padding:6px 0;position:relative;overflow:hidden;margin-bottom:16px;box-shadow:inset 0 2px 6px rgba(0,0,0,.04)">
-      <!-- Binding strip -->
-      <div style="position:absolute;left:42px;top:0;bottom:0;width:2px;background:${isPoem?'#DDD6FE':'#BFDBFE'};z-index:1"></div>
-      <div style="position:absolute;left:44px;top:0;bottom:0;width:1px;background:${isPoem?'#C4B5FD':'#93C5FD'};z-index:1"></div>
-      <!-- Line guide pseudo-lines rendered via gradient -->
-      <div style="position:absolute;inset:0;background:repeating-linear-gradient(transparent,transparent 31px,${lnClr} 31px,${lnClr} 32px);z-index:0;top:16px"></div>
-      <textarea id="cm-text-input"
-        style="position:relative;z-index:2;width:100%;min-height:240px;background:transparent;border:none;outline:none;
-          padding:16px 16px 16px 60px;font-size:14px;font-family:${isPoem?'Georgia,serif':'\'Nunito\',sans-serif'};
-          line-height:32px;color:#1E1B4B;resize:vertical;box-sizing:border-box;letter-spacing:${isPoem?'.01em':'0'}"
-        placeholder="${placeholder}"
-        oninput="onCreativeTextInput()">${_creativeRestoredText||''}</textarea>
-    </div>
-    <!-- Word count -->
-    <div style="font-size:11px;font-weight:800;color:${acnt};margin-bottom:14px;text-align:right" id="cm-word-count">0 words</div>
-    <!-- Action buttons -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <button onclick="cancelCreativeWork()" style="padding:13px;border-radius:13px;border:2px solid ${isPoem?'#C4B5FD':'#93C5FD'};background:#fff;color:#6B7280;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif">\u274c Cancel</button>
-      <button onclick="saveCreativeWork()" id="cm-save-btn" style="padding:13px;border-radius:13px;border:none;background:${grd};color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.18)">\U0001f4be Save ${isPoem?'My Poem':'My Story'}</button>
-    </div>
-    <div id="cm-status" style="margin-top:10px;text-align:center;font-size:12px;font-weight:800;min-height:18px"></div>
-  </div>
-</div>`;
-}
-
-// ── GRATITUDE JOURNAL PANEL ────────────────────────────────────────────────
-function _buildJournalPanel(key, opt){
-  return `
-<div style="background:linear-gradient(135deg,#FFFDE7,#FFF0FB,#ECFDF5);border:2px solid #FCD34D;border-radius:18px;overflow:hidden;margin-bottom:14px;box-shadow:0 4px 24px rgba(245,158,11,.12)">
-  <!-- Header -->
-  <div style="background:linear-gradient(135deg,#F59E0B,#EC4899);padding:16px 18px;display:flex;align-items:center;gap:14px">
-    <div style="font-size:32px;line-height:1">📔</div>
-    <div style="flex:1">
-      <div style="font-size:16px;font-weight:900;color:#fff">My Gratitude Journal</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.85);font-weight:700;margin-top:2px">Count your blessings \u2728 Every grateful heart is a happy heart!</div>
-    </div>
-    <div style="background:rgba(255,255,255,.25);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:900;color:#fff">\U0001f338 Today</div>
-  </div>
-  <div style="padding:18px">
-
-    <!-- Gratitude prompts -->
-    <div style="font-size:13px;font-weight:900;color:#92400E;margin-bottom:12px;display:flex;align-items:center;gap:8px">
-      <span style="font-size:18px">\U0001f31f</span> 3 things I am grateful for today:
-    </div>
-    ${[1,2,3].map(n=>`
-    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
-      <div style="min-width:32px;height:32px;background:linear-gradient(135deg,#F59E0B,#EC4899);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0;margin-top:4px">${n}</div>
-      <textarea id="cm-grateful-${n}" oninput="onCreativeTextInput()" rows="2"
-        style="flex:1;background:#fff;border:2px solid #FDE68A;border-radius:11px;padding:10px 13px;font-size:13px;font-family:'Nunito',sans-serif;color:#1E1B4B;resize:none;outline:none;line-height:1.6;transition:border-color .15s;box-sizing:border-box"
-        onfocus="this.style.borderColor='#F59E0B'" onblur="this.style.borderColor='#FDE68A'"
-        placeholder="${['I am grateful for...','Today I appreciated...','Something that made me smile...'][n-1]}"></textarea>
-    </div>`).join('')}
-
-    <!-- Happy memory -->
-    <div style="font-size:13px;font-weight:900;color:#065F46;margin:16px 0 10px;display:flex;align-items:center;gap:8px">
-      <span style="font-size:18px">\U0001f49a</span> One happy memory from this week:
-    </div>
-    <div style="background:#fff;border:2px solid #A7F3D0;border-radius:14px;padding:4px;margin-bottom:16px">
-      <textarea id="cm-memory" oninput="onCreativeTextInput()" rows="3"
-        style="width:100%;background:transparent;border:none;outline:none;padding:12px 14px;font-size:13px;font-family:'Nunito',sans-serif;color:#1E1B4B;resize:none;line-height:1.7;box-sizing:border-box"
-        onfocus="this.parentElement.style.borderColor='#10B981'" onblur="this.parentElement.style.borderColor='#A7F3D0'"
-        placeholder="This week I had a wonderful time when..."></textarea>
-    </div>
-
-    <!-- Mood stamp -->
-    <div style="background:#fff;border:2px solid #FDE68A;border-radius:14px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <div style="font-size:12px;font-weight:900;color:#92400E;flex-shrink:0">Today my heart feels:</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${['\U0001f604 Joyful','\U0001f60c Calm','\U0001f929 Excited','\U0001f970 Loved','\U0001f4aa Strong'].map(m=>`
-        <button onclick="selectJournalMood(this,'${m}')" style="padding:6px 13px;border-radius:20px;border:2px solid #FDE68A;background:#FFFBEB;font-size:12px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .15s;color:#92400E">${m}</button>`).join('')}
-      </div>
-    </div>
-    <input type="hidden" id="cm-journal-mood" value="">
-
-    <!-- Action buttons -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <button onclick="cancelCreativeWork()" style="padding:13px;border-radius:13px;border:2px solid #FCD34D;background:#fff;color:#92400E;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif">\u274c Cancel</button>
-      <button onclick="saveCreativeWork()" id="cm-save-btn" style="padding:13px;border-radius:13px;border:none;background:linear-gradient(135deg,#F59E0B,#EC4899);color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(245,158,11,.35)">\U0001f4be Save My Journal</button>
-    </div>
-    <div id="cm-status" style="margin-top:10px;text-align:center;font-size:12px;font-weight:800;min-height:18px"></div>
-  </div>
-</div>`;
-}
-
-// ── Journal mood selector ──────────────────────────────────────────────────
-function selectJournalMood(btn, mood){
-  document.querySelectorAll('#creative-content-area button').forEach(b=>{
-    if(b.textContent.includes('Joyful')||b.textContent.includes('Calm')||b.textContent.includes('Excited')||b.textContent.includes('Loved')||b.textContent.includes('Strong')){
-      b.style.background='#FFFBEB';b.style.borderColor='#FDE68A';b.style.color='#92400E';
-    }
-  });
-  btn.style.background='linear-gradient(135deg,#F59E0B,#EC4899)';
-  btn.style.borderColor='#F59E0B';btn.style.color='#fff';
-  const hid=document.getElementById('cm-journal-mood');if(hid)hid.value=mood;
-}
-
-// ── Handle photo chosen ────────────────────────────────────────────────────
-function onCreativePhotoChosen(input){
-  if(!input){
-    // Remove
-    _creativePhotoData=null;
-    const preview=document.getElementById('cm-photo-preview');
-    const zone=document.getElementById('cm-upload-zone');
-    const btns=document.getElementById('cm-action-btns');
-    if(preview)preview.style.display='none';
-    if(zone)zone.style.display='block';
-    if(btns)btns.style.display='none';
-    return;
-  }
-  const file=input.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    _creativePhotoData=e.target.result;
-    // Also update legacy creativeImgData for parent review display
-    creativeImgData=_creativePhotoData;
-    const img=document.getElementById('cm-photo-img');
-    const preview=document.getElementById('cm-photo-preview');
-    const zone=document.getElementById('cm-upload-zone');
-    const btns=document.getElementById('cm-action-btns');
-    if(img)img.src=_creativePhotoData;
-    if(preview)preview.style.display='block';
-    if(zone)zone.style.display='none';
-    if(btns){btns.style.display='grid';}
-    calcDayPts();
+  // Update textarea placeholder to match activity
+  const ta = document.getElementById('creative-desc');
+  const placeholders = {
+    draw:    'Describe your drawing or painting — what did you draw and what inspired you?',
+    poem:    'Write your poem here, or describe what your poem is about...',
+    story:   'Write your story or paragraph here — let your imagination run wild!',
+    craft:   'Describe what you made — what paper craft or origami did you create?',
+    mandala: 'Describe your mandala or rangoli — what colours and patterns did you use?',
+    journal: 'Write your 3 gratitude points and a happy memory from this week...',
   };
-  reader.readAsDataURL(file);
-}
+  if(ta) ta.placeholder = placeholders[val] || 'Describe your work in detail...';
 
-// Legacy compat — old previewCreativeImg still works
-function previewCreativeImg(input){ onCreativePhotoChosen(input); }
+  // Show card + detail section
+  if(card)  card.style.display='block';
+  if(detail)detail.style.display='block';
 
-let _creativeRestoredText = '';
-function onCreativeTextInput(){
-  const ta=document.getElementById('cm-text-input');
-  const wc=document.getElementById('cm-word-count');
-  if(ta&&wc){
-    const words=ta.value.trim().split(/\s+/).filter(Boolean).length;
-    wc.textContent=words+' word'+(words!==1?'s':'');
-  }
-}
+  // Update dropdown border to match activity bar colour
+  if(sel) sel.style.borderColor = '#8B5CF6';
 
-// ── Cancel ─────────────────────────────────────────────────────────────────
-function cancelCreativeWork(){
-  _creativePhotoData=null; creativeImgData=null;
-  const area=document.getElementById('creative-content-area');if(area)area.innerHTML='';
-  const sel=document.getElementById('creative-activity-select');if(sel)sel.value='';
-  _creativeActiveKey=''; creativeChosen=null; calcDayPts();
-}
-
-// ── Save to Supabase ───────────────────────────────────────────────────────
-async function saveCreativeWork(){
-  const key=_creativeActiveKey;
-  const opt=_CREATIVE_MAP[key];
-  if(!key||!opt){toast('Please choose an activity first!');return;}
-
-  const date=document.getElementById('rpt-date')?.value;
-  if(!date){toast('Please set a date on the Daily Report tab first!');return;}
-
-  const btn=document.getElementById('cm-save-btn');
-  const status=document.getElementById('cm-status');
-  if(btn){btn.disabled=true;btn.textContent='\u23f3 Saving...';}
-
-  // Collect content
-  let textContent='', photoBase64=null, extra={};
-
-  if(opt.type==='photo'){
-    if(!_creativePhotoData){
-      toast('\u26a0\ufe0f Please upload a photo first!');
-      if(btn){btn.disabled=false;btn.textContent='\U0001f4be Save My Work';}
-      return;
-    }
-    photoBase64=_creativePhotoData;
-  } else if(opt.type==='text'){
-    const ta=document.getElementById('cm-text-input');
-    textContent=(ta?.value||'').trim();
-    if(textContent.length<5){
-      toast('\u26a0\ufe0f Please write something first!');
-      if(btn){btn.disabled=false;btn.textContent='\U0001f4be Save My '+opt.title;}
-      return;
-    }
-  } else if(opt.type==='journal'){
-    const g1=(document.getElementById('cm-grateful-1')?.value||'').trim();
-    const g2=(document.getElementById('cm-grateful-2')?.value||'').trim();
-    const g3=(document.getElementById('cm-grateful-3')?.value||'').trim();
-    const mem=(document.getElementById('cm-memory')?.value||'').trim();
-    const mood=(document.getElementById('cm-journal-mood')?.value||'').trim();
-    if(!g1&&!g2&&!g3){
-      toast('\u26a0\ufe0f Please write at least one gratitude point!');
-      if(btn){btn.disabled=false;btn.textContent='\U0001f4be Save My Journal';}
-      return;
-    }
-    textContent=[g1,g2,g3].filter(Boolean).map((t,i)=>`${i+1}. ${t}`).join('\n');
-    extra={memory:mem, mood, grateful1:g1, grateful2:g2, grateful3:g3};
-  }
-
-  // Save to vaanya_creative_works table
-  let cloudOk=false;
-  if(_supabase){
-    try{
-      // Store photo as text truncated to 50KB to avoid Supabase limits; full version stays in daily_reports
-      const photoStore = photoBase64 ? photoBase64.substring(0,50000) : null;
-      const {error}=await _supabase.from('vaanya_creative_works').insert([{
-        date,
-        activity_key: key,
-        activity_name: opt.title,
-        text_content: textContent||null,
-        photo_data: photoStore,
-        extra_json: Object.keys(extra).length>0 ? JSON.stringify(extra) : null,
-        created_at: new Date().toISOString(),
-      }]);
-      if(error){
-        console.warn('Creative save error:',error);
-        if(error.code==='42P01'){
-          toast('\u26a0\ufe0f Creative works table not found — see console for setup SQL');
-          console.info('%cRun this SQL in Supabase SQL Editor:\n\ncreate table vaanya_creative_works (\n  id bigint generated always as identity primary key,\n  date date not null,\n  activity_key text not null,\n  activity_name text not null,\n  text_content text,\n  photo_data text,\n  extra_json text,\n  created_at timestamptz default now()\n);\nalter table vaanya_creative_works enable row level security;\ncreate policy "allow all" on vaanya_creative_works for all using (true) with check (true);','color:orange;font-size:13px');
-        }
-      } else {
-        cloudOk=true;
-      }
-    }catch(e){console.warn('Creative save exception:',e);}
-  }
-
-  // Also save into the main daily report draft for parent review display
-  if(opt.type==='photo') creativeImgData=photoBase64;
-  const cDesc=document.getElementById('creative-desc');if(cDesc)cDesc.value=textContent;
-  await saveCreativeDraft();
-
-  // Visual feedback
-  _creativeSaved=true;
-  if(status){
-    status.innerHTML=cloudOk
-      ?'<span style="color:#10B981;font-size:13px">\u2705 Saved! Mamma &amp; Papa can now see your beautiful work \U0001f3a8</span>'
-      :'<span style="color:#F59E0B">\U0001f4be Saved locally! (Cloud sync pending)</span>';
-  }
-  if(btn){btn.disabled=false;btn.textContent='\u2705 Saved!';}
-  toast('Your '+opt.title+' is saved! \U0001f929');
   calcDayPts();
 }
-
-// Legacy wrappers
-async function saveCreativeDraft(){
-  const date=document.getElementById('rpt-date')?.value;
-  if(!date){toast('Please set a date on the Daily Report tab first!');return;}
-  const ex=savedDays.find(d=>d.date===date);
-  if(ex&&ex.approved===true){toast('\u2705 Report already approved — creative work is locked in!');return;}
-  const pts=calcDayPts();
-  const data=collectFormData(date,pts);
-  const idx=savedDays.findIndex(d=>d.date===date);
-  if(idx>=0){savedDays[idx]={...savedDays[idx],...data};}else{savedDays.unshift(data);}
-  await saveToSupabase(data);
-  updateTopBar();
-  const msg=document.getElementById('creative-save-msg');
-  if(msg)msg.textContent='';
-}
-
-function clearCreativeImg(){ onCreativePhotoChosen(null); }
 
 function buildCreativeOptions(){
-  const sel=document.getElementById('creative-activity-select');
-  if(!sel)return;
+  // No tile grid to build — dropdown is in HTML.
+  // Restore saved selection if creativeChosen is already set (e.g. loading a draft)
+  const sel = document.getElementById('creative-activity-select');
+  if(!sel) return;
   if(creativeChosen){
-    const key=Object.keys(_CREATIVE_MAP).find(k=>_CREATIVE_MAP[k].title===creativeChosen);
-    if(key){sel.value=key;_creativeRestoredText='';onCreativeSelect(key);}
+    // Find the matching key
+    const key = Object.keys(_CREATIVE_MAP).find(k => _CREATIVE_MAP[k].title === creativeChosen);
+    if(key){ sel.value = key; onCreativeSelect(key); }
   }
+  // Legacy: keep creative-options hidden div in sync so old JS refs don't break
   const c=document.getElementById('creative-options');if(!c)return;
   c.innerHTML='';
   CREATIVE_OPTIONS.forEach(opt=>{
     const div=document.createElement('div');div.className='creative-option';
-    div.style.display='none';
-    div.innerHTML=`<div class="co-icon">${opt.icon}</div><div class="co-title">${opt.title}</div>`;
+    div.style.display='none'; // hidden — purely for backward compat
+    div.innerHTML=`<div class="co-icon">${opt.icon}</div>
+      <div class="co-title">${opt.title}</div>
+      <div class="co-desc">${opt.desc}</div>
+      <div style="margin-top:6px;font-size:10px;font-weight:800;color:var(--pk)">+${opt.pts} pts</div>`;
+    div.onclick=()=>{
+      document.querySelectorAll('.creative-option').forEach(o=>o.classList.remove('chosen'));
+      div.classList.add('chosen');creativeChosen=opt.id;
+      document.getElementById('creative-detail').style.display='block';
+      toast('Great choice! Complete your '+opt.title+' and tick it done!');
+    };
     c.appendChild(div);
   });
 }
 
+
+// ════════════════════════════════════════════
+// GEETA TAB SYSTEM v4 — One shloka at a time
+// ════════════════════════════════════════════
+const GITA_GROUPS        = JSON.parse(atob('W3siaWQiOiAiZzEiLCAiaWNvbiI6ICJcdWQ4M2VcdWRkZWQiLCAiY29sb3IiOiAiIzdDM0FFRCIsICJsaWdodCI6ICIjRjVGM0ZGIiwgImJvcmRlciI6ICIjQzRCNUZEIiwgIm5hbWUiOiAiV2hvIEFtIEk/IiwgImNoYXB0ZXJzIjogIkNoIDFcdTIwMTMyIiwgImRlc2MiOiAiVGhlIHNvdWwsIGR1dHkgYW5kIEFyanVuYSdzIGNyaXNpcyJ9LCB7ImlkIjogImcyIiwgImljb24iOiAiXHUyNmExIiwgImNvbG9yIjogIiNEOTc3MDYiLCAibGlnaHQiOiAiI0ZGRkJFQiIsICJib3JkZXIiOiAiI0ZDRDM0RCIsICJuYW1lIjogIkhvdyBTaG91bGQgSSBBY3Q/IiwgImNoYXB0ZXJzIjogIkNoIDNcdTIwMTM0IiwgImRlc2MiOiAiS2FybWEgWW9nYSBcdTIwMTQgYWN0aW9uIHdpdGhvdXQgc2VsZmlzaG5lc3MifSwgeyJpZCI6ICJnMyIsICJpY29uIjogIlx1ZDgzZVx1ZGRkOCIsICJjb2xvciI6ICIjMDg5MUIyIiwgImxpZ2h0IjogIiNFQ0ZFRkYiLCAiYm9yZGVyIjogIiM2N0U4RjkiLCAibmFtZSI6ICJIb3cgU2hvdWxkIEkgVGhpbms/IiwgImNoYXB0ZXJzIjogIkNoIDVcdTIwMTM2IiwgImRlc2MiOiAiU2VsZi1jb250cm9sLCBiYWxhbmNlIGFuZCBhIHN0ZWFkeSBtaW5kIn0sIHsiaWQiOiAiZzQiLCAiaWNvbiI6ICJcdWQ4M2RcdWRjOWIiLCAiY29sb3IiOiAiIzA1OTY2OSIsICJsaWdodCI6ICIjRUNGREY1IiwgImJvcmRlciI6ICIjNkVFN0I3IiwgIm5hbWUiOiAiSG93IFNob3VsZCBJIExvdmU/IiwgImNoYXB0ZXJzIjogIkNoIDdcdTIwMTM5IiwgImRlc2MiOiAiRGV2b3Rpb24sIHRydXN0IGFuZCBzdXJyZW5kZXIgdG8gR29kIn0sIHsiaWQiOiAiZzUiLCAiaWNvbiI6ICJcdWQ4M2RcdWRkMGQiLCAiY29sb3IiOiAiI0RDMjYyNiIsICJsaWdodCI6ICIjRkVGMkYyIiwgImJvcmRlciI6ICIjRkNBNUE1IiwgIm5hbWUiOiAiV2hhdCBJcyBSZWFsPyIsICJjaGFwdGVycyI6ICJDaCAxMFx1MjAxMzExIiwgImRlc2MiOiAiR29kJ3MgZ2xvcnkgYW5kIHRoZSBjb3NtaWMgdmlzaW9uIn0sIHsiaWQiOiAiZzYiLCAiaWNvbiI6ICJcdWQ4M2NcdWRmMzMiLCAiY29sb3IiOiAiIzA2NUY0NiIsICJsaWdodCI6ICIjRUNGREY1IiwgImJvcmRlciI6ICIjNkVFN0I3IiwgIm5hbWUiOiAiV2hhdCBLaW5kIG9mIFBlcnNvbj8iLCAiY2hhcHRlcnMiOiAiQ2ggMTJcdTIwMTMxNiIsICJkZXNjIjogIkNoYXJhY3RlciwgdmlydHVlcyBhbmQgZGl2aW5lIHF1YWxpdGllcyJ9LCB7ImlkIjogImc3IiwgImljb24iOiAiXHVkODNjXHVkZmFmIiwgImNvbG9yIjogIiMxRDRFRDgiLCAibGlnaHQiOiAiI0VGRjZGRiIsICJib3JkZXIiOiAiIzkzQzVGRCIsICJuYW1lIjogIlRoZSBGaW5hbCBBbnN3ZXIiLCAiY2hhcHRlcnMiOiAiQ2ggMTdcdTIwMTMxOCIsICJkZXNjIjogIkZhaXRoLCBkaXNjaXBsaW5lIGFuZCB0aGUgdWx0aW1hdGUgdHJ1dGgifV0='));
 const GITA_CHAPTER_SCENE = JSON.parse(atob('WyI8Yj7wn5ONIEt1cnVrc2hldHJhLiBEYXduLiA1LDAwMCB5ZWFycyBhZ28uPC9iPjxicj48YnI+XG5DbG9zZSB5b3VyIGV5ZXMgYW5kIGltYWdpbmUgeW91IGFyZSBzdGFuZGluZyB0aGVyZS48YnI+PGJyPlxuVGhlIGFpciBzbWVsbHMgb2YgaG9yc2VzLCBtdWQsIGFuZCBzb21ldGhpbmcgbWV0YWxsaWMg4oCUIHRoZSBzbWVsbCBvZiBhcm1vdXIuIE9uIGJvdGggc2lkZXMgb2YgeW91LCBhcyBmYXIgYXMgeW91IGNhbiBzZWUgaW4gZXZlcnkgZGlyZWN0aW9uLCBhcmUgc29sZGllcnMuIEh1bmRyZWRzIG9mIHRob3VzYW5kcyBvZiB0aGVtLiBFbGVwaGFudHMgdGhlIHNpemUgb2YgaG91c2VzLiBDaGFyaW90cyB3aXRoIGdvbGRlbiBmbGFncy4gV2FyIGRydW1zIHRoYXQgeW91IGRvbid0IGp1c3QgaGVhciDigJQgeW91IDxpPmZlZWw8L2k+IGluIHlvdXIgY2hlc3QuPGJyPjxicj5cbkVpZ2h0ZWVuIGNvbmNoIHNoZWxscyBibG93IGF0IG9uY2UuIFRoZSBzb3VuZCB0ZWFycyB0aHJvdWdoIHRoZSBza3kgbGlrZSB0aGUgd29ybGQgY3JhY2tpbmcgb3Blbi48YnI+PGJyPlxuSW4gdGhlIG1pZGRsZSBvZiBhbGwgdGhpcyBzdGFuZHMgYSBnb2xkZW4gY2hhcmlvdCBwdWxsZWQgYnkgZm91ciB3aGl0ZSBob3JzZXMuIE9uIGl0IHN0YW5kcyB0aGUgZ3JlYXRlc3QgYXJjaGVyIHdobyBldmVyIGxpdmVkIOKAlCBBcmp1bmEuIEhpcyBib3csIEdhbmRpdmEsIGlzIGluIGhpcyBoYW5kcy4gSGUgaGFzIHRyYWluZWQgZm9yIHRoaXMgbW9tZW50IGhpcyBlbnRpcmUgbGlmZS4gSGUgaXMgcmVhZHkuPGJyPjxicj5cbkhlIGFza3MgaGlzIGNoYXJpb3RlZXIgS3Jpc2huYSB0byBkcml2ZSBoaW0gYmV0d2VlbiB0aGUgdHdvIGFybWllcyBzbyBoZSBjYW4gc2VlIHdobyBoZSBtdXN0IGZpZ2h0Ljxicj48YnI+XG5BbmQgdGhlbiBoZSBzZWVzIGhpbS4gSGlzIGdyYW5kZmF0aGVyIEJoaXNobWEgUGl0YW1haCDigJQgODAgeWVhcnMgb2xkLCB3aGl0ZS1oYWlyZWQsIHN0YW5kaW5nIHRhbGwgYW5kIGNhbG0gYWNyb3NzIHRoZSBiYXR0bGVmaWVsZC4gQmVoaW5kIGhpbSwgQXJqdW5hJ3MgYmVsb3ZlZCB0ZWFjaGVyIERyb25hY2hhcnlhLiBIaXMgY291c2lucy4gUGVvcGxlIGhlIGF0ZSBtZWFscyB3aXRoLiBQZW9wbGUgd2hvIGJvdW5jZWQgaGltIG9uIHRoZWlyIGtuZWVzIHdoZW4gaGUgd2FzIGEgY2hpbGQuPGJyPjxicj5cbkFyanVuYSdzIGhhbmRzIGJlZ2luIHRvIHNoYWtlLiBUaGUgYm93IOKAlCBHYW5kaXZhLCB0aGUgbW9zdCBwb3dlcmZ1bCBib3cgaW4gZXhpc3RlbmNlIOKAlCBzbGlwcyBmcm9tIGhpcyBmaW5nZXJzIGFuZCBmYWxscyB0byB0aGUgZmxvb3Igb2YgdGhlIGNoYXJpb3QuPGJyPjxicj5cbjxpPlwiS3Jpc2huYSxcIjwvaT4gaGUgd2hpc3BlcnMuIDxpPlwiSSBjYW5ub3QgZG8gdGhpcy5cIjwvaT48YnI+PGJyPlxuSGUgc2l0cyBkb3duLiBUaGUgZ3JlYXRlc3Qgd2FycmlvciBpbiB0aGUgd29ybGQg4oCUIHRyZW1ibGluZywgd2VlcGluZywgdW5hYmxlIHRvIG1vdmUuPGJyPjxicj5cbkFuZCBpdCBpcyBhdCB0aGlzIGV4YWN0IG1vbWVudCDigJQgd2hlbiBldmVyeXRoaW5nIGhhcyBmYWxsZW4gYXBhcnQg4oCUIHRoYXQgR29kIGJlZ2lucyB0byBzcGVhay48YnI+PGJyPlxuPGI+V2hhdCBoYXBwZW5zIG5leHQgaXMgdGhlIEJoYWdhdmFkIEdpdGEuIDcwMCB2ZXJzZXMuIFRoZSBtb3N0IGltcG9ydGFudCBjb252ZXJzYXRpb24gaW4gaHVtYW4gaGlzdG9yeS4gQW5kIGl0IGJlZ2lucyB3aXRoIGEgYnJva2VuIG1hbiBzaXR0aW5nIG9uIHRoZSBmbG9vciBvZiBoaXMgY2hhcmlvdCwgY3J5aW5nLjwvYj4iLCAiPGI+8J+TjSBUaGUgYmF0dGxlZmllbGQuIEFyanVuYSBoYXMgc3RvcHBlZCBjcnlpbmcuIEJ1dCBoaXMgY29uZnVzaW9uIGlzIGV2ZW4gZGVlcGVyIG5vdy48L2I+PGJyPjxicj5cbktyaXNobmEgaGFzIGp1c3QgZXhwbGFpbmVkIHNvbWV0aGluZyBtaW5kLWJlbmRpbmc6IHRoZSBzb3VsIGNhbm5vdCBiZSBraWxsZWQuIFRoZSByZWFsIEFyanVuYSDigJQgdGhlIGlubmVyIEFyanVuYSDigJQgaGFzIGFsd2F5cyBleGlzdGVkIGFuZCBhbHdheXMgd2lsbC4gV2hhdCBkaWVzIG9uIGEgYmF0dGxlZmllbGQgaXMgb25seSB0aGUgYm9keSwgbGlrZSB0YWtpbmcgb2ZmIGFuIG9sZCBjb2F0IGFuZCBwdXR0aW5nIG9uIGEgbmV3IG9uZS48YnI+PGJyPlxuQXJqdW5hIG5vZHMgc2xvd2x5LiBIZSBhbG1vc3QgdW5kZXJzdGFuZHMuIEJ1dCBub3cgYSBuZXcgcXVlc3Rpb24gaXMgYnVybmluZyBpbnNpZGUgaGltOjxicj48YnI+XG48aT5cIktyaXNobmEsIHlvdSBzYXkga25vd2xlZGdlIGlzIHRoZSBncmVhdGVzdCB0aGluZy4gQnV0IHRoZW4gd2h5IGFyZSB5b3UgcHVzaGluZyBtZSB0b3dhcmQgdGhpcyB0ZXJyaWJsZSBhY3Rpb24/IElmIHVuZGVyc3RhbmRpbmcgaXMgaGlnaGVyIHRoYW4gYWN0aW9uIOKAlCB3aHkgbXVzdCBJIGZpZ2h0PyBDYW4ndCBJIGp1c3Qgc2l0IGhlcmUgYW5kIG1lZGl0YXRlIGFuZCBnYWluIHdpc2RvbSBpbnN0ZWFkP1wiPC9pPjxicj48YnI+XG5JdCBpcyB0aGUgcXVlc3Rpb24gZXZlcnkgc3R1ZGVudCBldmVudHVhbGx5IGFza3MuIDxpPklmIHRoaW5raW5nIGlzIHNvIGltcG9ydGFudCwgd2h5IG11c3QgSSBhbHNvIGRvIGFueXRoaW5nPzwvaT48YnI+PGJyPlxuS3Jpc2huYSdzIGFuc3dlciBjaGFuZ2VzIGV2ZXJ5dGhpbmcuIEhlIHRlbGxzIEFyanVuYSBhYm91dCA8Yj5LYXJtYSBZb2dhPC9iPiDigJQgdGhlIHlvZ2Egb2YgYWN0aW9uLiBOb3QganVzdCBhbnkgYWN0aW9uLiBBY3Rpb24gZG9uZSB3aXRoIGZ1bGwgc2tpbGwsIGZ1bGwgZGVkaWNhdGlvbiDigJQgYnV0IHdpdGhvdXQgYmVpbmcgb2JzZXNzZWQgd2l0aCB0aGUgcmVzdWx0LiBBY3Rpb24gYXMgYW4gb2ZmZXJpbmcuIEFjdGlvbiBhcyB3b3JzaGlwLjxicj48YnI+XG48aT5cIllvdSBjYW5ub3QgZXNjYXBlIGFjdGlvbixcIjwvaT4gS3Jpc2huYSBzYXlzLiA8aT5cIkV2ZW4gYnJlYXRoaW5nIGlzIGFjdGlvbi4gRXZlbiBjaG9vc2luZyB0byBkbyBub3RoaW5nIGlzIGFuIGFjdGlvbi4gVGhlIHF1ZXN0aW9uIGlzIG5ldmVyIHdoZXRoZXIgdG8gYWN0IOKAlCBpdCBpcyBIT1cgeW91IGFjdC5cIjwvaT48YnI+PGJyPlxuVGhpbmsgYWJvdXQgdGhhdC4gRXZlcnkgc2luZ2xlIHRoaW5nIHlvdSBkbyB0b2RheSDigJQgeW91ciBob21ld29yaywgeW91ciBneW1uYXN0aWNzLCB5b3VyIEthdGhhaywgZXZlbiBob3cgeW91IGVhdCB5b3VyIGJyZWFrZmFzdCDigJQgY2FuIGJlIGRvbmUgYXMgS2FybWEgWW9nYS4gT3IgaXQgY2FuIGJlIGRvbmUgYXMgYSBkaXN0cmFjdGVkLCBoYWxmLWhlYXJ0ZWQgbWVzcy4gVGhlIGNob2ljZSBpcyBhbHdheXMgdGhlcmUuPGJyPjxicj5cbjxiPlRoZXNlIHNobG9rYXMgYXJlIGFib3V0IHRoYXQgY2hvaWNlIOKAlCBhbmQgd2h5IGl0IG1hdHRlcnMgbW9yZSB0aGFuIGFueXRoaW5nIGVsc2UuPC9iPiIsICI8Yj7wn5ONIFRoZSBhcm1pZXMgYXJlIHN0aWxsIGZyb3plbiwgd2FpdGluZy4gVGhlIHN1biBoYXMgYmFyZWx5IG1vdmVkLiBCdXQgaW5zaWRlIEFyanVuYSwgd2hvbGUgd29ybGRzIGFyZSBzaGlmdGluZy48L2I+PGJyPjxicj5cbkhlIGhhcyBsZWFybmVkIGFib3V0IHRoZSBzb3VsLiBIZSBoYXMgbGVhcm5lZCBhYm91dCBhY3Rpb24gd2l0aG91dCBhdHRhY2htZW50LiBBbmQgbm93IGhlIGFza3MgdGhlIHF1ZXN0aW9uIHRoYXQgZXZlcnkgc3R1ZGVudCBldmVudHVhbGx5IGhpdHMgbGlrZSBhIHdhbGw6PGJyPjxicj5cbjxpPlwiS3Jpc2huYSDigJQgYWxsIG9mIHRoaXMgc291bmRzIHdvbmRlcmZ1bC4gQnV0IG15IG1pbmQgaXMgPGI+aW1wb3NzaWJsZTwvYj4gdG8gY29udHJvbC4gSXQgaXMgbGlrZSB0cnlpbmcgdG8gaG9sZCB0aGUgd2luZCB3aXRoIG15IGJhcmUgaGFuZHMuIE9uZSBzZWNvbmQgSSdtIGZvY3VzZWQsIHRoZSBuZXh0IEknbSB0aGlua2luZyBhYm91dCBsYXN0IHdlZWsncyBhcmNoZXJ5IHByYWN0aWNlLCB0aGVuIHdoYXQgSSdsbCBlYXQgYWZ0ZXIgdGhlIGJhdHRsZSwgdGhlbiB3aGV0aGVyIEkgcmVtZW1iZXJlZCB0byB0ZWxsIEJoaW1hIHNvbWV0aGluZ+KAlFwiPC9pPjxicj48YnI+XG5LcmlzaG5hIGRvZXNuJ3QgbGF1Z2guIEhlIGRvZXNuJ3Qgcm9sbCBoaXMgZXllcy4gSGUgaGFzIGJlZW4gd2FpdGluZyBmb3IgZXhhY3RseSB0aGlzIHF1ZXN0aW9uLjxicj48YnI+XG48aT5cIllvdSBhcmUgcmlnaHQsXCI8L2k+IGhlIHNheXMgcXVpZXRseS4gPGk+XCJUaGUgbWluZCBpcyB0aGUgbW9zdCByZXN0bGVzcyB0aGluZyBpbiBleGlzdGVuY2UuIEl0IGlzIG1vcmUgc3R1YmJvcm4gdGhhbiB0aGUgd2luZC5cIjwvaT48YnI+PGJyPlxuQXJqdW5hIGZlZWxzIGEgcnVzaCBvZiByZWxpZWYuIEV2ZW4gR29kIGFncmVlcyBoaXMgbWluZCBpcyBpbXBvc3NpYmxlLjxicj48YnI+XG48aT5cIkJ1dCxcIjwvaT4gS3Jpc2huYSBjb250aW51ZXMg4oCUIGFuZCBoZXJlIGlzIHRoZSB3b3JkIHRoYXQgY2hhbmdlcyBldmVyeXRoaW5nIOKAlCA8aT5cIml0IENBTiBiZSB0YW1lZC4gTm90IGJ5IGZvcmNlLiBOb3QgYnkgZmlnaHRpbmcgaXQuIEJ1dCB0aHJvdWdoIHByYWN0aWNlIGFuZCB0aHJvdWdoIGxldHRpbmcgZ28gb2Ygd2hhdCBkb2Vzbid0IHNlcnZlIHlvdS4gRGF5IGJ5IGRheS4gQnJlYXRoIGJ5IGJyZWF0aC5cIjwvaT48YnI+PGJyPlxuSGUgdGhlbiBkZXNjcmliZXMgd2hhdCBhIHRydWx5IHdpc2UgcGVyc29uJ3MgbGlmZSBsb29rcyBsaWtlLiBIb3cgdGhleSBlYXQuIEhvdyB0aGV5IHNsZWVwLiBIb3cgdGhleSBtb3ZlIHRocm91Z2ggdGhlIHdvcmxkLiBBbmQgaXQgaXMgbm90IG15c3RpY2FsIG9yIGltcG9zc2libGUuIEl0IGlzIHN1cnByaXNpbmdseSA8Yj5wcmFjdGljYWw8L2I+Ljxicj48YnI+XG48Yj5UaGVzZSBzaGxva2FzIGFyZSB0aGUgaW5zdHJ1Y3Rpb24gbWFudWFsIGZvciB5b3VyIG1pbmQuIFRoZSB3aXNkb20gaW4gdGhlbSB0b29rIGh1bWFuaXR5IHRob3VzYW5kcyBvZiB5ZWFycyB0byBkaXNjb3Zlci48L2I+IiwgIjxiPvCfk40gQXJqdW5hIGlzIHF1aWV0ZXIgbm93LiBIZSBoYXMgYmVlbiBsaXN0ZW5pbmcgZm9yIHdoYXQgZmVlbHMgbGlrZSBob3VycywgdGhvdWdoIHRoZSBzdW4gaGFzIGJhcmVseSBtb3ZlZC48L2I+PGJyPjxicj5cbkhlIGxvb2tzIGF0IEtyaXNobmEg4oCUIGhpcyBmcmllbmQsIGhpcyBjaGFyaW90ZWVyLCBoaXMgZ3VpZGUuIEFuZCBoZSBmZWVscyBzb21ldGhpbmcgaGUgY2Fubm90IHF1aXRlIG5hbWUuIEEgc2Vuc2UgdGhhdCB0aGUgcGVyc29uIHNpdHRpbmcgbmV4dCB0byBoaW0gaXMuLi4gbW9yZSB0aGFuIGEgcGVyc29uLiBNb3JlIHRoYW4gYSBmcmllbmQuIE1vcmUgdGhhbiBhIGtpbmcuPGJyPjxicj5cbjxpPlwiS3Jpc2huYSxcIjwvaT4gaGUgc2F5cyBzbG93bHkuIDxpPlwiV2hvIGFyZSB5b3Ug4oCUIHJlYWxseT8gSSBoYXZlIGtub3duIHlvdSBteSB3aG9sZSBsaWZlLiBCdXQgbm93LCBsaXN0ZW5pbmcgdG8geW91IHNwZWFrIOKAlCBJIGZlZWwgbGlrZSBJIGFtIG9ubHkganVzdCBtZWV0aW5nIHlvdSBmb3IgdGhlIGZpcnN0IHRpbWUuXCI8L2k+PGJyPjxicj5cbkFuZCBLcmlzaG5hIHNtaWxlcy4gSXQgaXMgdGhlIHNtaWxlIG9mIHNvbWVvbmUgd2hvIGhhcyBiZWVuIHdhaXRpbmcgYSB2ZXJ5IGxvbmcgdGltZSB0byBhbnN3ZXIgdGhpcyBleGFjdCBxdWVzdGlvbi48YnI+PGJyPlxuV2hhdCBmb2xsb3dzIGlzIHRoZSBtb3N0IGJlYXV0aWZ1bCBwYXNzYWdlIGluIHRoZSBlbnRpcmUgR2l0YS4gQ2hhcHRlciA3LCA4IGFuZCA5LiBLcmlzaG5hIGRlc2NyaWJlcyBoaW1zZWxmIG5vdCBhcyBhIGtpbmcsIG5vdCBhcyBhIHdhcnJpb3Ig4oCUIGJ1dCBhcyA8Yj5ldmVyeXRoaW5nIHRoYXQgaXMgYmVhdXRpZnVsLCBwb3dlcmZ1bCwgYW5kIHRydWUgaW4gdGhlIHdvcmxkLjwvYj48YnI+PGJyPlxuPGk+XCJJIGFtIHRoZSB0YXN0ZSBpbiB3YXRlcixcIjwvaT4gaGUgc2F5cy4gPGk+XCJJIGFtIHRoZSBsaWdodCBvZiB0aGUgc3VuIGFuZCBtb29uLiBJIGFtIHRoZSBzeWxsYWJsZSBPbS4gSSBhbSB0aGUgc3RyZW5ndGggaW4gdGhlIHN0cm9uZy5cIjwvaT48YnI+PGJyPlxuSGUgaXMgc2F5aW5nOiBldmVyeSB0aW1lIHlvdSBleHBlcmllbmNlIHNvbWV0aGluZyBiZWF1dGlmdWwg4oCUIGEgcGVyZmVjdCBzdW5zZXQsIGEgcGllY2Ugb2YgbXVzaWMgdGhhdCBtYWtlcyB5b3UgY2F0Y2ggeW91ciBicmVhdGgsIGEgbW9tZW50IG9mIHVuZXhwZWN0ZWQga2luZG5lc3Mg4oCUIHRoYXQgaXMgR29kIHJlYWNoaW5nIHRocm91Z2ggdGhlIHdvcmxkIHRvIHRvdWNoIHlvdS48YnI+PGJyPlxuQW5kIHRoZW4gaGUgc2F5cyBzb21ldGhpbmcgc28gdGVuZGVyIGl0IGNvdWxkIGJyZWFrIHlvdXIgaGVhcnQ6IDxpPlwiRm9yIHRob3NlIHdobyB0aGluayBvZiBtZSBhbHdheXMg4oCUIEkgY2Fycnkgd2hhdCB0aGV5IG5lZWQgYW5kIHByb3RlY3Qgd2hhdCB0aGV5IGhhdmUuXCI8L2k+PGJyPjxicj5cbjxiPlRoZXNlIHNobG9rYXMgYXJlIGxvdmUgbGV0dGVycy4gRnJvbSBHb2QgdG8gZXZlcnkgaHVtYW4gc291bC4gSW5jbHVkaW5nIHlvdXJzLjwvYj4iLCAiPGI+8J+TjSBBcmp1bmEgaGFzIGJlZW4gZGVlcGx5IG1vdmVkLiBIZSBiZWxpZXZlcy4gQnV0IGhlIGlzIGFsc28gaHVtYW4g4oCUIGFuZCBodW1hbnMgbmVlZCBwcm9vZi48L2I+PGJyPjxicj5cbjxpPlwiS3Jpc2huYSxcIjwvaT4gaGUgc2F5cy4gPGk+XCJZb3Ugc2F5IHlvdSBhcmUgaW4gZXZlcnl0aGluZyDigJQgaW4gdGhlIHN1biwgdGhlIG1vb24sIHRoZSByaXZlcnMsIHRoZSBtb3VudGFpbnMuIEJ1dCBjYW4geW91IHNob3cgbWU/IENhbiBJIGFjdHVhbGx5IFNFRSBpdD9cIjwvaT48YnI+PGJyPlxuS3Jpc2huYSBpcyBxdWlldCBmb3IgYSBtb21lbnQuPGJyPjxicj5cbjxpPlwiSSB3aWxsIHNob3cgeW91LFwiPC9pPiBoZSBzYXlzLiA8aT5cIkJ1dCB5b3Ugd2lsbCBuZWVkIGRpdmluZSBleWVzIHRvIHNlZSBpdC4gWW91ciBodW1hbiBleWVzIGFyZSBub3QgbWFkZSBmb3IgdGhpcy5cIjwvaT48YnI+PGJyPlxuQW5kIHRoZW4gaXQgaGFwcGVucy48YnI+PGJyPlxuV2hhdCBBcmp1bmEgc2VlcyBuZXh0IGlzIHRoZSBtb3N0IGF3ZS1pbnNwaXJpbmcgbW9tZW50IGluIGFsbCBvZiB3b3JsZCBsaXRlcmF0dXJlLiBLcmlzaG5hIHJldmVhbHMgaGlzIDxiPlZpc2h3YXJvb3A8L2I+IOKAlCBoaXMgVW5pdmVyc2FsIEZvcm0uIEFyanVuYSBzZWVzOjxicj48YnI+XG5UaG91c2FuZHMgb2YgZmFjZXMgbG9va2luZyBpbiBldmVyeSBkaXJlY3Rpb24gc2ltdWx0YW5lb3VzbHkuIEFybXMgYmV5b25kIGNvdW50aW5nLCBob2xkaW5nIHRoZSBzdW4sIHRoZSBtb29uLCBmaXJlLCBnYWxheGllcy4gVGhlIGVudGlyZSB1bml2ZXJzZSDigJQgZXZlcnkgc3RhciwgZXZlcnkgY3JlYXR1cmUsIGV2ZXJ5IHJpdmVyLCBldmVyeSBncmFpbiBvZiBzYW5kIOKAlCBjb250YWluZWQgd2l0aGluIG9uZSBibGF6aW5nLCBlbmRsZXNzLCBpbmRlc2NyaWJhYmxlIHByZXNlbmNlLiBUaW1lIGl0c2VsZiBmbG93aW5nIHRocm91Z2ggYSBzaW5nbGUgYm9keS48YnI+PGJyPlxuQXJqdW5hJ3MgbWluZCBjYW5ub3QgaG9sZCB3aGF0IGhpcyBleWVzIGFyZSBzZWVpbmcuIEhlIHNoYWtlcy4gSGUgZmFsbHMgdG8gaGlzIGtuZWVzLiBUZWFycyBzdHJlYW0gZG93biBoaXMgZmFjZSDigJQgbm90IGZyb20gc2FkbmVzcywgYnV0IGZyb20gc29tZXRoaW5nIGJpZ2dlci4gQXdlIHNvIHRvdGFsIGl0IHNoYXR0ZXJzIHlvdS48YnI+PGJyPlxuPGk+XCJQbGVhc2UsXCI8L2k+IGhlIGJlZ3MuIDxpPlwiUGxlYXNlIHJldHVybiB0byB5b3VyIGdlbnRsZSBodW1hbiBmb3JtLiBJIGNhbm5vdCBiZWFyIHRoaXMuXCI8L2k+PGJyPjxicj5cbkFuZCBLcmlzaG5hIGRvZXMuPGJyPjxicj5cbjxiPlRoYXQgZXhwZXJpZW5jZSBsaXZlcyBpbiB0aGVzZSBzaGxva2FzLiBUaGUgaWRlYSB0aGF0IGV2ZXJ5dGhpbmcgYmVhdXRpZnVsLCBwb3dlcmZ1bCwgYW5kIG1hZ25pZmljZW50IGluIHRoaXMgd29ybGQgaXMgYSB0aW55IGdsaW1wc2Ug4oCUIGEgc2luZ2xlIHNwYXJrIOKAlCBvZiBzb21ldGhpbmcgaW5maW5pdGUuPC9iPiIsICI8Yj7wn5ONIFRoZSBiYXR0bGVmaWVsZCBpcyBzdGlsbC4gVGhlIGFybWllcyB3YWl0LiBBbmQgQXJqdW5hIGFza3MgdGhlIHF1ZXN0aW9uIHRoYXQgbGl2ZXMgaW5zaWRlIGV2ZXJ5IHlvdW5nIHBlcnNvbiB3aG8gd2FudHMgdG8gYmUgZ29vZC48L2I+PGJyPjxicj5cbjxpPlwiS3Jpc2huYSDigJQgSSB1bmRlcnN0YW5kIGthcm1hIGFuZCBzb3VsIGFuZCBkZXZvdGlvbi4gQnV0IHdoYXQgZG9lcyBpdCBsb29rIGxpa2UgaW4gYSByZWFsIHBlcnNvbj8gV2hhdCBraW5kIG9mIGh1bWFuIGJlaW5nIGRvIHlvdSBsb3ZlIG1vc3Q/IFdoYXQgbWFrZXMgc29tZW9uZSB0cnVseSBnb29kP1wiPC9pPjxicj48YnI+XG5JdCBpcyB0aGUgbW9zdCBpbXBvcnRhbnQgcXVlc3Rpb24gaGUgaGFzIGFza2VkLiBOb3QgYWJvdXQgcGhpbG9zb3BoeSBvciB0aGUgc291bCBvciBHb2Qg4oCUIGJ1dCBhYm91dCA8Yj5ob3cgdG8gYWN0dWFsbHkgbGl2ZS48L2I+PGJyPjxicj5cbkFuZCBLcmlzaG5hIGFuc3dlcnMgd2l0aCB3aGF0IGlzLCBwZXJoYXBzLCB0aGUgbW9zdCBwcmFjdGljYWwgcGFzc2FnZSBpbiB0aGUgZW50aXJlIEdpdGEuIEhlIGRlc2NyaWJlcyB0d28ga2luZHMgb2YgcGVvcGxlIGluIHRoaXMgd29ybGQ6PGJyPjxicj5cblRoZSBwZXJzb24gd2l0aCBkaXZpbmUgcXVhbGl0aWVzIOKAlCBmZWFybGVzcywgaG9uZXN0LCBraW5kLCBodW1ibGUsIHNlbGYtY29udHJvbGxlZCwgY29tcGFzc2lvbmF0ZS4gQSBwZXJzb24gd2hvIGRvZXNuJ3QgbGllLCBkb2Vzbid0IHNob3cgb2ZmLCBkb2Vzbid0IG5lZWQgdG8gbWFrZSBvdGhlcnMgZmVlbCBzbWFsbCB0byBmZWVsIGJpZyB0aGVtc2VsdmVzLiBBIHBlcnNvbiB3aG8gc3RheXMgc3RlYWR5IHdoZW4gdGhpbmdzIGdvIHdyb25nIGFuZCBkb2Vzbid0IGdldCBhcnJvZ2FudCB3aGVuIHRoaW5ncyBnbyByaWdodC48YnI+PGJyPlxuQW5kIHRoZSBwZXJzb24gd2l0aCBkZW1vbmljIHF1YWxpdGllcyDigJQgYXJyb2dhbnQsIGRlY2VwdGl2ZSwgY3J1ZWwsIHRoaW5raW5nIG9ubHkgb2YgdGhlbXNlbHZlcywgYWx3YXlzIHdhbnRpbmcgbW9yZSwgbmV2ZXIgc2F0aXNmaWVkLjxicj48YnI+XG5UaGVuIEtyaXNobmEgc2F5cyBzb21ldGhpbmcgdGhhdCBtYXR0ZXJzIGRlZXBseTogPGk+XCJUaGVzZSBhcmUgbm90IHRoaW5ncyB5b3UgYXJlIGJvcm4gd2l0aC4gVGhleSBhcmUgdGhpbmdzIHlvdSBDSE9PU0UuIEV2ZXJ5IHNpbmdsZSBkYXkuIE9uZSBkZWNpc2lvbiBhdCBhIHRpbWUuXCI8L2k+PGJyPjxicj5cblRoZSBwZXJzb24gd2hvIHNwZWFrcyBraW5kbHkgd2hlbiB0aGV5IGNvdWxkIHNwZWFrIGhhcnNobHkuIFRoZSBzdHVkZW50IHdobyBkb2VzIHRoZWlyIG93biB3b3JrIHdoZW4gdGhleSBjb3VsZCBjb3B5LiBUaGUgZnJpZW5kIHdobyBpbmNsdWRlcyB0aGUgcGVyc29uIGxlZnQgb3V0Ljxicj48YnI+XG48Yj5UaGVzZSBzaGxva2FzIGFyZSBhIG1pcnJvci4gV2hlbiB5b3UgcmVhZCB0aGVtLCB5b3Ugc2VlIHlvdXJzZWxmIOKAlCBhbmQgd2hvIHlvdSBhcmUgYmVjb21pbmcuPC9iPiIsICI8Yj7wn5ONIFRoZSBsaWdodCBpcyBjaGFuZ2luZy4gVGhlIG1vbWVudCBvZiBiYXR0bGUgaXMgdmVyeSBjbG9zZSBub3cuPC9iPjxicj48YnI+XG5Bcmp1bmEgY2FuIGZlZWwgaXQuIEV2ZXJ5dGhpbmcgdGhleSBoYXZlIHRhbGtlZCBhYm91dCDigJQgdGhlIHNvdWwsIGR1dHksIGRldm90aW9uLCB3aXNkb20sIGNoYXJhY3RlciDigJQgaXQgaXMgYWxsIGNvbnZlcmdpbmcgb24gdGhpcyBvbmUgbW9tZW50LiBIaXMgd2hvbGUgbGlmZSBoYXMgYmVlbiBwcmVwYXJhdGlvbiBmb3IgdGhlIG5leHQgZmV3IG1pbnV0ZXMuPGJyPjxicj5cbkhlIHRha2VzIGEgYnJlYXRoLiBPbmUgbGFzdCBxdWVzdGlvbi48YnI+PGJyPlxuPGk+XCJLcmlzaG5hIOKAlCBpZiB0aGVyZSBpcyBvbmUgdGhpbmcuIE9uZSBmaW5hbCB0cnV0aC4gQWZ0ZXIgZXZlcnl0aGluZyB5b3UgaGF2ZSB0YXVnaHQgbWUg4oCUIHdoYXQgaXMgdGhlIHNpbmdsZSBtb3N0IGltcG9ydGFudCB0aGluZyBJIHNob3VsZCBjYXJyeSBpbnRvIHRoaXMgbW9tZW50LCBhbmQgaW50byBldmVyeSBtb21lbnQgb2YgbXkgbGlmZT9cIjwvaT48YnI+PGJyPlxuS3Jpc2huYSBpcyBxdWlldCBmb3IgYSBsb25nIHRpbWUuIFdoZW4gaGUgc3BlYWtzLCBoaXMgdm9pY2UgaXMgZGlmZmVyZW50IOKAlCBzb2Z0ZXIsIG1vcmUgcGVyc29uYWwuIE5vdCBhIHRlYWNoZXIgc3BlYWtpbmcgdG8gYSBzdHVkZW50IGFueW1vcmUuIEEgZnJpZW5kIHNwZWFraW5nIHRvIGEgZnJpZW5kLiBHb2Qgc3BlYWtpbmcgdG8gc29tZW9uZSBoZSBsb3Zlcy48YnI+PGJyPlxuPGk+XCJBYmFuZG9uIGFsbCBvdGhlciBkdXRpZXMsXCI8L2k+IGhlIHNheXMuIDxpPlwiQ29tZSB0byBtZSBhbG9uZS4gSSB3aWxsIGZyZWUgeW91IGZyb20gYWxsIGZlYXIuIERvIG5vdCBncmlldmUuXCI8L2k+PGJyPjxicj5cbkl0IHNvdW5kcyBzaW1wbGUuIEl0IGlzIHRoZSBoYXJkZXN0IHRoaW5nIGluIHRoZSB3b3JsZC48YnI+PGJyPlxuRG8geW91ciBhYnNvbHV0ZSBiZXN0LiBUaGVuIGxldCBnby4gVHJ1c3QgdGhhdCBzb21ldGhpbmcgZ3JlYXRlciB0aGFuIHlvdSBpcyBhbHNvIGF0IHdvcmsuIERvbid0IGNhcnJ5IHRoZSBidXJkZW4gb2YgcmVzdWx0cyDigJQganVzdCBjYXJyeSB0aGUgcmVzcG9uc2liaWxpdHkgb2YgZWZmb3J0Ljxicj48YnI+XG5BZnRlciBLcmlzaG5hIGZpbmlzaGVzIHNwZWFraW5nLCBBcmp1bmEgaXMgc3RpbGwgZm9yIGEgbG9uZyBtb21lbnQuIFRoZW4gaGUgc2F5cyB3b3JkcyB0aGF0IGFyZSBhbW9uZyB0aGUgbW9zdCBtb3ZpbmcgZXZlciB3cml0dGVuOiA8aT5cIk15IGRlbHVzaW9uIGlzIGdvbmUuIEJ5IHlvdXIgZ3JhY2UsIEkgaGF2ZSByZW1lbWJlcmVkIHdobyBJIGFtLiBJIHdpbGwgZG8gYXMgeW91IHNheS5cIjwvaT48YnI+PGJyPlxuSGUgcGlja3MgdXAgaGlzIGJvdy4gVGhlIGJhdHRsZSBiZWdpbnMuPGJyPjxicj5cbjxiPlRoaXMgaXMgbm90IHRoZSBlbmQgb2YgdGhlIEdpdGEuIEZvciBBcmp1bmEsIGl0IHdhcyB0aGUgYmVnaW5uaW5nLiBGb3IgeW91IOKAlCByZWFkaW5nIHRoZXNlIHNobG9rYXMg4oCUIGl0IGlzIHRoZSBzYW1lLiBUaGUgcmVhbCBqb3VybmV5IHN0YXJ0cyBub3cuIPCflYnvuI88L2I+Il0='));
 
 let geetaProgress    = {};
@@ -6916,7 +6650,27 @@ async function saveGeetaDraft(){
   toast('💾 Shloka work saved!');
 }
 
-// saveCreativeDraft — defined in creative section above
+async function saveCreativeDraft(){
+  const date = document.getElementById('rpt-date')?.value;
+  if(!date){ toast('Please set a date on the Daily Report tab first!'); return; }
+  // GUARD: never overwrite an approved report
+  const _existingC = savedDays.find(d => d.date === date);
+  if(_existingC && _existingC.approved === true){
+    toast('✅ Report already approved — creative work is locked in!');
+    return;
+  }
+  const pts = calcDayPts();
+  const data = collectFormData(date, pts);
+  const idx = savedDays.findIndex(d=>d.date===date);
+  if(idx>=0){ savedDays[idx]={...savedDays[idx],...data}; }
+  else { savedDays.unshift(data); }
+  await saveToSupabase(data);
+  updateTopBar();
+  const msg = document.getElementById('creative-save-msg');
+  if(msg){ msg.textContent='✅ Creative work saved! Parents can now view it.'; }
+  toast('💾 Creative work saved!');
+}
+
 
 // ════════════════════════════════════════════
 // PARENT RESET SECTION
