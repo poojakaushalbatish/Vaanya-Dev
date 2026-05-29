@@ -3310,80 +3310,59 @@ function _buildNotepadPanel(key, opt){
 
 // ── GRATITUDE JOURNAL PANEL ────────────────────────────────────────────────
 function _buildJournalPanel(key, opt){
-  const today = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
-  const prompts = [
-    {id:'cm-grateful-1', icon:'🌸', color:'#F59E0B', border:'#FDE68A', focusBorder:'#F59E0B', placeholder:'Today I am grateful for...', label:'Gratitude #1'},
-    {id:'cm-grateful-2', icon:'🌻', color:'#EC4899', border:'#FBB6CE', focusBorder:'#EC4899', placeholder:'Something or someone that made today brighter...', label:'Gratitude #2'},
-    {id:'cm-happy',      icon:'😊', color:'#8B5CF6', border:'#DDD6FE', focusBorder:'#7C3AED', placeholder:'One happy moment that filled my heart today...', label:'Happy Moment'},
-    {id:'cm-learning',   icon:'💡', color:'#0EA5E9', border:'#BAE6FD', focusBorder:'#0284C7', placeholder:'Something new I discovered, felt, or understood today...', label:"Today's Learning"},
-    {id:'cm-strength',   icon:'🌿', color:'#10B981', border:'#A7F3D0', focusBorder:'#059669', placeholder:'One small or big step I took today to grow stronger from within...', label:'My Inner Growth Today'},
-  ];
-
-  const ta = (p) => `
-    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
-      <div style="min-width:36px;height:36px;background:${p.color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;margin-top:3px;box-shadow:0 3px 10px rgba(0,0,0,.15)">${p.icon}</div>
-      <div style="flex:1">
-        <div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:${p.color};margin-bottom:5px">${p.label}</div>
-        <textarea id="${p.id}" oninput="onCreativeTextInput()" rows="2"
-          style="width:100%;background:#fff;border:2px solid ${p.border};border-radius:12px;padding:11px 14px;font-size:13px;font-family:'Nunito',sans-serif;color:#1E1B4B;resize:none;outline:none;line-height:1.6;box-sizing:border-box;transition:border-color .15s,box-shadow .15s"
-          onfocus="this.style.borderColor='${p.focusBorder}';this.style.boxShadow='0 0 0 3px ${p.border}'"
-          onblur="this.style.borderColor='${p.border}';this.style.boxShadow=''"
-          placeholder="${p.placeholder}"></textarea>
-      </div>
-    </div>`;
-
   return `
-<div style="background:#fff;border:2px solid #FCD34D;border-radius:20px;overflow:hidden;margin-bottom:14px;box-shadow:0 6px 28px rgba(245,158,11,.12)">
-
+<div style="background:linear-gradient(135deg,#FFFDE7,#FFF0FB,#ECFDF5);border:2px solid #FCD34D;border-radius:18px;overflow:hidden;margin-bottom:14px;box-shadow:0 4px 24px rgba(245,158,11,.12)">
   <!-- Header -->
-  <div style="background:linear-gradient(135deg,#F59E0B 0%,#EC4899 60%,#8B5CF6 100%);padding:18px 20px;display:flex;align-items:center;gap:14px">
-    <div style="width:48px;height:48px;background:rgba(255,255,255,.2);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">📔</div>
+  <div style="background:linear-gradient(135deg,#F59E0B,#EC4899);padding:16px 18px;display:flex;align-items:center;gap:14px">
+    <div style="font-size:32px;line-height:1">📔</div>
     <div style="flex:1">
-      <div style="font-size:17px;font-weight:900;color:#fff;letter-spacing:.01em">My Gratitude Journal</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.85);font-weight:700;margin-top:3px">✨ Count your blessings · Every grateful heart is a happy heart!</div>
+      <div style="font-size:16px;font-weight:900;color:#fff">My Gratitude Journal</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.85);font-weight:700;margin-top:2px">Count your blessings \u2728 Every grateful heart is a happy heart!</div>
     </div>
-    <div style="background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.35);border-radius:10px;padding:7px 13px;text-align:center;flex-shrink:0">
-      <div style="font-size:10px;color:rgba(255,255,255,.8);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Today</div>
-      <div style="font-size:11px;font-weight:900;color:#fff;margin-top:1px">📅 ${today}</div>
-    </div>
+    <div style="background:rgba(255,255,255,.25);border-radius:10px;padding:6px 12px;font-size:12px;font-weight:900;color:#fff">\U0001f338 Today</div>
   </div>
+  <div style="padding:18px">
 
-  <!-- Decorative stripe -->
-  <div style="height:4px;background:linear-gradient(90deg,#F59E0B,#EC4899,#8B5CF6,#0EA5E9,#10B981)"></div>
+    <!-- Gratitude prompts -->
+    <div style="font-size:13px;font-weight:900;color:#92400E;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:18px">\U0001f31f</span> 3 things I am grateful for today:
+    </div>
+    ${[1,2,3].map(n=>`
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+      <div style="min-width:32px;height:32px;background:linear-gradient(135deg,#F59E0B,#EC4899);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0;margin-top:4px">${n}</div>
+      <textarea id="cm-grateful-${n}" oninput="onCreativeTextInput()" rows="2"
+        style="flex:1;background:#fff;border:2px solid #FDE68A;border-radius:11px;padding:10px 13px;font-size:13px;font-family:'Nunito',sans-serif;color:#1E1B4B;resize:none;outline:none;line-height:1.6;transition:border-color .15s;box-sizing:border-box"
+        onfocus="this.style.borderColor='#F59E0B'" onblur="this.style.borderColor='#FDE68A'"
+        placeholder="${['I am grateful for...','Today I appreciated...','Something that made me smile...'][n-1]}"></textarea>
+    </div>`).join('')}
 
-  <div style="padding:20px 18px">
-
-    <!-- Section label -->
-    <div style="font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#9CA3AF;margin-bottom:16px;display:flex;align-items:center;gap:8px">
-      <span style="flex:1;height:1.5px;background:linear-gradient(90deg,#FDE68A,transparent)"></span>
-      Fill in all 5 prompts below
-      <span style="flex:1;height:1.5px;background:linear-gradient(270deg,#FDE68A,transparent)"></span>
+    <!-- Happy memory -->
+    <div style="font-size:13px;font-weight:900;color:#065F46;margin:16px 0 10px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:18px">\U0001f49a</span> One happy memory from this week:
+    </div>
+    <div style="background:#fff;border:2px solid #A7F3D0;border-radius:14px;padding:4px;margin-bottom:16px">
+      <textarea id="cm-memory" oninput="onCreativeTextInput()" rows="3"
+        style="width:100%;background:transparent;border:none;outline:none;padding:12px 14px;font-size:13px;font-family:'Nunito',sans-serif;color:#1E1B4B;resize:none;line-height:1.7;box-sizing:border-box"
+        onfocus="this.parentElement.style.borderColor='#10B981'" onblur="this.parentElement.style.borderColor='#A7F3D0'"
+        placeholder="This week I had a wonderful time when..."></textarea>
     </div>
 
-    ${prompts.map(p => ta(p)).join('')}
-
-    <!-- Save button — full width, prominent -->
-    <div style="margin-top:8px">
-      <button onclick="saveCreativeWork()" id="cm-save-btn"
-        style="width:100%;padding:16px 24px;border-radius:14px;border:none;
-          background:linear-gradient(135deg,#F59E0B,#EC4899,#8B5CF6);
-          color:#fff;font-size:15px;font-weight:900;cursor:pointer;
-          font-family:'Nunito',sans-serif;letter-spacing:.03em;
-          box-shadow:0 6px 20px rgba(245,158,11,.35);transition:all .2s"
-        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(245,158,11,.45)'"
-        onmouseout="this.style.transform='';this.style.boxShadow='0 6px 20px rgba(245,158,11,.35)'">
-        💾 Save My Journal Entry
-      </button>
-      <button onclick="cancelCreativeWork()"
-        style="width:100%;margin-top:10px;padding:11px;border-radius:12px;
-          border:1.5px solid #E5E7EB;background:#F9FAFB;color:#9CA3AF;
-          font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .15s"
-        onmouseover="this.style.borderColor='#FCD34D';this.style.color='#92400E'"
-        onmouseout="this.style.borderColor='#E5E7EB';this.style.color='#9CA3AF'">
-        Cancel
-      </button>
+    <!-- Mood stamp -->
+    <div style="background:#fff;border:2px solid #FDE68A;border-radius:14px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="font-size:12px;font-weight:900;color:#92400E;flex-shrink:0">Today my heart feels:</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${['\U0001f604 Joyful','\U0001f60c Calm','\U0001f929 Excited','\U0001f970 Loved','\U0001f4aa Strong'].map(m=>`
+        <button onclick="selectJournalMood(this,'${m}')" style="padding:6px 13px;border-radius:20px;border:2px solid #FDE68A;background:#FFFBEB;font-size:12px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .15s;color:#92400E">${m}</button>`).join('')}
+      </div>
     </div>
-    <div id="cm-status" style="margin-top:12px;text-align:center;font-size:12px;font-weight:800;min-height:18px"></div>
+    <input type="hidden" id="cm-journal-mood" value="">
+
+    <!-- Action buttons -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <button onclick="cancelCreativeWork()" style="padding:13px;border-radius:13px;border:2px solid #FCD34D;background:#fff;color:#92400E;font-size:14px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif">\u274c Cancel</button>
+      <button onclick="saveCreativeWork()" id="cm-save-btn" style="padding:13px;border-radius:13px;border:none;background:linear-gradient(135deg,#F59E0B,#EC4899);color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(245,158,11,.35)">\U0001f4be Save My Journal</button>
+    </div>
+    <div id="cm-status" style="margin-top:10px;text-align:center;font-size:12px;font-weight:800;min-height:18px"></div>
   </div>
 </div>`;
 }
@@ -3487,22 +3466,16 @@ async function saveCreativeWork(){
   } else if(opt.type==='journal'){
     const g1=(document.getElementById('cm-grateful-1')?.value||'').trim();
     const g2=(document.getElementById('cm-grateful-2')?.value||'').trim();
-    const happy=(document.getElementById('cm-happy')?.value||'').trim();
-    const learning=(document.getElementById('cm-learning')?.value||'').trim();
-    const strength=(document.getElementById('cm-strength')?.value||'').trim();
-    if(!g1&&!g2&&!happy){
-      toast('⚠️ Please fill in at least one prompt to save your journal!');
-      if(btn){btn.disabled=false;btn.textContent='💾 Save My Journal Entry';}
+    const g3=(document.getElementById('cm-grateful-3')?.value||'').trim();
+    const mem=(document.getElementById('cm-memory')?.value||'').trim();
+    const mood=(document.getElementById('cm-journal-mood')?.value||'').trim();
+    if(!g1&&!g2&&!g3){
+      toast('\u26a0\ufe0f Please write at least one gratitude point!');
+      if(btn){btn.disabled=false;btn.textContent='\U0001f4be Save My Journal';}
       return;
     }
-    const parts=[];
-    if(g1) parts.push('Grateful #1: '+g1);
-    if(g2) parts.push('Grateful #2: '+g2);
-    if(happy) parts.push('Happy Moment: '+happy);
-    if(learning) parts.push("Today's Learning: "+learning);
-    if(strength) parts.push('Inner Growth: '+strength);
-    textContent=parts.join('\n\n');
-    extra={grateful1:g1, grateful2:g2, happyMoment:happy, learning, innerGrowth:strength};
+    textContent=[g1,g2,g3].filter(Boolean).map((t,i)=>`${i+1}. ${t}`).join('\n');
+    extra={memory:mem, mood, grateful1:g1, grateful2:g2, grateful3:g3};
   }
 
   // Save to vaanya_creative_works table
