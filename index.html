@@ -727,9 +727,66 @@ tr:hover td{background:#FAFBFF}
 </div>
 
 <!-- ═══════════════════════════════════════
-     TAB: DAILY REPORT
+     TAB: DAILY REPORT — TIMETABLE VIEW
 ═══════════════════════════════════════ -->
 <div class="tab active" id="tab-report">
+
+<style>
+/* ── TIMETABLE BLOCK STYLES ── */
+.tt-day-banner{border-radius:16px;padding:14px 18px;margin-bottom:12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.tt-mode-toggle{font-size:11px;font-weight:900;padding:6px 14px;border-radius:20px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .18s}
+.tt-holiday-banner{background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border:2px solid #FCD34D;border-radius:12px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tt-blocks{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.tt-block{border-radius:16px;border:2px solid #E5E7EB;background:#fff;overflow:hidden;transition:all .25s}
+.tt-block.state-current{border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.tt-block.state-done{border-color:#10B981;background:#F0FDF4}
+.tt-block.state-locked{opacity:.55;pointer-events:none}
+.tt-block.state-past .tt-act{opacity:.7;pointer-events:none}
+.tt-block.state-past .tt-mark-done-btn{display:none!important}
+.tt-block.state-past .tt-block-hdr{cursor:pointer}
+.tt-block.state-break{border-color:#E5E7EB;background:#FAFAFA}
+.tt-block-hdr{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;user-select:none}
+.tt-block-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.tt-block-meta{flex:1;min-width:0}
+.tt-block-time{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#6B7280;margin-bottom:1px}
+.tt-block-name{font-size:14px;font-weight:900;color:#1E1B4B}
+.tt-block-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.tt-pts-badge{font-size:12px;font-weight:900;padding:4px 12px;border-radius:20px;background:#F3F4F6;color:#6B7280;white-space:nowrap}
+.tt-status-badge{font-size:10px;font-weight:900;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em}
+.tt-chevron{font-size:12px;color:#9CA3AF;transition:transform .2s}
+.tt-block.open .tt-chevron{transform:rotate(180deg)}
+.tt-block-body{display:none;padding:4px 16px 16px;border-top:1.5px solid #F3F4F6}
+.tt-block.open .tt-block-body{display:block}
+/* Activity checkboxes inside blocks */
+.tt-activities{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.tt-act{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:10px;border:1.5px solid #E5E7EB;background:#FAFAFA;cursor:pointer;transition:all .15s;user-select:none}
+.tt-act:hover{border-color:#93C5FD;background:#EFF6FF}
+.tt-act.checked{border-color:#10B981;background:#ECFDF5}
+.tt-act.parent-pending{border-color:#FCD34D;background:#FFFBEB;cursor:default}
+.tt-act.linked{border-color:#C4B5FD;background:#F5F3FF;cursor:pointer}
+.tt-act-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.tt-act-cb{width:20px;height:20px;border-radius:6px;border:2px solid #D1D5DB;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s}
+.tt-act.checked .tt-act-cb{background:#10B981;border-color:#10B981;color:#fff}
+.tt-act.parent-pending .tt-act-cb{background:#FCD34D;border-color:#F59E0B;color:#fff}
+.tt-act-name{font-size:12px;font-weight:800;color:#1E1B4B}
+.tt-act-sub{font-size:10px;color:#6B7280;margin-top:1px}
+.tt-act-pts{font-size:12px;font-weight:900;white-space:nowrap;flex-shrink:0}
+.tt-block-pts-row{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding:9px 12px;border-radius:10px;background:#F9FAFB;border:1.5px solid #E5E7EB}
+.tt-mark-done-btn{width:100%;margin-top:10px;padding:11px;border-radius:12px;border:none;font-family:'Nunito',sans-serif;font-size:14px;font-weight:900;cursor:pointer;transition:all .18s}
+.tt-mark-done-btn.primary{background:linear-gradient(135deg,#3B82F6,#1D4ED8);color:#fff;box-shadow:0 4px 14px rgba(59,130,246,.35)}
+.tt-mark-done-btn.done{background:linear-gradient(135deg,#10B981,#047857);color:#fff}
+.tt-current-indicator{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#3B82F6;margin-bottom:10px}
+.tt-current-dot{width:8px;height:8px;border-radius:50%;background:#3B82F6;animation:ttPulse 1.5s ease-in-out infinite}
+@keyframes ttPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+/* Self-study checkboxes */
+.tt-ss-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.tt-ss-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;border:1.5px solid #E5E7EB;cursor:pointer;background:#FAFAFA;transition:all .15s}
+.tt-ss-item:hover{border-color:#86EFAC;background:#ECFDF5}
+.tt-ss-item.checked{border-color:#10B981;background:#ECFDF5}
+.tt-ss-cb{width:18px;height:18px;border-radius:5px;border:2px solid #D1D5DB;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px}
+.tt-ss-item.checked .tt-ss-cb{background:#10B981;border-color:#10B981;color:#fff}
+</style>
+
 <div class="locked-banner" id="locked-banner">
   <span style="font-size:24px">🔒</span>
   <div>
@@ -737,56 +794,25 @@ tr:hover td{background:#FAFBFF}
     <div style="font-size:11px;font-weight:600;color:#047857;margin-top:2px" id="locked-date-msg"></div>
   </div>
 </div>
+
 <div class="page-layout">
 
-<!-- ═══════ LEFT SIDE PANEL — Quote with full author photo ═══════ -->
+<!-- ═══════ LEFT SIDE PANEL — Clock + Schedule ═══════ -->
 <div class="side-panel" id="left-panel">
 
-  <div id="quote-panel" style="
-    flex:1;
-    border-radius:20px;
-    box-shadow:0 4px 24px rgba(0,0,0,.12);
-    overflow:hidden;
-    width:100%;
-    display:flex;
-    flex-direction:column;
-    position:relative;
-    border:2px solid #E0E7FF;
-    min-height:0">
-
-    <!-- Full-width author photo — fills top portion of card -->
-    <div id="qL-photo" style="
-      width:100%;
-      flex:1;
-      min-height:0;
-      overflow:hidden;
-      position:relative;
-      background:#EEF2FF;
-      display:flex;align-items:center;justify-content:center;font-size:48px">
-      <!-- Photo injected by JS -->
-    </div>
-
-    <!-- Colour accent bar under photo -->
-    <div id="qL-accent" style="height:5px;background:linear-gradient(90deg,#FF6B35,#F7931E);flex-shrink:0"></div>
-
-    <!-- Quote text section -->
-    <div id="qL-bottom" style="background:#fff;padding:14px 14px 12px;flex-shrink:0">
-      <!-- Author name + tag -->
-      <div style="margin-bottom:8px">
-        <div id="qL-author" style="font-size:12px;font-weight:900;color:#4F46E5;letter-spacing:.02em">Swami Vivekananda</div>
-        <div id="qL-tag" style="font-size:9px;font-weight:700;color:#A5B4FC;text-transform:uppercase;letter-spacing:.08em;margin-top:1px">Rise up!</div>
-      </div>
-      <!-- Decorative quote mark -->
-      <div style="font-size:28px;color:#E0E7FF;font-family:Georgia,serif;line-height:.8;margin-bottom:4px">&ldquo;</div>
-      <!-- Quote text -->
-      <div id="qL-text" style="font-size:11px;font-weight:800;color:#1E1B4B;line-height:1.75;font-style:italic">
-        Arise, awake and do not stop until the goal is reached.
-      </div>
-    </div>
-
+  <!-- LIVE CLOCK -->
+  <div style="background:linear-gradient(135deg,#1E1B4B,#312E81);border-radius:18px;padding:16px 14px;text-align:center;width:100%;box-shadow:0 4px 20px rgba(30,27,75,.3)">
+    <div style="font-size:9px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:rgba(165,180,252,.8);margin-bottom:8px">⏰ CURRENT TIME</div>
+    <div id="tt-clock-display" style="font-size:38px;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,#A5B4FC,#C4B5FD,#FCD34D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;font-family:'Nunito',sans-serif">00:00</div>
+    <div id="tt-clock-ampm" style="font-size:13px;font-weight:900;color:rgba(196,181,253,.9);margin-top:3px">AM</div>
+    <div id="tt-clock-day" style="font-size:10px;font-weight:800;color:rgba(165,180,252,.7);margin-top:4px;text-transform:uppercase;letter-spacing:.08em">Monday</div>
   </div>
 
-  <!-- hidden IDs for JS compat -->
+  <!-- Schedule overview removed — clock only as per design -->
+  <div id="tt-mini-schedule" style="display:none"></div>
+  <div id="tt-schedule-title" style="display:none"></div>
+
+  <!-- hidden compat IDs that JS needs -->
   <span id="qL-icon" style="display:none">🌱</span>
   <span id="qR-icon" style="display:none">✨</span>
   <span id="qR-text" style="display:none"></span>
@@ -799,305 +825,100 @@ tr:hover td{background:#FAFBFF}
   <span id="sp-lvl-n" style="display:none">1</span>
   <span id="sp-lvl-t" style="display:none">Beginner</span>
   <span id="sp-lvl-s" style="display:none">0 total pts</span>
-
-</div><!-- end left panel -->
+  <!-- quote compat IDs (commented out visually, kept for JS) -->
+  <div style="display:none">
+    <div id="quote-panel"><div id="qL-photo"></div><div id="qL-accent"></div>
+    <div id="qL-bottom"><div id="qL-author"></div><div id="qL-tag"></div><div id="qL-text"></div></div></div>
+  </div>
+</div>
 
 <!-- ═══════ MAIN CONTENT ═══════ -->
 <div class="main-content">
 
-<!-- DAY OVERVIEW — mood removed, kept date + timetable + school -->
-<div class="divlbl" id="sec-daily">Day overview</div>
-<div class="sec" style="border-color:var(--pm);background:linear-gradient(135deg,#FAFAFF,var(--pl))">
-  <div class="sh"><div class="si" style="background:var(--pl);color:var(--p)">📅</div>Today's overview</div>
-  <div class="g3">
-    <div>
-      <div class="fl">Date</div>
-      <input type="date" id="rpt-date" onchange="onDateChange()">
-    </div>
-    <div>
-      <div class="fl">Timetable followed? <span style="color:var(--a)">(up to +15 pts)</span></div>
-      <select id="rpt-tt" onchange="calcDayPts()">
-        <option value="0">Select...</option>
-        <option value="15">✅ Fully followed! (+15)</option>
-        <option value="10">🟡 Mostly (+10)</option>
-        <option value="5">🔶 A bit (+5)</option>
-        <option value="0">❌ Not followed (+0)</option>
-      </select>
-    </div>
-
+<!-- DATE + MODE BANNER -->
+<div class="tt-day-banner" id="tt-day-banner">
+  <div style="font-size:36px;line-height:1" id="tt-day-icon">📅</div>
+  <div style="flex:1">
+    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;opacity:.8" id="tt-day-label">Loading...</div>
+    <div style="font-size:17px;font-weight:900;margin-top:2px" id="tt-day-title">Vaanya's Daily Report</div>
+    <div style="font-size:11px;font-weight:700;opacity:.85;margin-top:2px" id="tt-day-sub"></div>
   </div>
-  <!-- Live points from overview -->
-  <div class="sec-pts-row" id="overview-pts-row">
-    <span class="sec-pts-label">⭐ Day overview points earned</span>
-    <span class="sec-pts-val" id="overview-pts">0 pts</span>
+  <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+    <input type="date" id="rpt-date" onchange="onDateChange();ttInitDay()" style="font-size:12px;font-weight:800;padding:6px 10px;border-radius:10px;border:2px solid rgba(255,255,255,.4);background:rgba(255,255,255,.25);color:inherit;cursor:pointer">
+    <button class="tt-mode-toggle" id="tt-holiday-btn" onclick="ttToggleHoliday()" style="background:rgba(255,255,255,.25);color:inherit;border:2px solid rgba(255,255,255,.35)">
+      🏖️ Switch to Holiday schedule
+    </button>
   </div>
 </div>
 
-<!-- HOMEWORK & SELF STUDY -->
-<div class="divlbl">Homework &amp; self study</div>
-<div class="sec" style="border-color:var(--gm)">
-  <div class="sh">
-    <div class="si" style="background:var(--gl);color:var(--g)">📚</div>
-    Homework &amp; self study today
-    <span class="ptag">10 pts per subject ✓</span>
+<!-- HOLIDAY OVERRIDE NOTICE (hidden by default) -->
+<div id="tt-holiday-notice" style="display:none" class="tt-holiday-banner">
+  <span style="font-size:22px">🏖️</span>
+  <div style="flex:1">
+    <div style="font-size:13px;font-weight:900;color:#92400E">Holiday schedule active today</div>
+    <div style="font-size:11px;color:#78350F;margin-top:1px">Weekend timetable is being followed. Parents will see this in their review.</div>
   </div>
+  <button onclick="ttToggleHoliday()" style="background:#F59E0B;color:#fff;border:none;border-radius:10px;padding:6px 14px;font-size:12px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif">↩ Switch back</button>
+</div>
+
+<!-- Hidden compat fields used by existing JS -->
+<div style="display:none">
+  <select id="rpt-tt" onchange="calcDayPts()">
+    <option value="0">0</option><option value="15">15</option><option value="10">10</option><option value="5">5</option>
+  </select>
+  <div id="overview-pts-row"><span id="overview-pts">0 pts</span></div>
+  <div id="monday-test-sec" style="display:none">
+    <select id="test-subj" onchange="showTestChapters()"><option value="">Select subject...</option><option value="Maths">Maths</option><option value="English">English</option><option value="Hindi">Hindi</option><option value="Science">Science</option><option value="Social Science">Social Science</option><option value="Sanskrit">Sanskrit</option><option value="Computer Sc.">Computer Sc.</option></select>
+    <div id="test-chapters-box" style="display:none">
+      <select id="test-chapter"></select>
+    </div>
+    <input type="number" id="test-marks" min="0" max="100" value="0" oninput="calcTestPts()">
+    <input type="number" id="test-total" min="1" max="100" value="100" oninput="calcTestPts()">
+    <div id="test-result"></div>
+    <div id="test-pts-row"><span id="test-pts-display">0 pts</span></div>
+  </div>
+  <div id="odda-pts-row"><span id="odda-pts-display">0 pts</span></div>
+  <div id="gym-pts-row"><span id="gym-pts-display">0 pts</span></div>
+  <div id="screen-pts-row"><span id="screen-pts-display">0 pts</span></div>
+  <div id="ss-pts-row"><span id="ss-pts-display">0 pts</span></div>
   <div id="ss-list"></div>
-  <!-- Progress bar -->
-  <div style="margin-top:10px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <span style="font-size:11px;font-weight:800;color:var(--gd)">Progress</span>
-      <span id="ss-pct" style="font-size:11px;font-weight:800;color:var(--gd)">0 / 8 subjects</span>
-    </div>
-    <div class="prog"><div class="prog-fill" id="ss-prog" style="width:0%;background:linear-gradient(90deg,var(--g),var(--t))"></div></div>
+  <div id="ss-pct"></div>
+  <div id="ss-prog"></div>
+  <select id="gym-today" onchange="calcDayPts()"><option value="0">0</option><option value="5">5</option><option value="10">10</option><option value="7">7</option></select>
+  <div id="gym-pts-msg"></div>
+  <div id="gym-time"><div class="pill"></div><div class="pill"></div></div>
+  <div id="odda-att"><div class="pill"></div><div class="pill"></div></div>
+  <div id="odda-time"><div class="pill"></div><div class="pill"></div></div>
+  <div id="odda-assign"><div class="pill"></div><div class="pill"></div></div>
+  <input type="text" id="odda-subj">
+  <div id="odda-assign-detail" style="display:none"><input id="odda-correct" type="number"><input id="odda-total-q" type="number"><div id="odda-assign-result"></div></div>
+  <div id="screen-check"><div class="pill"></div><div class="pill"></div></div>
+  <select id="skill-did" onchange="handleSkillSelect()"><option value="">n</option><option value="yes">yes</option><option value="no">no</option></select>
+  <div id="skill-yes-box" style="display:none"><textarea id="skill-desc"></textarea><select id="skill-pts-select" onchange="handleSkillPtsSelect()"><option value="">r</option><option value="5">5</option><option value="10">10</option></select><div id="skill-pts-final"></div></div>
+  <div id="skill-no-msg" style="display:none"></div>
+  <select id="book-type" onchange="showWordBoxes();calcDayPts()"><option value="0">0</option><option value="yes">yes</option><option value="no">no</option></select>
+  <div id="word-boxes" style="display:none">
+    <input type="text" id="word1" oninput="calcWordPts();checkWordSaved()"><input type="text" id="mean1" oninput="calcWordPts();checkWordSaved()"><input type="text" id="exam1" oninput="checkWordSaved()">
+    <input type="text" id="word2" oninput="calcWordPts();checkWordSaved()"><input type="text" id="mean2" oninput="calcWordPts();checkWordSaved()"><input type="text" id="exam2" oninput="checkWordSaved()">
+    <input type="text" id="word3" oninput="calcWordPts();checkWordSaved()"><input type="text" id="mean3" oninput="calcWordPts();checkWordSaved()"><input type="text" id="exam3" oninput="checkWordSaved()">
+    <div id="save-wordbook-wrap" style="display:none"><button onclick="saveWordsToWordBook()" id="save-wordbook-btn"><span id="save-wordbook-label">Save</span></button><div id="save-wordbook-status"></div></div>
+    <div id="word-pts-msg"></div>
   </div>
-  <div class="sec-pts-row" id="ss-pts-row" style="margin-top:10px">
-    <span class="sec-pts-label">📚 Self study points earned today</span>
-    <span class="sec-pts-val" id="ss-pts-display">0 pts</span>
-  </div>
+  <select id="free-act" onchange="calcDayPts()"><option value="0">0</option></select>
+  <div id="free-act-msg"></div>
+  <div id="rpt-school" style="display:none"></div>
+  <select id="rpt-school-sel" style="display:none"></select>
 </div>
 
-<!-- TESTS & ASSESSMENTS -->
-<div id="monday-test-sec">
-  <div class="divlbl">Monday / Weekly Test</div>
-  <div class="sec" style="border-color:var(--pkm)">
-    <div class="sh">
-      <div class="si" style="background:var(--pkl);color:var(--pk)">📝</div>
-      Monday / Weekly Test
-      <span class="ptag">Up to 50 pts based on %</span>
-    </div>
-    <div class="g3">
-      <div>
-        <div class="fl">Subject tested today</div>
-        <select id="test-subj" onchange="showTestChapters()">
-          <option value="">Select subject...</option>
-          <option value="Maths">📐 Maths</option>
-          <option value="English">📖 English</option>
-          <option value="Hindi">📚 Hindi</option>
-          <option value="Science">🔬 Science</option>
-          <option value="Social Science">🌍 Social Science</option>
-          <option value="Sanskrit">🕉️ Sanskrit</option>
-          <option value="Computer Sc.">💻 Computer Sc.</option>
-        </select>
-        <div id="test-chapters-box" style="display:none;margin-top:10px">
-          <div class="fl">Chapters / Topics in the test</div>
-          <textarea id="test-chapters" placeholder="e.g. Chapter 4 – Fractions, Chapter 5 – Decimals..." style="min-height:60px"></textarea>
-        </div>
-        <div class="fl mt10">Marks got / Total marks</div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-          <input type="number" id="test-got" min="0" max="200" placeholder="Got" oninput="calcScore()" style="text-align:center;font-size:16px;font-weight:900">
-          <span style="font-size:18px;font-weight:900;color:var(--muted)">/</span>
-          <input type="number" id="test-tot" min="1" max="200" placeholder="Total" oninput="calcScore()" style="text-align:center;font-size:16px;font-weight:900">
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
-        <div style="font-size:42px;font-weight:900;color:var(--pk)" id="test-pct">–</div>
-        <div id="test-grade" style="text-align:center"></div>
-      </div>
-      <div>
-        <div style="background:var(--gl);border-radius:var(--rads);padding:12px;text-align:center">
-          <div style="font-size:11px;font-weight:800;color:var(--gd);margin-bottom:4px">POINTS AWARDED</div>
-          <div style="font-size:28px;font-weight:900;color:var(--gd)" id="test-pts-display">0 pts</div>
-          <div style="font-size:10px;color:var(--gd);margin-top:3px">90%+ = 50 · 75–89% = 40 · 60–74% = 25 · &lt;60% = 10</div>
-        </div>
-      </div>
-    </div>
-  </div>
+<!-- SECTION LABEL -->
+<div id="sec-daily" style="font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:#6B7280;margin-bottom:8px">Today's timetable</div>
+
+<!-- TIME BLOCKS CONTAINER -->
+<div class="tt-blocks" id="tt-blocks-container">
+  <div style="text-align:center;padding:24px;color:#6B7280;font-size:13px;font-weight:700">⏳ Loading your timetable...</div>
 </div>
 
-<!-- ODDA ONLINE CLASS -->
-<div class="divlbl">Odda online class · 7–8 pm</div>
-<div class="sec" style="border-color:var(--pm)">
-  <div class="sh">
-    <div class="si" style="background:var(--pl);color:var(--p)">💻</div>
-    Odda class today
-    <span class="must-badge">Mandatory — −15 pts if missed!</span>
-    <span class="ptag">Max 25 pts · late/miss penalties apply</span>
-  </div>
-  <div>
-      <div class="fl">Did I attend today?</div>
-      <div class="pills" id="odda-att">
-        <div class="pill" onclick="toggleExDeselect(this,'odda-att','pg');calcDayPts()">✅ Yes, attended! (+10)</div>
-        <div class="pill" onclick="toggleExDeselect(this,'odda-att','pr');calcDayPts()">❌ Missed (−15)</div>
-      </div>
-      <div class="fl mt10">Did I join on time?</div>
-      <div class="pills" id="odda-time">
-        <div class="pill" onclick="toggleExDeselect(this,'odda-time','pg');calcDayPts()">⏰ Joined on time! (+5)</div>
-        <div class="pill" onclick="toggleExDeselect(this,'odda-time','pr');calcDayPts()">🐢 Slightly late (−10)</div>
-      </div>
-      <div class="fl mt10">Subject covered</div>
-      <input type="text" id="odda-subj" placeholder="e.g. Maths — fractions, decimals">
-      <div class="fl mt10">Odda assignment completed?</div>
-      <div class="pills" id="odda-assign">
-        <div class="pill" onclick="toggleExDeselect(this,'odda-assign','pg');showOddaAssign(this.classList.contains('pg'));calcDayPts()">✅ Yes, completed!</div>
-        <div class="pill" onclick="toggleExDeselect(this,'odda-assign','pr');showOddaAssign(false);calcDayPts()">❌ Incomplete</div>
-      </div>
-      <div id="odda-assign-detail" style="display:none;margin-top:10px;background:var(--gl);border-radius:10px;padding:10px;border:1.5px solid var(--gm)">
-        <div class="fl" style="color:var(--gd)">Marks obtained / Total marks</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-          <input type="number" id="odda-correct" min="0" max="100" placeholder="Got" oninput="calcOddaAssign()" style="text-align:center;font-size:16px;font-weight:900;width:80px">
-          <span style="font-size:18px;font-weight:900;color:var(--muted)">/</span>
-          <input type="number" id="odda-total-q" min="1" max="100" placeholder="Total" oninput="calcOddaAssign()" style="text-align:center;font-size:16px;font-weight:900;width:80px">
-        </div>
-        <div id="odda-assign-result" style="margin-top:8px;font-size:12px;font-weight:800"></div>
-      </div>
-  </div>
-  <div class="sec-pts-row" id="odda-pts-row">
-    <span class="sec-pts-label">💻 Odda points earned today</span>
-    <span class="sec-pts-val" id="odda-pts-display">0 pts</span>
-  </div>
-</div>
-
-<!-- PHYSICAL ACTIVITY -->
-<div class="divlbl">Physical activity</div>
-<div class="sec" style="border-color:var(--am)">
-  <div class="sh">
-    <div class="si" style="background:var(--al);color:var(--a)">🤸</div>
-    Physical activity today
-    <span class="ptag">Up to 10 pts</span>
-  </div>
-  <div>
-    <div class="fl">What activity did I do today?</div>
-    <select id="gym-today" onchange="calcDayPts()" style="margin-top:4px">
-      <option value="0">Select activity...</option>
-      <option value="5">🤸 Gymnastics (+5 pts)</option>
-      <option value="10">💃 Kathak (+10 pts)</option>
-      <option value="5">🥋 Taekwondo (+5 pts)</option>
-      <option value="7">👧 Playing with Kinnu (+7 pts)</option>
-      <option value="0">💤 Rest day (0 pts)</option>
-    </select>
-    <div class="fl mt10">Did I join on time?</div>
-    <div class="pills" id="gym-time">
-      <div class="pill" onclick="toggleExDeselect(this,'gym-time','pg');calcDayPts()">✅ Joined on time! (+5)</div>
-      <div class="pill" onclick="toggleExDeselect(this,'gym-time','pr');calcDayPts()">🐢 Slightly late (−10)</div>
-    </div>
-    <div id="gym-pts-msg" style="margin-top:6px;font-size:11px;font-weight:800"></div>
-  </div>
-  <div class="sec-pts-row" id="gym-pts-row">
-    <span class="sec-pts-label">🤸 Activity points earned today</span>
-    <span class="sec-pts-val" id="gym-pts-display">0 pts</span>
-  </div>
-</div>
-
-<!-- SCREEN TIME -->
-<div class="divlbl">Screen time & free time</div>
-<div class="sec" style="border-color:var(--pkm)">
-  <div class="sh">
-    <div class="si" style="background:var(--pkl);color:var(--pk)">📺</div>
-    Screen & free time balance
-    <span class="ptag">Up to 40 pts</span>
-  </div>
-
-  <!-- Screen time: 10 pts within limits -->
-  <div style="background:var(--pkl);border-radius:var(--rads);padding:12px;margin-bottom:10px;border:1.5px solid var(--pkm)">
-    <div class="fl" style="color:var(--pkd);margin-bottom:6px">📺 Screen time today <span style="font-size:10px;color:var(--pkd)">(limit: 30 mins)</span></div>
-    <div class="pills" id="screen-check">
-      <div class="pill" onclick="toggleExDeselect(this,'screen-check','pg');calcDayPts()">✅ 30 mins or less (+10)</div>
-      <div class="pill" onclick="toggleExDeselect(this,'screen-check','pr');calcDayPts()">❌ More than 30 mins (−10)</div>
-    </div>
-
-  </div>
-
-  <!-- Skill builder: self-assessed -->
-  <div style="background:#EFF6FF;border-radius:var(--rads);padding:12px;margin-bottom:10px;border:1.5px solid var(--bm)">
-    <div class="fl" style="color:var(--bd);margin-bottom:6px">🎯 Skill builder activity today <span style="font-size:10px;color:var(--bd)">(up to +10 pts)</span></div>
-    <select id="skill-did" onchange="handleSkillSelect()" style="margin-bottom:8px">
-      <option value="">Did I do a skill activity today?</option>
-      <option value="yes">✅ Yes, I did!</option>
-      <option value="no">❌ No, not today</option>
-    </select>
-    <div id="skill-yes-box" style="display:none">
-      <div class="fl" style="color:var(--bd);margin-bottom:4px">What did I learn or practise?</div>
-      <textarea id="skill-desc" placeholder="e.g. I practised sketching faces, I learnt origami, I solved a puzzle..." style="min-height:52px;border-color:var(--bm)"></textarea>
-      <div class="fl" style="color:var(--bd);margin-top:8px;margin-bottom:4px">How well did I do?</div>
-      <select id="skill-pts-select" onchange="handleSkillPtsSelect()" style="margin-bottom:6px">
-        <option value="">Rate my effort...</option>
-        <option value="5">👍 Good — I tried my best (+5 pts)</option>
-        <option value="10">🌟 Excellent — I did really well! (+10 pts)</option>
-      </select>
-      <div id="skill-pts-final" style="display:none;margin-top:4px"></div>
-    </div>
-    <div id="skill-no-msg" style="display:none;margin-top:6px;font-size:12px;font-weight:800;color:var(--rd)">😔 No skill activity today. Try something creative tomorrow!</div>
-  </div>
-
-  <!-- Reading: Yes/No + 3 new words with meanings + examples (+10 pts when all 3 filled) -->
-  <div style="background:#ECFDF5;border-radius:var(--rads);padding:12px;margin-bottom:10px;border:1.5px solid var(--gm)">
-    <div class="fl" style="color:var(--gd);margin-bottom:6px">📚 Reading today <span style="font-size:10px;color:var(--gd)">(+10 pts when all 3 words filled)</span></div>
-    <select id="book-type" onchange="showWordBoxes();calcDayPts()" style="margin-bottom:8px">
-      <option value="0">Did I read today?</option>
-      <option value="yes">✅ Yes, I did!</option>
-      <option value="no">❌ No, not today</option>
-    </select>
-    <div id="word-boxes" style="display:none;margin-top:6px">
-      <div class="fl" style="color:var(--gd);margin-bottom:8px;font-size:11px;font-weight:800">📝 Write 3 new words — word, meaning and an example sentence:</div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-
-        <!-- Word 1 -->
-        <div style="background:#fff;border-radius:10px;border:1.5px solid var(--gm);padding:9px 10px">
-          <div style="font-size:9px;font-weight:900;color:var(--gd);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Word 1</div>
-          <div style="display:flex;gap:6px;margin-bottom:5px">
-            <input type="text" id="word1" placeholder="e.g. perseverance" style="flex:1;min-width:0;border-color:var(--gm);font-size:12px" oninput="calcWordPts();checkWordSaved()">
-            <input type="text" id="mean1" placeholder="Meaning" style="flex:2;min-width:0;border-color:var(--gm);font-size:12px" oninput="calcWordPts();checkWordSaved()">
-          </div>
-          <input type="text" id="exam1" placeholder="Example sentence (required to save)" style="width:100%;box-sizing:border-box;border-color:var(--gm);font-size:11px" oninput="checkWordSaved()">
-        </div>
-
-        <!-- Word 2 -->
-        <div style="background:#fff;border-radius:10px;border:1.5px solid var(--gm);padding:9px 10px">
-          <div style="font-size:9px;font-weight:900;color:var(--gd);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Word 2</div>
-          <div style="display:flex;gap:6px;margin-bottom:5px">
-            <input type="text" id="word2" placeholder="e.g. luminous" style="flex:1;min-width:0;border-color:var(--gm);font-size:12px" oninput="calcWordPts();checkWordSaved()">
-            <input type="text" id="mean2" placeholder="Meaning" style="flex:2;min-width:0;border-color:var(--gm);font-size:12px" oninput="calcWordPts();checkWordSaved()">
-          </div>
-          <input type="text" id="exam2" placeholder="Example sentence (required to save)" style="width:100%;box-sizing:border-box;border-color:var(--gm);font-size:11px" oninput="checkWordSaved()">
-        </div>
-
-        <!-- Word 3 -->
-        <div style="background:#fff;border-radius:10px;border:1.5px solid var(--gm);padding:9px 10px">
-          <div style="font-size:9px;font-weight:900;color:var(--gd);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Word 3</div>
-          <div style="display:flex;gap:6px;margin-bottom:5px">
-            <input type="text" id="word3" placeholder="e.g. ephemeral" style="flex:1;min-width:0;border-color:var(--gm);font-size:12px" oninput="calcWordPts();checkWordSaved()">
-            <input type="text" id="mean3" placeholder="Meaning" style="flex:2;min-width:0;border-color:var(--gm);font-size:12px" oninput="calcWordPts();checkWordSaved()">
-          </div>
-          <input type="text" id="exam3" placeholder="Example sentence (required to save)" style="width:100%;box-sizing:border-box;border-color:var(--gm);font-size:11px" oninput="checkWordSaved()">
-        </div>
-
-      </div>
-
-      <!-- Save to WordBook button -->
-      <div id="save-wordbook-wrap" style="margin-top:12px;display:none">
-        <button onclick="saveWordsToWordBook()" id="save-wordbook-btn"
-          style="width:100%;background:linear-gradient(135deg,#059669,#10B981);color:#fff;border:none;
-          border-radius:12px;padding:12px 16px;font-size:13px;font-weight:900;cursor:pointer;
-          font-family:'Nunito',sans-serif;box-shadow:0 4px 12px rgba(16,185,129,.3);
-          display:flex;align-items:center;justify-content:center;gap:8px">
-          <span>📖</span><span id="save-wordbook-label">Save to My WordBook</span>
-        </button>
-        <div id="save-wordbook-status" style="margin-top:6px;font-size:11px;font-weight:700;color:var(--gd);text-align:center"></div>
-      </div>
-
-      <div id="word-pts-msg" style="margin-top:8px;font-size:12px;font-weight:800;color:var(--gd)"></div>
-    </div>
-  </div>
-
-  <!-- Free time: dropdown with points -->
-  <div style="background:var(--al);border-radius:var(--rads);padding:12px;margin-bottom:10px;border:1.5px solid var(--am)">
-    <div class="fl" style="color:var(--ad);margin-bottom:6px">🎮 Free time activity <span style="font-size:10px;color:var(--ad)">(varies)</span></div>
-    <select id="free-act" onchange="calcDayPts()">
-      <option value="0">What did I do in free time?</option>
-      <option value="-10">😴 Timepass / wasted time (−10 pts)</option>
-      <option value="10">👧 Played with Kinnu (+10 pts)</option>
-      <option value="10">🧹 Cleaned room / almirah (+10 pts)</option>
-    </select>
-    <div id="free-act-msg" style="margin-top:6px;font-size:11px;font-weight:800"></div>
-  </div>
-
-  <div class="sec-pts-row" id="screen-pts-row">
-    <span class="sec-pts-label">📺 Screen & free time points earned</span>
-    <span class="sec-pts-val" id="screen-pts-display">0 pts</span>
-  </div>
-</div>
-
-<!-- REFLECTION -->
+<!-- SAVE BUTTON -->
 <div class="btn-row">
   <button class="btn btn-o" onclick="clearDay()">🗑️ Clear</button>
   <button class="btn btn-p" onclick="saveDraftOnly()">💾 Save Report</button>
@@ -1107,145 +928,61 @@ tr:hover td{background:#FAFBFF}
 
 <!-- ═══════ RIGHT SIDE PANEL ═══════ -->
 <div class="side-panel" id="right-panel">
-
 <div id="live-pts-panel" style="background:#EAFBF9;border-radius:22px;box-shadow:0 8px 32px rgba(4,93,86,.18);padding:0 0 14px;width:100%;box-sizing:border-box;border:2px solid #B2DFDB;overflow:hidden;flex:1;display:flex;flex-direction:column">
-
-  <!-- Deep teal header -->
   <div style="background:#045D56;border-radius:20px 20px 0 0;padding:18px 14px 16px;text-align:center;position:relative;overflow:hidden">
     <div style="position:absolute;top:-20px;right:-10px;width:80px;height:80px;background:radial-gradient(circle,rgba(0,191,166,.35),transparent 70%);pointer-events:none"></div>
-    <div style="position:absolute;bottom:-10px;left:-10px;width:60px;height:60px;background:radial-gradient(circle,rgba(255,193,7,.25),transparent 70%);pointer-events:none"></div>
-
-    <div style="font-size:8px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:rgba(0,191,166,.9);margin-bottom:8px">&#x26A1; LIVE SCORE</div>
-
+    <div style="font-size:8px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:rgba(0,191,166,.9);margin-bottom:8px">⚡ LIVE SCORE</div>
     <div id="lpp-total" style="font-size:54px;font-weight:900;line-height:1;letter-spacing:-2px;background:linear-gradient(135deg,#00BFA6,#FFC107);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;transition:all .3s">0</div>
-
     <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);margin-top:3px">pts &nbsp;/&nbsp; <span id="lpp-max" style="color:#FFC107;font-weight:800">0</span> max</div>
-
-    <!-- SVG ring -->
     <div style="margin:10px auto 0;width:68px;height:68px;position:relative">
       <svg width="68" height="68" viewBox="0 0 68 68" style="transform:rotate(-90deg)">
         <circle cx="34" cy="34" r="28" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6"/>
         <circle id="lpp-ring" cx="34" cy="34" r="28" fill="none" stroke="url(#ttGrad)" stroke-width="6" stroke-linecap="round" stroke-dasharray="175.9" stroke-dashoffset="175.9" style="transition:stroke-dashoffset .5s ease"/>
         <defs><linearGradient id="ttGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#00BFA6"/><stop offset="100%" stop-color="#FFC107"/></linearGradient></defs>
       </svg>
-      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
-        <span id="lpp-pct" style="font-size:11px;font-weight:900;color:#00BFA6">0%</span>
-      </div>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><span id="lpp-pct" style="font-size:11px;font-weight:900;color:#00BFA6">0%</span></div>
     </div>
-
-    <div id="lpp-grade" style="font-size:11px;font-weight:800;color:rgba(0,191,166,.9);margin-top:8px">Fill the report &#x270F;&#xFE0F;</div>
+    <div id="lpp-grade" style="font-size:11px;font-weight:800;color:rgba(0,191,166,.9);margin-top:8px">Fill the report ✏️</div>
   </div>
-
   <div style="padding:12px 12px 0;flex:1;display:flex;flex-direction:column">
-
-    <!-- Daily Report -->
     <div style="margin-bottom:7px">
       <div onclick="lppToggle('daily')" style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1.5px solid #B2DFDB;border-radius:13px;padding:9px 12px;cursor:pointer" onmouseover="this.style.background='#E0F7F5'" onmouseout="this.style.background='#fff'">
-        <div style="display:flex;align-items:center;gap:7px">
-          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#00BFA6,#00897B);display:flex;align-items:center;justify-content:center;font-size:13px">&#x1F4CB;</div>
-          <span style="font-size:10px;font-weight:900;color:#072227">Daily Report</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:5px">
-          <span id="lpp-daily" style="font-size:18px;font-weight:900;color:#045D56">0</span>
-          <span id="lpp-daily-max" style="font-size:9px;color:#80CBC4">/0</span>
-          <span id="lpp-daily-arr" style="font-size:10px;color:#00897B">&#x25BC;</span>
-        </div>
+        <div style="display:flex;align-items:center;gap:7px"><div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#00BFA6,#00897B);display:flex;align-items:center;justify-content:center;font-size:13px">📋</div><span style="font-size:10px;font-weight:900;color:#072227">Daily Report</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><span id="lpp-daily" style="font-size:18px;font-weight:900;color:#045D56">0</span><span id="lpp-daily-max" style="font-size:9px;color:#80CBC4">/0</span><span id="lpp-daily-arr" style="font-size:10px;color:#00897B">▼</span></div>
       </div>
       <div id="lpp-daily-detail" style="display:none;flex-direction:column;gap:2px;padding:5px 2px 2px">
-        <div onclick="lppScroll('sec-daily')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB" onmouseover="this.style.background='#B2DFDB'" onmouseout="this.style.background='#E0F7F5'"><span style="font-size:9px;color:#00695C">&#x1F4C5; Timetable</span><span id="lpp-d-tt" style="font-size:11px;font-weight:900;color:#045D56">0</span></div>
-        <div onclick="lppScroll('sec-daily')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB" onmouseover="this.style.background='#B2DFDB'" onmouseout="this.style.background='#E0F7F5'"><span style="font-size:9px;color:#00695C">&#x1F4DA; Self Study</span><span id="lpp-d-ss" style="font-size:11px;font-weight:900;color:#045D56">0</span></div>
-        <div onclick="lppScroll('sec-daily')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB" onmouseover="this.style.background='#B2DFDB'" onmouseout="this.style.background='#E0F7F5'"><span style="font-size:9px;color:#00695C">&#x1F4DD; Test</span><span id="lpp-d-test" style="font-size:11px;font-weight:900;color:#045D56">0</span></div>
-        <div onclick="lppScroll('sec-daily')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB" onmouseover="this.style.background='#B2DFDB'" onmouseout="this.style.background='#E0F7F5'"><span style="font-size:9px;color:#00695C">&#x1F4BB; Odda</span><span id="lpp-d-odda" style="font-size:11px;font-weight:900;color:#045D56">0</span></div>
-        <div onclick="lppScroll('sec-daily')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB" onmouseover="this.style.background='#B2DFDB'" onmouseout="this.style.background='#E0F7F5'"><span style="font-size:9px;color:#00695C">&#x1F938; Gym</span><span id="lpp-d-gym" style="font-size:11px;font-weight:900;color:#045D56">0</span></div>
-        <div onclick="lppScroll('sec-daily')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB" onmouseover="this.style.background='#B2DFDB'" onmouseout="this.style.background='#E0F7F5'"><span style="font-size:9px;color:#00695C">&#x1F4FA; Screen &amp; Free</span><span id="lpp-d-screen" style="font-size:11px;font-weight:900;color:#045D56">0</span></div>
+        <div onclick="lppScroll('sec-daily')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB"><span style="font-size:9px;color:#00695C">📅 Timetable</span><span id="lpp-d-tt" style="font-size:11px;font-weight:900;color:#045D56">0</span></div>
+        <div onclick="lppScroll('sec-daily')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB"><span style="font-size:9px;color:#00695C">📚 Self Study</span><span id="lpp-d-ss" style="font-size:11px;font-weight:900;color:#045D56">0</span></div>
+        <div onclick="lppScroll('sec-daily')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB"><span style="font-size:9px;color:#00695C">📝 Test</span><span id="lpp-d-test" style="font-size:11px;font-weight:900;color:#045D56">0</span></div>
+        <div onclick="lppScroll('sec-daily')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB"><span style="font-size:9px;color:#00695C">💻 Odda</span><span id="lpp-d-odda" style="font-size:11px;font-weight:900;color:#045D56">0</span></div>
+        <div onclick="lppScroll('sec-daily')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB"><span style="font-size:9px;color:#00695C">🤸 Gym</span><span id="lpp-d-gym" style="font-size:11px;font-weight:900;color:#045D56">0</span></div>
+        <div onclick="lppScroll('sec-daily')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB"><span style="font-size:9px;color:#00695C">📺 Screen &amp; Free</span><span id="lpp-d-screen" style="font-size:11px;font-weight:900;color:#045D56">0</span></div>
       </div>
     </div>
-
-    <!-- Brain Lab -->
     <div style="margin-bottom:7px">
       <div onclick="lppToggle('brain')" style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1.5px solid #FFF9C4;border-radius:13px;padding:9px 12px;cursor:pointer" onmouseover="this.style.background='#FFFDE7'" onmouseout="this.style.background='#fff'">
-        <div style="display:flex;align-items:center;gap:7px">
-          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#FFC107,#FF8F00);display:flex;align-items:center;justify-content:center;font-size:13px">&#x1F9E0;</div>
-          <span style="font-size:10px;font-weight:900;color:#072227">Brain Lab</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:5px">
-          <span id="lpp-brain" style="font-size:18px;font-weight:900;color:#FF8F00">0</span>
-          <span id="lpp-brain-max" style="font-size:9px;color:#FFD54F">/0</span>
-          <span id="lpp-brain-arr" style="font-size:10px;color:#FFC107">&#x25BC;</span>
-        </div>
+        <div style="display:flex;align-items:center;gap:7px"><div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#FFC107,#FF8F00);display:flex;align-items:center;justify-content:center;font-size:13px">🧠</div><span style="font-size:10px;font-weight:900;color:#072227">Brain Lab</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><span id="lpp-brain" style="font-size:18px;font-weight:900;color:#FF8F00">0</span><span id="lpp-brain-max" style="font-size:9px;color:#FFD54F">/0</span><span id="lpp-brain-arr" style="font-size:10px;color:#FFC107">▼</span></div>
       </div>
       <div id="lpp-brain-detail" style="display:none;flex-direction:column;gap:2px;padding:5px 2px 2px">
-        <div onclick="lppScroll('sec-brain')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#FFFDE7;border:1px solid #FFF9C4" onmouseover="this.style.background='#FFF9C4'" onmouseout="this.style.background='#FFFDE7'"><span style="font-size:9px;color:#E65100">&#x1F522; Sudoku</span><span id="lpp-b-sudoku" style="font-size:11px;font-weight:900;color:#FF8F00">0</span></div>
-        <div onclick="lppScroll('sec-brain')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#FFFDE7;border:1px solid #FFF9C4" onmouseover="this.style.background='#FFF9C4'" onmouseout="this.style.background='#FFFDE7'"><span style="font-size:9px;color:#E65100">&#x1F9E9; Logic</span><span id="lpp-b-logic" style="font-size:11px;font-weight:900;color:#FF8F00">0</span></div>
-        <div onclick="lppScroll('sec-brain')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#FFFDE7;border:1px solid #FFF9C4" onmouseover="this.style.background='#FFF9C4'" onmouseout="this.style.background='#FFFDE7'"><span style="font-size:9px;color:#E65100">&#x1F3AD; Riddles</span><span id="lpp-b-riddles" style="font-size:11px;font-weight:900;color:#FF8F00">0</span></div>
-        <div onclick="lppScroll('sec-brain')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#FFFDE7;border:1px solid #FFF9C4" onmouseover="this.style.background='#FFF9C4'" onmouseout="this.style.background='#FFFDE7'"><span style="font-size:9px;color:#E65100">&#x26A1; Maths</span><span id="lpp-b-maths" style="font-size:11px;font-weight:900;color:#FF8F00">0</span></div>
+        <div onclick="lppScroll('sec-brain')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#FFFDE7;border:1px solid #FFF9C4"><span style="font-size:9px;color:#E65100">🔢 Sudoku</span><span id="lpp-b-sudoku" style="font-size:11px;font-weight:900;color:#FF8F00">0</span></div>
+        <div onclick="lppScroll('sec-brain')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#FFFDE7;border:1px solid #FFF9C4"><span style="font-size:9px;color:#E65100">🧩 Logic</span><span id="lpp-b-logic" style="font-size:11px;font-weight:900;color:#FF8F00">0</span></div>
+        <div onclick="lppScroll('sec-brain')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#FFFDE7;border:1px solid #FFF9C4"><span style="font-size:9px;color:#E65100">🎭 Riddles</span><span id="lpp-b-riddles" style="font-size:11px;font-weight:900;color:#FF8F00">0</span></div>
+        <div onclick="lppScroll('sec-brain')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#FFFDE7;border:1px solid #FFF9C4"><span style="font-size:9px;color:#E65100">⚡ Maths</span><span id="lpp-b-maths" style="font-size:11px;font-weight:900;color:#FF8F00">0</span></div>
       </div>
     </div>
-
-    <!-- Geeta & Creative -->
     <div style="margin-bottom:7px">
       <div onclick="lppToggle('geeta')" style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1.5px solid #B2DFDB;border-radius:13px;padding:9px 12px;cursor:pointer" onmouseover="this.style.background='#E0F7F5'" onmouseout="this.style.background='#fff'">
-        <div style="display:flex;align-items:center;gap:7px">
-          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#00BFA6,#00695C);display:flex;align-items:center;justify-content:center;font-size:13px">&#x1F549;&#xFE0F;</div>
-          <span style="font-size:10px;font-weight:900;color:#072227">Geeta &amp; Creative</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:5px">
-          <span id="lpp-geeta" style="font-size:18px;font-weight:900;color:#00695C">0</span>
-          <span id="lpp-geeta-max" style="font-size:9px;color:#80CBC4">/0</span>
-          <span id="lpp-geeta-arr" style="font-size:10px;color:#00BFA6">&#x25BC;</span>
-        </div>
+        <div style="display:flex;align-items:center;gap:7px"><div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#00BFA6,#00695C);display:flex;align-items:center;justify-content:center;font-size:13px">🕉️</div><span style="font-size:10px;font-weight:900;color:#072227">Geeta &amp; Creative</span></div>
+        <div style="display:flex;align-items:center;gap:5px"><span id="lpp-geeta" style="font-size:18px;font-weight:900;color:#00695C">0</span><span id="lpp-geeta-max" style="font-size:9px;color:#80CBC4">/0</span><span id="lpp-geeta-arr" style="font-size:10px;color:#00BFA6">▼</span></div>
       </div>
       <div id="lpp-geeta-detail" style="display:none;flex-direction:column;gap:2px;padding:5px 2px 2px">
-        <div onclick="lppScroll('sec-geeta')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB" onmouseover="this.style.background='#B2DFDB'" onmouseout="this.style.background='#E0F7F5'"><span style="font-size:9px;color:#00695C">&#x1F549;&#xFE0F; Shloka</span><span id="lpp-g-shloka" style="font-size:11px;font-weight:900;color:#00695C">0</span></div>
-        <div onclick="lppScroll('sec-geeta')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB" onmouseover="this.style.background='#B2DFDB'" onmouseout="this.style.background='#E0F7F5'"><span style="font-size:9px;color:#00695C">&#x1F3A8; Creative</span><span id="lpp-g-creative" style="font-size:11px;font-weight:900;color:#00695C">0</span></div>
+        <div onclick="lppScroll('sec-geeta')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB"><span style="font-size:9px;color:#00695C">🕉️ Shloka</span><span id="lpp-g-shloka" style="font-size:11px;font-weight:900;color:#00695C">0</span></div>
+        <div onclick="lppScroll('sec-geeta')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#E0F7F5;border:1px solid #B2DFDB"><span style="font-size:9px;color:#00695C">🎨 Creative</span><span id="lpp-g-creative" style="font-size:11px;font-weight:900;color:#00695C">0</span></div>
       </div>
     </div>
-
-    <!-- Parent Rating -->
-    <div style="margin-bottom:12px">
-      <div onclick="lppToggle('parent')" style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1.5px solid #B2DFDB;border-radius:13px;padding:9px 12px;cursor:pointer" onmouseover="this.style.background='#E0F7F5'" onmouseout="this.style.background='#fff'">
-        <div style="display:flex;align-items:center;gap:7px">
-          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#FFC107,#FFB300);display:flex;align-items:center;justify-content:center;font-size:13px">&#x2B50;</div>
-          <span style="font-size:10px;font-weight:900;color:#072227">Parent Rating</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:5px">
-          <span id="lpp-parent" style="font-size:18px;font-weight:900;color:#FF8F00">0</span>
-          <span id="lpp-parent-max" style="font-size:9px;color:#FFD54F">/0</span>
-          <span id="lpp-parent-arr" style="font-size:10px;color:#FFC107">&#x25BC;</span>
-        </div>
-      </div>
-      <div id="lpp-parent-detail" style="display:none;flex-direction:column;gap:2px;padding:5px 2px 2px">
-        <div onclick="lppScroll('sec-parent')" style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-radius:8px;cursor:pointer;background:#FFFDE7;border:1px solid #FFF9C4" onmouseover="this.style.background='#FFF9C4'" onmouseout="this.style.background='#FFFDE7'"><span style="font-size:9px;color:#E65100">&#x2B50; Rating bonus</span><span id="lpp-p-rating" style="font-size:11px;font-weight:900;color:#FF8F00">0</span></div>
-      </div>
-    </div>
-
-    <div style="flex:1"></div><!-- spacer pushes total bar down -->
-    <!-- Total bar -->
-    <div style="background:linear-gradient(135deg,#045D56,#00897B);border-radius:13px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 14px rgba(4,93,86,.3)">
-      <span style="font-size:9px;font-weight:900;color:rgba(0,191,166,.9);text-transform:uppercase;letter-spacing:.12em">TOTAL TODAY</span>
-      <div style="display:flex;align-items:baseline;gap:5px">
-        <span id="lpp-total2" style="font-size:24px;font-weight:900;background:linear-gradient(90deg,#00BFA6,#FFC107);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">0</span>
-        <span style="font-size:9px;color:rgba(255,255,255,.5)">/ <span id="lpp-max2">0</span></span>
-      </div>
-    </div>
-
   </div>
 </div>
-
-  <span id="sp-mood" style="display:none">&#x1F634;</span>
-  <span id="sp-mood-lbl" style="display:none"></span>
-  <span id="sp-mood-sub" style="display:none"></span>
-  <span id="sp-mis-cnt" style="display:none">0/7</span>
-  <span id="sp-m-hw" style="display:none"></span>
-  <span id="sp-m-od" style="display:none"></span>
-  <span id="sp-m-gy" style="display:none"></span>
-  <span id="sp-m-sh" style="display:none"></span>
-  <span id="sp-m-cr" style="display:none"></span>
-  <span id="sp-m-br" style="display:none"></span>
-  <span id="sp-m-rf" style="display:none"></span>
-  <span id="sp-boss-fill" style="display:none"></span>
-  <span id="sp-boss-lbl" style="display:none"></span>
-
 </div><!-- end right panel -->
 
 </div><!-- end page-layout -->
@@ -2983,6 +2720,10 @@ function freezeLogic(){
 
 
 function showTab(id,btn){
+  // Show live score right panel only on daily report tab
+  const rp=document.getElementById('right-panel');
+  if(rp){ rp.style.display = (id==='report') ? '' : 'none'; }
+  _lppResponsive();
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
@@ -3206,6 +2947,7 @@ function totalEarned(){
 
 function buildAll(){
   // Reset all in-memory pts to 0 — will be restored from cloud/session after load
+  ttInitDay();
   brainPtsToday=0; sudokuPts=0; logicPtsTotal=0; riddlePtsTotal=0;
   mathsPtsToday=0; worksheetPts=0; aiSkillPts=0;
   // Reset parent-tab dropdowns explicitly (they live outside #tab-report)
@@ -4381,6 +4123,7 @@ function calcOddaAssign(){
 }
 
 function calcDayPts(){
+  const ttPts = (typeof ttGetTotalPts==='function') ? ttGetTotalPts() : 0;
   let pts=0;
   let breakdown={};
 
@@ -4389,8 +4132,8 @@ function calcDayPts(){
   // Self-study pts — 10 per subject checked
   let ssPts=0;
   SS_SUBJECTS.forEach((_,i)=>{ if(document.getElementById('ss-'+i)?.checked) ssPts+=10; });
-  pts+=ttVal+ssPts;
-  breakdown.overview=ttVal+ssPts;
+  pts+=ttVal+ssPts+ttPts;
+  breakdown.overview=ttVal+ssPts+ttPts;
   breakdown.ss=ssPts; // separate ss so live panel can show timetable and study independently
   const ovEl=document.getElementById('overview-pts');
   if(ovEl)ovEl.textContent=ttVal+' pts'; // show only timetable pts in overview section
@@ -4822,9 +4565,10 @@ function toggleMobPtsPanel(){
 function _lppResponsive(){
   const pill=document.getElementById('mob-pts-pill');
   if(!pill) return;
-  // Show pill only when right panel is hidden (narrow screens)
+  // Show pill only on daily report tab AND on narrow screens
   const isMobile=window.innerWidth<900;
-  pill.style.display=isMobile?'flex':'none';
+  const reportActive=document.getElementById('tab-report')?.classList.contains('active');
+  pill.style.display=(isMobile&&reportActive)?'flex':'none';
 }
 window.addEventListener('resize',_lppResponsive);
 document.addEventListener('DOMContentLoaded',_lppResponsive);
@@ -4973,7 +4717,9 @@ function collectFormData(date, pts){
     savedRiddlePts:    riddlePtsTotal,
     savedWorksheetPts: worksheetPts,
     savedWsAnswered:   JSON.stringify(_wsAnswered||{}),
-    savedAt:new Date().toISOString()
+    savedAt:new Date().toISOString(),
+    // Timetable block states — which activities checked, pts per block
+    ttBlockStatesJSON: JSON.stringify(ttBlockStates||{})
   };
 }
 
@@ -7666,6 +7412,14 @@ function loadDraftDay(d){
   if(typeof updateSS==='function') updateSS();
 
   // ── Creative ─────────────────────────────────────────────────
+  // Restore timetable block states
+  if(d.ttBlockStatesJSON){
+    try{ ttBlockStates = JSON.parse(d.ttBlockStatesJSON)||{}; }
+    catch(e){ ttBlockStates = {}; }
+    ttRender();
+    if(typeof ttRenderMiniSchedule==='function') ttRenderMiniSchedule();
+  }
+
   if(d.creativeChosen){
     creativeChosen=d.creativeChosen;
     document.querySelectorAll('.creative-option').forEach(el=>
@@ -9029,6 +8783,532 @@ function _wsUpdateTotalDisplay(){
 // ════════════════════════════════════════════
 // INIT — load cloud data then build UI
 // ════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════
+// TIMETABLE ENGINE
+// ════════════════════════════════════════════════════════════════
+
+// State
+let ttIsHoliday = false;
+let ttBlockStates = {};   // blockId -> {pts, done, checkedActs}
+let ttClockInterval = null;
+
+// ── BLOCK DEFINITIONS ─────────────────────────────────────────
+const TT_WEEKDAY = [
+  {
+    id:'wd-school', time:'6:00 AM – 3:00 PM', name:'School Time', icon:'🏫',
+    iconBg:'#EEF2FF', iconColor:'#4F46E5', color:'#4F46E5', lightBg:'#EEF2FF',
+    type:'locked-until-3pm', maxPts:0,
+    activities:[
+      {id:'wd-s1',name:'Attend classes',pts:14,type:'self'},
+      {id:'wd-s2',name:'Complete assignments',pts:14,type:'self'},
+      {id:'wd-s3',name:'School activities',pts:14,type:'self'},
+    ]
+  },
+  {
+    id:'wd-home', time:'3:00 PM – 4:00 PM', name:'Get Fresh & Rest', icon:'🏠',
+    iconBg:'#ECFDF5', iconColor:'#059669', color:'#059669', lightBg:'#ECFDF5',
+    type:'normal', maxPts:21, unlockHour:15,
+    activities:[
+      {id:'wd-h1',name:'Have lunch',pts:7,type:'self'},
+      {id:'wd-h2',name:'Take rest',pts:7,type:'self'},
+      {id:'wd-h3',name:'Watch screen / relax',pts:7,type:'self'},
+    ]
+  },
+  {
+    id:'wd-study', time:'4:00 PM – 6:00 PM', name:'Homework & Self Study', icon:'✏️',
+    iconBg:'#EFF6FF', iconColor:'#2563EB', color:'#2563EB', lightBg:'#EFF6FF',
+    type:'study', maxPts:130, unlockHour:16,
+    activities:[
+      {id:'wd-st1',name:'Complete homework',pts:13,type:'self'},
+      {id:'wd-st2',name:'Self study — Maths',pts:13,type:'self'},
+      {id:'wd-st3',name:'Self study — English',pts:13,type:'self'},
+      {id:'wd-st4',name:'Self study — Science',pts:13,type:'self'},
+      {id:'wd-st5',name:'Self study — Hindi',pts:13,type:'self'},
+      {id:'wd-st6',name:'Self study — SST',pts:13,type:'self'},
+      {id:'wd-st7',name:'Self study — Sanskrit',pts:13,type:'self'},
+      {id:'wd-st8',name:'Tuition attended',pts:40,type:'self'},
+      {id:'wd-st9',name:'Brain Lab session',pts:13,type:'link',tab:'brain',note:'→ Brain Lab'},
+    ]
+  },
+  {
+    id:'wd-maths', time:'6:00 PM – 7:00 PM', name:'Playing Outdoor', icon:'⚽',
+    iconBg:'#FFF7ED', iconColor:'#EA580C', color:'#EA580C', lightBg:'#FFF7ED',
+    type:'normal', maxPts:21, unlockHour:18,
+    activities:[
+      {id:'wd-m1',name:'Play games',pts:7,type:'self'},
+      {id:'wd-m2',name:'Physical exercise',pts:7,type:'self'},
+      {id:'wd-m3',name:'Fresh air & outdoor',pts:7,type:'self'},
+    ]
+  },
+  {
+    id:'wd-odda', time:'7:00 PM – 8:00 PM', name:'Odda Class', icon:'💻',
+    iconBg:'#F3EFFE', iconColor:'#7C3AED', color:'#7C3AED', lightBg:'#F3EFFE',
+    type:'normal', maxPts:30, unlockHour:19,
+    activities:[
+      {id:'wd-o1',name:'Attend class',pts:15,type:'self'},
+      {id:'wd-o2',name:'Complete assignments',pts:15,type:'self'},
+    ]
+  },
+  {
+    id:'wd-enrich', time:'8:00 PM – 9:00 PM', name:'Learning & Creative Time', icon:'🌟',
+    iconBg:'#FDF2F8', iconColor:'#DB2777', color:'#DB2777', lightBg:'#FDF2F8',
+    type:'normal', maxPts:60, unlockHour:20,
+    activities:[
+      {id:'wd-e1',name:'Kathak practice',pts:10,type:'self'},
+      {id:'wd-e2',name:'Olympiad practice',pts:10,type:'self'},
+      {id:'wd-e3',name:'Shloka learning',pts:10,type:'parent',note:'⏳ Parent awards pts'},
+      {id:'wd-e4',name:'Creative moment',pts:10,type:'parent',note:'⏳ Parent awards pts'},
+      {id:'wd-e5',name:'Brain Lab',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
+      {id:'wd-e6',name:'Maths Sprint',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
+    ]
+  },
+  {
+    id:'wd-wind', time:'9:00 PM – 9:30 PM', name:'Wind-Down Routine', icon:'🌙',
+    iconBg:'#F0F4FF', iconColor:'#4F46E5', color:'#4F46E5', lightBg:'#F0F4FF',
+    type:'normal', maxPts:20, unlockHour:21,
+    activities:[
+      {id:'wd-w1',name:'Daily journal / gratitude',pts:10,type:'self'},
+      {id:'wd-w2',name:'Shloka reciting to parents',pts:10,type:'parent',note:'⏳ Parent awards pts'},
+    ]
+  },
+  {
+    id:'wd-sleep', time:'9:30 PM', name:'Sleep', icon:'😴',
+    iconBg:'#F9FAFB', iconColor:'#6B7280', color:'#6B7280', lightBg:'#F9FAFB',
+    type:'break', maxPts:0, unlockHour:21,
+    activities:[
+      {id:'wd-sl1',name:'Go to bed on time',pts:0,type:'self'},
+    ]
+  },
+];
+
+const TT_WEEKEND = [
+  {
+    id:'we-morning', time:'7:00 AM – 8:00 AM', name:'Wake Up & Morning Routine', icon:'🌅',
+    iconBg:'#FFFBEB', iconColor:'#D97706', color:'#D97706', lightBg:'#FFFBEB',
+    type:'normal', maxPts:30, unlockHour:7,
+    activities:[
+      {id:'we-m1',name:'Wake up on time',pts:5,type:'self'},
+      {id:'we-m2',name:'Morning prayer done',pts:10,type:'self'},
+      {id:'we-m3',name:'Exercise / stretching',pts:15,type:'self'},
+    ]
+  },
+  {
+    id:'we-breakfast', time:'8:00 AM – 9:00 AM', name:'Breakfast & Book Reading', icon:'📚',
+    iconBg:'#ECFDF5', iconColor:'#059669', color:'#059669', lightBg:'#ECFDF5',
+    type:'normal', maxPts:20, unlockHour:8,
+    activities:[
+      {id:'we-b1',name:'Breakfast done',pts:5,type:'self'},
+      {id:'we-b2',name:'Book reading (30+ min)',pts:15,type:'self'},
+    ]
+  },
+  {
+    id:'we-maths', time:'9:00 AM – 11:00 AM', name:'Maths Practice', icon:'📐',
+    iconBg:'#EFF6FF', iconColor:'#2563EB', color:'#2563EB', lightBg:'#EFF6FF',
+    type:'normal', maxPts:80, unlockHour:9,
+    activities:[
+      {id:'we-ma1',name:'Maths chapters studied',pts:30,type:'self'},
+      {id:'we-ma2',name:'Maths Sprint',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
+      {id:'we-ma3',name:'Worksheet completed',pts:15,type:'link',tab:'brain',note:'→ Brain Lab'},
+      {id:'we-ma4',name:'Olympiad practice',pts:25,type:'self'},
+    ]
+  },
+  {
+    id:'we-creative', time:'11:00 AM – 12:00 PM', name:'Creative & Brain Block', icon:'🎨',
+    iconBg:'#FDF2F8', iconColor:'#DB2777', color:'#DB2777', lightBg:'#FDF2F8',
+    type:'normal', maxPts:40, unlockHour:11,
+    activities:[
+      {id:'we-c1',name:'Creative Moments',pts:20,type:'parent',note:'⏳ Parent awards pts'},
+      {id:'we-c2',name:'Riddles',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
+      {id:'we-c3',name:'Maths Sprint',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
+      {id:'we-c4',name:'Sudoku',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
+    ]
+  },
+  {
+    id:'we-break1', time:'12:00 PM – 12:30 PM', name:'Break', icon:'☕',
+    iconBg:'#F9FAFB', iconColor:'#6B7280', color:'#6B7280', lightBg:'#F9FAFB',
+    type:'break', maxPts:0, unlockHour:12, activities:[]
+  },
+  {
+    id:'we-study1', time:'12:30 PM – 2:00 PM', name:'Self Study — Afternoon Session', icon:'📖',
+    iconBg:'#EFF6FF', iconColor:'#2563EB', color:'#2563EB', lightBg:'#EFF6FF',
+    type:'normal', maxPts:80, unlockHour:12,
+    activities:[
+      {id:'we-s1',name:'Self study — Maths',pts:20,type:'self'},
+      {id:'we-s2',name:'Self study — English',pts:20,type:'self'},
+      {id:'we-s3',name:'Self study — Science',pts:20,type:'self'},
+      {id:'we-s4',name:'Self study — Hindi',pts:20,type:'self'},
+      {id:'we-s5',name:'Self study — SST',pts:20,type:'self'},
+    ]
+  },
+  {
+    id:'we-lunch', time:'2:00 PM – 2:30 PM', name:'Lunch Break', icon:'🍱',
+    iconBg:'#F9FAFB', iconColor:'#6B7280', color:'#6B7280', lightBg:'#F9FAFB',
+    type:'break', maxPts:0, unlockHour:14, activities:[]
+  },
+  {
+    id:'we-study2', time:'2:30 PM – 4:00 PM', name:'Self Study / Olympiad Practice', icon:'🏆',
+    iconBg:'#EFF6FF', iconColor:'#2563EB', color:'#2563EB', lightBg:'#EFF6FF',
+    type:'normal', maxPts:80, unlockHour:14,
+    activities:[
+      {id:'we-s2a',name:'Self study (any subject)',pts:20,type:'self'},
+      {id:'we-s2b',name:'Olympiad practice',pts:40,type:'self'},
+      {id:'we-s2c',name:'Test paper attempted',pts:40,type:'self'},
+    ]
+  },
+  {
+    id:'we-tv', time:'4:00 PM – 4:30 PM', name:'TV / Screen Break', icon:'📺',
+    iconBg:'#F9FAFB', iconColor:'#6B7280', color:'#6B7280', lightBg:'#F9FAFB',
+    type:'break', maxPts:0, unlockHour:16, activities:[]
+  },
+  {
+    id:'we-shloka', time:'4:30 PM – 5:00 PM', name:'Shloka & Life Values', icon:'🕉️',
+    iconBg:'#ECFDF5', iconColor:'#059669', color:'#059669', lightBg:'#ECFDF5',
+    type:'normal', maxPts:25, unlockHour:16,
+    activities:[
+      {id:'we-sh1',name:'Shloka learning / recitation',pts:25,type:'parent',note:'⏳ Parent awards pts'},
+    ]
+  },
+  {
+    id:'we-brain', time:'5:00 PM – 5:45 PM', name:'Brain Challenge Block', icon:'🧠',
+    iconBg:'#FFFBEB', iconColor:'#D97706', color:'#D97706', lightBg:'#FFFBEB',
+    type:'normal', maxPts:55, unlockHour:17,
+    activities:[
+      {id:'we-br1',name:'Test paper solved',pts:30,type:'self'},
+      {id:'we-br2',name:'Brain Lab session',pts:40,type:'link',tab:'brain',note:'→ Brain Lab'},
+      {id:'we-br3',name:'Maths Sprint',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
+      {id:'we-br4',name:'Riddles',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
+    ]
+  },
+  {
+    id:'we-outdoor', time:'6:00 PM – 6:45 PM', name:'Play Outdoor', icon:'🌳',
+    iconBg:'#ECFDF5', iconColor:'#059669', color:'#059669', lightBg:'#ECFDF5',
+    type:'normal', maxPts:15, unlockHour:18,
+    activities:[
+      {id:'we-ou1',name:'Played outdoors',pts:15,type:'self'},
+    ]
+  },
+  {
+    id:'we-odda', time:'7:00 PM – 8:00 PM', name:'Odda Class', icon:'💻',
+    iconBg:'#F3EFFE', iconColor:'#7C3AED', color:'#7C3AED', lightBg:'#F3EFFE',
+    type:'normal', maxPts:30, unlockHour:19,
+    activities:[
+      {id:'we-od1',name:'Attend class',pts:15,type:'self'},
+      {id:'we-od2',name:'Complete assignments',pts:15,type:'self'},
+    ]
+  },
+  {
+    id:'we-enrich', time:'8:00 PM – 9:00 PM', name:'Evening Enrichment Block', icon:'⭐',
+    iconBg:'#FDF2F8', iconColor:'#DB2777', color:'#DB2777', lightBg:'#FDF2F8',
+    type:'normal', maxPts:65, unlockHour:20,
+    activities:[
+      {id:'we-en1',name:'Kathak practice',pts:25,type:'self'},
+      {id:'we-en2',name:'Olympiad practice',pts:25,type:'self'},
+      {id:'we-en3',name:'Self study (any subject)',pts:20,type:'self'},
+      {id:'we-en4',name:'Brain Lab session',pts:40,type:'link',tab:'brain',note:'→ Brain Lab'},
+    ]
+  },
+  {
+    id:'we-wind', time:'9:00 PM – 9:30 PM', name:'Wind-Down Routine', icon:'🌙',
+    iconBg:'#F0F4FF', iconColor:'#4F46E5', color:'#4F46E5', lightBg:'#F0F4FF',
+    type:'normal', maxPts:20, unlockHour:21,
+    activities:[
+      {id:'we-w1',name:'Daily journal / gratitude',pts:10,type:'self'},
+      {id:'we-w2',name:'Shloka reciting to parents',pts:10,type:'parent',note:'⏳ Parent awards pts'},
+    ]
+  },
+  {
+    id:'we-sleep', time:'9:30 PM', name:'Sleep', icon:'😴',
+    iconBg:'#F9FAFB', iconColor:'#6B7280', color:'#6B7280', lightBg:'#F9FAFB',
+    type:'break', maxPts:0, unlockHour:21,
+    activities:[{id:'we-sl1',name:'Go to bed on time',pts:0,type:'self'}]
+  },
+];
+
+// ── Get current schedule ───────────────────────────────────────
+function ttGetSchedule(){
+  const d = new Date();
+  const day = d.getDay(); // 0=Sun,6=Sat
+  const isWeekend = (day===0||day===6);
+  return (isWeekend || ttIsHoliday) ? TT_WEEKEND : TT_WEEKDAY;
+}
+
+// ── Get current hour (0-23) ────────────────────────────────────
+function ttNowHour(){
+  return new Date().getHours() + new Date().getMinutes()/60;
+}
+
+// ── Determine block state ──────────────────────────────────────
+function ttBlockState(block, nowH){
+  if(block.type==='locked-until-3pm') return 'done';
+  if(block.type==='break') return 'break';
+  const bState = ttBlockStates[block.id];
+  if(bState && bState.markedDone) return 'done';
+
+  const schedule = ttGetSchedule();
+  const thisIdx  = schedule.findIndex(b => b.id === block.id);
+  const unlockH  = block.unlockHour || 0;
+
+  // Find the NEXT non-break block's unlockHour to determine this block's end time
+  let endH = unlockH + 1.5; // default fallback
+  for(let i = thisIdx + 1; i < schedule.length; i++){
+    if(schedule[i].unlockHour !== undefined){
+      endH = schedule[i].unlockHour;
+      break;
+    }
+  }
+
+  if(nowH < unlockH)            return 'locked';
+  if(nowH >= unlockH && nowH < endH) return 'current';
+  return 'normal'; // past its window — unlocked but no longer active
+}
+
+// ── Toggle holiday mode ────────────────────────────────────────
+function ttToggleHoliday(){
+  ttIsHoliday = !ttIsHoliday;
+  const notice = document.getElementById('tt-holiday-notice');
+  if(notice) notice.style.display = ttIsHoliday ? 'flex' : 'none';
+  ttRender();
+  calcDayPts();
+}
+
+// ── Initialise day (called on date change too) ─────────────────
+function ttInitDay(){
+  const d = new Date();
+  const day = d.getDay();
+  const isWeekend = (day===0||day===6);
+  const dayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const banner = document.getElementById('tt-day-banner');
+  const label  = document.getElementById('tt-day-label');
+  const title  = document.getElementById('tt-day-title');
+  const sub    = document.getElementById('tt-day-sub');
+  const icon   = document.getElementById('tt-day-icon');
+  const btn    = document.getElementById('tt-holiday-btn');
+
+  if(isWeekend){
+    if(banner) banner.style.background='linear-gradient(135deg,#FFF7ED,#FEF3C7)';
+    if(banner) banner.style.border='2px solid #FCD34D';
+    if(banner) banner.style.color='#92400E';
+    if(label)  label.textContent = dayNames[day]+' · Weekend';
+    if(title)  title.textContent = "Vaanya's Weekend Schedule";
+    if(sub)    sub.textContent   = 'Full day from 7:00am — enjoy and learn! 🌟';
+    if(icon)   icon.textContent  = '☀️';
+    if(btn)    btn.style.display = 'none';
+  } else {
+    if(banner) banner.style.background='linear-gradient(135deg,#EFF6FF,#E0E7FF)';
+    if(banner) banner.style.border='2px solid #BFDBFE';
+    if(banner) banner.style.color='#1E3A8A';
+    if(label)  label.textContent = dayNames[day]+' · School day';
+    if(title)  title.textContent = "Vaanya's Weekday Schedule";
+    if(sub)    sub.textContent   = 'App unlocks at 3:00pm when you\'re back from school 🏫';
+    if(icon)   icon.textContent  = '🏫';
+    if(btn)    btn.style.display = 'block';
+    if(btn)    btn.textContent   = ttIsHoliday ? '↩ Switch back to school day' : '🏖️ Switch to Holiday schedule';
+  }
+  ttRender();
+  ttRenderMiniSchedule();
+  // Refresh every minute
+  if(ttClockInterval) clearInterval(ttClockInterval);
+  ttClockInterval = setInterval(()=>{ttRender();ttRenderMiniSchedule();ttUpdateClock();}, 60000);
+}
+
+// ── Toggle block open/close ────────────────────────────────────
+function ttToggleBlock(blockId){
+  const el = document.getElementById('ttb-'+blockId);
+  if(!el) return;
+  el.classList.toggle('open');
+}
+
+// ── Toggle activity checkbox ───────────────────────────────────
+function ttToggleAct(blockId, actId, pts, type){
+  if(type==='parent') return; // parents award, child just marks done
+  if(!ttBlockStates[blockId]) ttBlockStates[blockId]={pts:0,checkedActs:{},markedDone:false};
+  const state = ttBlockStates[blockId];
+  const wasChecked = state.checkedActs[actId]||false;
+  if(wasChecked){ state.checkedActs[actId]=false; if(type!=='parent') state.pts=Math.max(0,state.pts-pts); }
+  else           { state.checkedActs[actId]=true;  if(type!=='parent') state.pts+=pts; }
+  // Update checkbox visuals
+  const actEl = document.getElementById('ttact-'+actId);
+  if(actEl){
+    if(state.checkedActs[actId]){ actEl.classList.add('checked'); actEl.querySelector('.tt-act-cb').textContent='✓'; }
+    else                        { actEl.classList.remove('checked'); actEl.querySelector('.tt-act-cb').textContent=''; }
+  }
+  // Update block pts badge
+  ttUpdateBlockPts(blockId);
+  calcDayPts();
+}
+
+// ── Mark block as done ────────────────────────────────────────
+function ttMarkDone(blockId){
+  if(!ttBlockStates[blockId]) ttBlockStates[blockId]={pts:0,checkedActs:{},markedDone:false};
+  ttBlockStates[blockId].markedDone = true;
+  ttRender();
+  calcDayPts();
+}
+
+// ── Update pts badge on a block ────────────────────────────────
+function ttUpdateBlockPts(blockId){
+  const el = document.getElementById('ttpts-'+blockId);
+  const state = ttBlockStates[blockId];
+  if(el && state) el.textContent = state.pts + ' pts earned';
+}
+
+// ── Navigate to linked tab ─────────────────────────────────────
+function ttGoToTab(tabName){
+  const map={'brain':'brain','creative':'creative','geeta':'geeta','wordbook':'wordbook'};
+  const id = map[tabName]||tabName;
+  const btn = document.querySelector('.nb.t'+(id==='brain'?'1':id==='geeta'?'2':id==='creative'?'3':'4'));
+  // Use showTab directly
+  showTab(id, btn || document.querySelector('.nb'));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── Main render function ───────────────────────────────────────
+function ttRender(){
+  const container = document.getElementById('tt-blocks-container');
+  if(!container) return;
+  const schedule = ttGetSchedule();
+  const nowH = ttNowHour();
+  container.innerHTML = '';
+
+  schedule.forEach(block => {
+    const state = ttBlockState(block, nowH);
+    const bState = ttBlockStates[block.id]||{pts:0,checkedActs:{},markedDone:false};
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'tt-block';
+    wrapper.id = 'ttb-'+block.id;
+    if(state==='current') wrapper.classList.add('state-current','open');
+    else if(state==='done') wrapper.classList.add('state-done');
+    else if(state==='locked')  wrapper.classList.add('state-locked');
+    else if(state==='normal')  wrapper.classList.add('state-past');
+    else if(state==='break') wrapper.classList.add('state-break');
+
+    // Status badge text
+    const statusMap = {current:'🔴 CURRENT',done:'✅ COMPLETED',locked:'⏳ UPCOMING',normal:'👁 VIEW ONLY',break:'☕ BREAK'};
+    const statusColors = {current:'background:#DBEAFE;color:#1D4ED8',done:'background:#DCFCE7;color:#166534',locked:'background:#F3F4F6;color:#6B7280',normal:'background:#F3F4F6;color:#6B7280',break:'background:#F9FAFB;color:#9CA3AF'};
+
+    const earnedPts = bState.pts || 0;
+    const ptsText = block.maxPts>0 ? (earnedPts+' / '+block.maxPts+' pts') : (block.type==='break'?'Free time':'–');
+
+    wrapper.innerHTML = `
+      <div class="tt-block-hdr" onclick="ttToggleBlock('${block.id}')">
+        <div class="tt-block-icon" style="background:${block.iconBg}">${block.icon}</div>
+        <div class="tt-block-meta">
+          <div class="tt-block-time">${block.time}</div>
+          <div class="tt-block-name" style="color:${block.color}">${block.name}</div>
+        </div>
+        <div class="tt-block-right">
+          <span class="tt-pts-badge" id="ttptsbadge-${block.id}" style="${statusColors[state]||statusColors.normal}">${ptsText}</span>
+          <span class="tt-status-badge" style="${statusColors[state]||statusColors.normal}">${statusMap[state]||'UPCOMING'}</span>
+          <span class="tt-chevron">▼</span>
+        </div>
+      </div>
+      <div class="tt-block-body" id="ttbody-${block.id}">
+        ${state==='current'?'<div class="tt-current-indicator"><span class="tt-current-dot"></span>You are here right now!</div>':''}
+        ${block.type==='break'?'<div style="font-size:12px;color:#6B7280;padding:4px 0">Free time — relax, no tasks required.</div>':''}
+        ${block.activities && block.activities.length>0 ? `
+          <div class="tt-activities">
+            ${block.activities.map(act=>{
+              const isChecked = bState.checkedActs[act.id]||false;
+              const cls = act.type==='parent'?'parent-pending':act.type==='link'?'linked':'';
+              return `
+                <div class="tt-act ${cls} ${isChecked?'checked':''}" id="ttact-${act.id}"
+                  onclick="ttToggleAct('${block.id}','${act.id}',${act.pts},'${act.type}')">
+                  <div class="tt-act-left">
+                    <div class="tt-act-cb">${isChecked?'✓':''}</div>
+                    <div>
+                      <div class="tt-act-name">${act.name}</div>
+                      ${act.note?`<div class="tt-act-sub">${act.note}</div>`:''}
+                    </div>
+                  </div>
+                  <div class="tt-act-pts" style="color:${block.color}">+${act.pts} pts${act.type==='parent'?' 👨‍👩‍👧':act.type==='link'?' 🔗':''}</div>
+                </div>`;
+            }).join('')}
+          </div>
+          <div class="tt-block-pts-row" style="margin-top:10px">
+            <span style="font-size:11px;font-weight:800;color:#6B7280">Points earned this block</span>
+            <span style="font-size:14px;font-weight:900;color:${block.color}" id="ttpts-${block.id}">${earnedPts} pts</span>
+          </div>
+          ${state!=='done' && state!=='locked' && state!=='break' && block.maxPts>0 ? `
+            <button class="tt-mark-done-btn ${bState.markedDone?'done':'primary'}" onclick="ttMarkDone('${block.id}')">
+              ${bState.markedDone?'✅ Block completed!':'✅ Mark this block as done'}
+            </button>`:''}`:''}
+      </div>`;
+    container.appendChild(wrapper);
+  });
+}
+
+// ── Collect timetable pts for calcDayPts ──────────────────────
+function ttGetTotalPts(){
+  let total = 0;
+  Object.values(ttBlockStates).forEach(s=>{ total += (s.pts||0); });
+  return total;
+}
+
+// ── Override timetable select with full points on rpt-tt ──────
+function ttSyncRptTT(){
+  // Set rpt-tt to max value so existing calcDayPts adds the timetable bonus
+  const sel=document.getElementById('rpt-tt');
+  if(sel) sel.value='15';
+}
+
+
+// ── LIVE CLOCK ────────────────────────────────────────────────
+function ttUpdateClock(){
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  const mStr = m < 10 ? '0'+m : m;
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const el = document.getElementById('tt-clock-display');
+  const apEl = document.getElementById('tt-clock-ampm');
+  const dayEl = document.getElementById('tt-clock-day');
+  if(el) el.textContent = h12+':'+mStr;
+  if(apEl) apEl.textContent = ampm;
+  if(dayEl) dayEl.textContent = days[now.getDay()];
+}
+setInterval(ttUpdateClock, 1000);
+ttUpdateClock();
+
+// ── MINI SCHEDULE in left panel ───────────────────────────────
+function ttRenderMiniSchedule(){
+  const container = document.getElementById('tt-mini-schedule');
+  const titleEl   = document.getElementById('tt-schedule-title');
+  if(!container) return;
+  const schedule = ttGetSchedule();
+  const nowH = ttNowHour();
+  const isWE = ttGetSchedule() === TT_WEEKEND;
+  if(titleEl) titleEl.textContent = (isWE || ttIsHoliday) ? '☀️ Weekend Schedule' : '🏫 Weekday Schedule';
+
+  container.innerHTML = schedule.map(block => {
+    const state = ttBlockState(block, nowH);
+    const isCurrent = state === 'current';
+    const isDone    = state === 'done';
+    const isBreak   = state === 'break';
+    const bState    = ttBlockStates[block.id]||{};
+
+    let bg = '#FAFAFA', border = '#E5E7EB', textColor = '#6B7280';
+    if(isCurrent){ bg='#DBEAFE'; border='#3B82F6'; textColor='#1D4ED8'; }
+    else if(isDone){ bg='#DCFCE7'; border='#10B981'; textColor='#166534'; }
+    else if(isBreak){ bg='#F9FAFB'; border='#E5E7EB'; textColor='#9CA3AF'; }
+
+    const pts = bState.pts || 0;
+    const ptsText = (block.maxPts > 0 && pts > 0) ? ' · '+pts+' pts ✓' : '';
+
+    return `<div style="display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:9px;background:${bg};border:1.5px solid ${border};cursor:pointer;transition:all .15s"
+      onclick="ttToggleBlock('${block.id}');document.getElementById('ttb-${block.id}')?.scrollIntoView({behavior:'smooth',block:'center'})">
+      <span style="font-size:14px;line-height:1;flex-shrink:0">${block.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:9px;font-weight:900;color:${textColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${block.name}${isCurrent?' 🔴':isDone?' ✅':''}</div>
+        <div style="font-size:8px;color:${textColor};opacity:.8">${block.time}${ptsText}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 buildAll();
 _sessionWireInputs(); // start per-date session tracking
 _sessionStartAutoSave(); // background Supabase auto-save every 60s
