@@ -8828,90 +8828,113 @@ let ttClockInterval = null;
 
 // ── BLOCK DEFINITIONS ─────────────────────────────────────────
 const TT_WEEKDAY = [
+
+  // ── 6:00 AM – 3:00 PM — SCHOOL ──────────────────────────────
   {
     id:'wd-school', time:'6:00 AM – 3:00 PM', name:'School Time', icon:'🏫',
     iconBg:'#EEF2FF', iconColor:'#4F46E5', color:'#4F46E5', lightBg:'#EEF2FF',
     type:'locked-until-3pm', maxPts:0,
-    activities:[
-      {id:'wd-s1',name:'Attend classes',pts:14,type:'self'},
-      {id:'wd-s2',name:'Complete assignments',pts:14,type:'self'},
-      {id:'wd-s3',name:'School activities',pts:14,type:'self'},
-    ]
+    activities:[]
   },
+
+  // ── 3:00 PM – 3:30 PM — LUNCH + SCREEN ──────────────────────
   {
-    id:'wd-home', time:'3:00 PM – 4:00 PM', name:'Get Fresh & Rest', icon:'🏠',
+    id:'wd-lunch', time:'3:00 PM – 3:30 PM', name:'Lunch & Screen Time', icon:'🍱',
+    iconBg:'#F9FAFB', iconColor:'#6B7280', color:'#6B7280', lightBg:'#F9FAFB',
+    type:'break', maxPts:0, unlockHour:15.0,
+    activities:[]
+  },
+
+  // ── 3:30 PM – 4:00 PM — BOOK READING + WORDBOOK ─────────────
+  {
+    id:'wd-reading', time:'3:30 PM – 4:00 PM', name:'Book Reading + New Words', icon:'📚',
     iconBg:'#ECFDF5', iconColor:'#059669', color:'#059669', lightBg:'#ECFDF5',
-    type:'normal', maxPts:21, unlockHour:15,
+    type:'wordbook-inline', maxPts:10, unlockHour:15.5,
     activities:[
-      {id:'wd-h1',name:'Have lunch',pts:7,type:'self'},
-      {id:'wd-h2',name:'Take rest',pts:7,type:'self'},
-      {id:'wd-h3',name:'Watch screen / relax',pts:7,type:'self'},
+      {id:'wd-rd1', name:'Book Reading + Add 3 new words to Wordbook', pts:10, type:'wordbook', note:'10 pts when all 3 words are added with meaning & sentence'},
     ]
   },
+
+  // ── 4:00 PM – 6:00 PM — HOMEWORK + STUDY ────────────────────
   {
     id:'wd-study', time:'4:00 PM – 6:00 PM', name:'Homework & Self Study', icon:'✏️',
     iconBg:'#EFF6FF', iconColor:'#2563EB', color:'#2563EB', lightBg:'#EFF6FF',
-    type:'study', maxPts:130, unlockHour:16,
+    type:'normal', maxPts:34, unlockHour:16.0,
     activities:[
-      {id:'wd-st1',name:'Complete homework',pts:13,type:'self'},
-      {id:'wd-st2',name:'Self study — Maths',pts:13,type:'self'},
-      {id:'wd-st3',name:'Self study — English',pts:13,type:'self'},
-      {id:'wd-st4',name:'Self study — Science',pts:13,type:'self'},
-      {id:'wd-st5',name:'Self study — Hindi',pts:13,type:'self'},
-      {id:'wd-st6',name:'Self study — SST',pts:13,type:'self'},
-      {id:'wd-st7',name:'Self study — Sanskrit',pts:13,type:'self'},
-      {id:'wd-st8',name:'Tuition attended',pts:40,type:'self'},
-      {id:'wd-st9',name:'Brain Lab session',pts:13,type:'link',tab:'brain',note:'→ Brain Lab'},
+      {id:'wd-st1', name:'Homework',                      pts:0,  type:'self',   note:'No pts — must be done every day 📚'},
+      {id:'wd-st2', name:'Brain Lab — Maths Sprint',      pts:0,  type:'link',   tab:'brain', note:'→ Brain Lab · pts pulled from there'},
+      {id:'wd-st3', name:'Brain Lab — Logic',             pts:0,  type:'link',   tab:'brain', note:'→ Brain Lab · pts pulled from there'},
+      {id:'wd-st4', name:'Brain Lab — Sudoku',            pts:0,  type:'link',   tab:'brain', note:'→ Brain Lab · pts pulled from there'},
+      {id:'wd-st5', name:'Self Study',                    pts:7,  type:'self'},
+      {id:'wd-st6', name:'Olympiad Practice & Papers',    pts:10, type:'self'},
     ]
   },
+
+  // ── 6:00 PM – 6:45 PM — OUTDOOR ─────────────────────────────
   {
-    id:'wd-maths', time:'6:00 PM – 7:00 PM', name:'Playing Outdoor', icon:'⚽',
-    iconBg:'#FFF7ED', iconColor:'#EA580C', color:'#EA580C', lightBg:'#FFF7ED',
-    type:'normal', maxPts:21, unlockHour:18,
+    id:'wd-outdoor', time:'6:00 PM – 6:45 PM', name:'Outdoor Playing with Kinnu', icon:'⚽',
+    iconBg:'#ECFDF5', iconColor:'#059669', color:'#059669', lightBg:'#ECFDF5',
+    type:'normal', maxPts:7, unlockHour:18.0,
     activities:[
-      {id:'wd-m1',name:'Play games',pts:7,type:'self'},
-      {id:'wd-m2',name:'Physical exercise',pts:7,type:'self'},
-      {id:'wd-m3',name:'Fresh air & outdoor',pts:7,type:'self'},
+      {id:'wd-ou1', name:'Outdoor playing with Kinnu', pts:7, type:'self'},
     ]
   },
+
+  // ── 6:50 PM – 8:00 PM — ODDA ────────────────────────────────
   {
-    id:'wd-odda', time:'7:00 PM – 8:00 PM', name:'Odda Class', icon:'💻',
+    id:'wd-odda', time:'6:50 PM – 8:00 PM', name:'Odda Class + Assignment', icon:'💻',
     iconBg:'#F3EFFE', iconColor:'#7C3AED', color:'#7C3AED', lightBg:'#F3EFFE',
-    type:'normal', maxPts:30, unlockHour:19,
+    type:'normal', maxPts:20, unlockHour:18.83,
     activities:[
-      {id:'wd-o1',name:'Attend class',pts:15,type:'self'},
-      {id:'wd-o2',name:'Complete assignments',pts:15,type:'self'},
+      {id:'wd-od1', name:'Odda Class + Assignment',                        pts:10, type:'self'},
+      {id:'wd-od2', name:'No Odda — Read about AI and make notes',         pts:5,  type:'self', note:'Only if no Odda class today'},
+      {id:'wd-od3', name:'No Odda — Read about Ayurvedic herbs + notes',   pts:5,  type:'self', note:'Only if no Odda class today'},
+      {id:'wd-od4', name:'No Odda — Read about Vedas and make notes',      pts:5,  type:'self', note:'Only if no Odda class today'},
     ]
   },
+
+  // ── 8:00 PM – 9:00 PM — EVENING ENRICHMENT ──────────────────
   {
-    id:'wd-enrich', time:'8:00 PM – 9:00 PM', name:'Learning & Creative Time', icon:'🌟',
+    id:'wd-enrich', time:'8:00 PM – 9:00 PM', name:'Evening Enrichment', icon:'⭐',
     iconBg:'#FDF2F8', iconColor:'#DB2777', color:'#DB2777', lightBg:'#FDF2F8',
-    type:'normal', maxPts:60, unlockHour:20,
+    type:'normal', maxPts:15, unlockHour:20.0,
     activities:[
-      {id:'wd-e1',name:'Kathak practice',pts:10,type:'self'},
-      {id:'wd-e2',name:'Olympiad practice',pts:10,type:'self'},
-      {id:'wd-e3',name:'Shloka learning',pts:10,type:'parent',note:'⏳ Parent awards pts'},
-      {id:'wd-e4',name:'Creative moment',pts:10,type:'parent',note:'⏳ Parent awards pts'},
-      {id:'wd-e5',name:'Brain Lab',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
-      {id:'wd-e6',name:'Maths Sprint',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
+      {id:'wd-e1', name:'Kathak class',                                pts:10, type:'self'},
+      {id:'wd-e2', name:'Maths Practice — Solve 10 complex questions', pts:0,  type:'parent', note:'⏳ Parents award pts as per marks'},
+      {id:'wd-e3', name:'Odda class + make notes',                     pts:5,  type:'self'},
+      {id:'wd-e4', name:'Any school activity / preparation',           pts:0,  type:'self', note:'No pts — but important! ✅'},
     ]
   },
+
+  // ── 9:00 PM – 9:15 PM — VALUES & REFLECTION ─────────────────
   {
-    id:'wd-wind', time:'9:00 PM – 9:30 PM', name:'Wind-Down Routine', icon:'🌙',
-    iconBg:'#F0F4FF', iconColor:'#4F46E5', color:'#4F46E5', lightBg:'#F0F4FF',
-    type:'normal', maxPts:20, unlockHour:21,
+    id:'wd-values', time:'9:00 PM – 9:15 PM', name:'Values & Reflection', icon:'📿',
+    iconBg:'#F0FDF4', iconColor:'#065F46', color:'#065F46', lightBg:'#F0FDF4',
+    type:'normal', maxPts:10, unlockHour:21.0,
     activities:[
-      {id:'wd-w1',name:'Daily journal / gratitude',pts:10,type:'self'},
-      {id:'wd-w2',name:'Shloka reciting to parents',pts:10,type:'parent',note:'⏳ Parent awards pts'},
+      {id:'wd-v1', name:'Read Moral Values Book — 1 chapter + explain', pts:5, type:'self'},
+      {id:'wd-v2', name:'Solve questionnaire by parents',                pts:5, type:'parent', note:'⏳ Parents give the questionnaire'},
     ]
   },
+
+  // ── 9:15 PM – 9:30 PM — WIND-DOWN ───────────────────────────
+  {
+    id:'wd-wind', time:'9:15 PM – 9:30 PM', name:'Wind-Down Routine', icon:'🌙',
+    iconBg:'#F0F4FF', iconColor:'#4F46E5', color:'#4F46E5', lightBg:'#F0F4FF',
+    type:'normal', maxPts:19, unlockHour:21.25,
+    activities:[
+      {id:'wd-w1', name:'Shloka reciting to parents',  pts:0,  type:'parent', note:'⏳ Parents award pts on review'},
+      {id:'wd-w2', name:'Daily gratitude journal',     pts:5,  type:'self'},
+      {id:'wd-w3', name:'Everything done on time',     pts:7,  type:'self'},
+    ]
+  },
+
+  // ── 9:30 PM — SLEEP ─────────────────────────────────────────
   {
     id:'wd-sleep', time:'9:30 PM', name:'Sleep', icon:'😴',
     iconBg:'#F9FAFB', iconColor:'#6B7280', color:'#6B7280', lightBg:'#F9FAFB',
-    type:'break', maxPts:0, unlockHour:21,
-    activities:[
-      {id:'wd-sl1',name:'Go to bed on time',pts:0,type:'self'},
-    ]
+    type:'break', maxPts:0, unlockHour:21.5,
+    activities:[]
   },
 ];
 
