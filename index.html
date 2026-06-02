@@ -797,22 +797,56 @@ tr:hover td{background:#FAFBFF}
 
 <div class="page-layout">
 
-<!-- ═══════ LEFT SIDE PANEL — Clock + Schedule ═══════ -->
+<!-- ═══════ LEFT SIDE PANEL — Clock + Date + Schedule Tabs ═══════ -->
 <div class="side-panel" id="left-panel">
 
-  <!-- LIVE CLOCK -->
-  <div style="background:linear-gradient(135deg,#1E1B4B,#312E81);border-radius:18px;padding:16px 14px;text-align:center;width:100%;box-shadow:0 4px 20px rgba(30,27,75,.3)">
-    <div style="font-size:9px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:rgba(165,180,252,.8);margin-bottom:8px">⏰ CURRENT TIME</div>
-    <div id="tt-clock-display" style="font-size:38px;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,#A5B4FC,#C4B5FD,#FCD34D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;font-family:'Nunito',sans-serif">00:00</div>
-    <div id="tt-clock-ampm" style="font-size:13px;font-weight:900;color:rgba(196,181,253,.9);margin-top:3px">AM</div>
-    <div id="tt-clock-day" style="font-size:10px;font-weight:800;color:rgba(165,180,252,.7);margin-top:4px;text-transform:uppercase;letter-spacing:.08em">Monday</div>
+  <!-- 1. LIVE CLOCK -->
+  <div style="background:linear-gradient(135deg,#1E1B4B,#312E81);border-radius:18px;padding:18px 14px 14px;text-align:center;width:100%">
+    <div style="font-size:9px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:rgba(165,180,252,.7);margin-bottom:6px">⏰ Current Time</div>
+    <div id="tt-clock-display" style="font-size:42px;font-weight:900;letter-spacing:-2px;background:linear-gradient(135deg,#A5B4FC,#C4B5FD,#FCD34D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;font-family:'Nunito',sans-serif">00:00</div>
+    <div id="tt-clock-ampm" style="font-size:14px;font-weight:900;color:rgba(196,181,253,.9);margin-top:4px;letter-spacing:.05em">AM</div>
   </div>
 
-  <!-- Schedule overview removed — clock only as per design -->
+  <!-- 2. DAY + DATE -->
+  <div id="lp-date-card" style="background:#fff;border:2px solid #E5E7EB;border-radius:16px;padding:14px 14px;width:100%;text-align:center">
+    <div id="lp-day-name" style="font-size:18px;font-weight:900;color:#1E1B4B;margin-bottom:4px">Monday</div>
+    <input type="date" id="rpt-date" onchange="onDateChange();ttInitDay()"
+      style="width:100%;font-size:13px;font-weight:800;padding:8px 10px;border-radius:10px;
+        border:1.5px solid #E5E7EB;background:#F9FAFB;color:#1E1B4B;cursor:pointer;
+        text-align:center;box-sizing:border-box;font-family:'Nunito',sans-serif">
+    <div id="lp-date-note" style="font-size:10px;font-weight:700;color:#6B7280;margin-top:8px;line-height:1.5;padding:5px 8px;background:#F3F4F6;border-radius:8px"></div>
+  </div>
+
+  <!-- 3. SCHEDULE TABS -->
+  <div style="background:#fff;border:2px solid #E5E7EB;border-radius:16px;padding:12px;width:100%">
+    <div style="font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#6B7280;margin-bottom:10px;text-align:center">📅 Schedule</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button id="lp-tab-weekday" onclick="lp_setSchedule('weekday')"
+        style="width:100%;padding:11px 12px;border-radius:12px;font-family:'Nunito',sans-serif;
+          font-size:12px;font-weight:900;cursor:pointer;border:2px solid transparent;
+          transition:all .18s;text-align:left;display:flex;align-items:center;gap:9px">
+        <span style="font-size:18px">🏫</span>
+        <div>
+          <div style="font-size:12px;font-weight:900">Weekday Schedule</div>
+          <div style="font-size:10px;font-weight:700;opacity:.75;margin-top:1px">Mon – Fri · from 3:00 PM</div>
+        </div>
+      </button>
+      <button id="lp-tab-holiday" onclick="lp_setSchedule('holiday')"
+        style="width:100%;padding:11px 12px;border-radius:12px;font-family:'Nunito',sans-serif;
+          font-size:12px;font-weight:900;cursor:pointer;border:2px solid transparent;
+          transition:all .18s;text-align:left;display:flex;align-items:center;gap:9px">
+        <span style="font-size:18px">☀️</span>
+        <div>
+          <div style="font-size:12px;font-weight:900">Holiday Schedule</div>
+          <div style="font-size:10px;font-weight:700;opacity:.75;margin-top:1px">Sat · Sun · Holidays · from 7:00 AM</div>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- hidden compat IDs -->
   <div id="tt-mini-schedule" style="display:none"></div>
   <div id="tt-schedule-title" style="display:none"></div>
-
-  <!-- hidden compat IDs that JS needs -->
   <span id="qL-icon" style="display:none">🌱</span>
   <span id="qR-icon" style="display:none">✨</span>
   <span id="qR-text" style="display:none"></span>
@@ -825,7 +859,6 @@ tr:hover td{background:#FAFBFF}
   <span id="sp-lvl-n" style="display:none">1</span>
   <span id="sp-lvl-t" style="display:none">Beginner</span>
   <span id="sp-lvl-s" style="display:none">0 total pts</span>
-  <!-- quote compat IDs (commented out visually, kept for JS) -->
   <div style="display:none">
     <div id="quote-panel"><div id="qL-photo"></div><div id="qL-accent"></div>
     <div id="qL-bottom"><div id="qL-author"></div><div id="qL-tag"></div><div id="qL-text"></div></div></div>
@@ -835,30 +868,11 @@ tr:hover td{background:#FAFBFF}
 <!-- ═══════ MAIN CONTENT ═══════ -->
 <div class="main-content">
 
-<!-- DATE + MODE BANNER -->
-<div class="tt-day-banner" id="tt-day-banner">
-  <div style="font-size:36px;line-height:1" id="tt-day-icon">📅</div>
-  <div style="flex:1">
-    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;opacity:.8" id="tt-day-label">Loading...</div>
-    <div style="font-size:17px;font-weight:900;margin-top:2px" id="tt-day-title">Vaanya's Daily Report</div>
-    <div style="font-size:11px;font-weight:700;opacity:.85;margin-top:2px" id="tt-day-sub"></div>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-    <input type="date" id="rpt-date" onchange="onDateChange();ttInitDay()" style="font-size:12px;font-weight:800;padding:6px 10px;border-radius:10px;border:2px solid rgba(255,255,255,.4);background:rgba(255,255,255,.25);color:inherit;cursor:pointer">
-    <button class="tt-mode-toggle" id="tt-holiday-btn" onclick="ttToggleHoliday()" style="background:rgba(255,255,255,.25);color:inherit;border:2px solid rgba(255,255,255,.35)">
-      🏖️ Switch to Holiday schedule
-    </button>
-  </div>
-</div>
-
-<!-- HOLIDAY OVERRIDE NOTICE (hidden by default) -->
-<div id="tt-holiday-notice" style="display:none" class="tt-holiday-banner">
-  <span style="font-size:22px">🏖️</span>
-  <div style="flex:1">
-    <div style="font-size:13px;font-weight:900;color:#92400E">Holiday schedule active today</div>
-    <div style="font-size:11px;color:#78350F;margin-top:1px">Weekend timetable is being followed. Parents will see this in their review.</div>
-  </div>
-  <button onclick="ttToggleHoliday()" style="background:#F59E0B;color:#fff;border:none;border-radius:10px;padding:6px 14px;font-size:12px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif">↩ Switch back</button>
+<!-- Top banner removed — day/date/schedule now in left panel -->
+<!-- Hidden compat elements for existing JS references -->
+<div style="display:none">
+  <div id="tt-day-banner"><div id="tt-day-icon"></div><div id="tt-day-label"></div><div id="tt-day-title"></div><div id="tt-day-sub"></div><button id="tt-holiday-btn"></button></div>
+  <div id="tt-holiday-notice"><button onclick="ttToggleHoliday()"></button></div>
 </div>
 
 <!-- Hidden compat fields used by existing JS -->
@@ -2947,6 +2961,10 @@ function totalEarned(){
 
 function buildAll(){
   // Reset all in-memory pts to 0 — will be restored from cloud/session after load
+  // Pre-fill today's date
+  const _todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+  const _rptDate = document.getElementById('rpt-date');
+  if(_rptDate && !_rptDate.value) _rptDate.value = _todayStr;
   ttInitDay();
   brainPtsToday=0; sudokuPts=0; logicPtsTotal=0; riddlePtsTotal=0;
   mathsPtsToday=0; worksheetPts=0; aiSkillPts=0;
@@ -9066,10 +9084,73 @@ function ttBlockState(block, nowH){
 // ── Toggle holiday mode ────────────────────────────────────────
 function ttToggleHoliday(){
   ttIsHoliday = !ttIsHoliday;
-  const notice = document.getElementById('tt-holiday-notice');
-  if(notice) notice.style.display = ttIsHoliday ? 'flex' : 'none';
+  lp_syncTabStyles();
   ttRender();
   calcDayPts();
+}
+
+// ── Left panel: set schedule tab ──────────────────────────────
+function lp_setSchedule(mode){
+  // 'weekday' or 'holiday'
+  const d = new Date();
+  const day = d.getDay();
+  const isNaturalWeekend = (day===0||day===6);
+  if(mode==='holiday'){
+    // On a natural weekend, holiday IS the default — no override needed
+    // On a weekday, set the holiday override flag
+    if(!isNaturalWeekend) ttIsHoliday = true;
+  } else {
+    // weekday tab pressed — clear holiday override
+    ttIsHoliday = false;
+  }
+  lp_syncTabStyles();
+  ttRender();
+  calcDayPts();
+  lp_updateDateCard();
+}
+
+// ── Style the two tabs based on active schedule ───────────────
+function lp_syncTabStyles(){
+  const d = new Date();
+  const isNaturalWeekend = (d.getDay()===0||d.getDay()===6);
+  const holidayActive = isNaturalWeekend || ttIsHoliday;
+
+  const wdBtn = document.getElementById('lp-tab-weekday');
+  const hlBtn = document.getElementById('lp-tab-holiday');
+  if(!wdBtn||!hlBtn) return;
+
+  if(holidayActive){
+    // Holiday active
+    wdBtn.style.background='#F9FAFB'; wdBtn.style.color='#6B7280'; wdBtn.style.borderColor='transparent';
+    hlBtn.style.background='linear-gradient(135deg,#FFF7ED,#FEF3C7)'; hlBtn.style.color='#92400E'; hlBtn.style.borderColor='#FCD34D';
+  } else {
+    // Weekday active
+    wdBtn.style.background='linear-gradient(135deg,#EFF6FF,#E0E7FF)'; wdBtn.style.color='#1E3A8A'; wdBtn.style.borderColor='#BFDBFE';
+    hlBtn.style.background='#F9FAFB'; hlBtn.style.color='#6B7280'; hlBtn.style.borderColor='transparent';
+  }
+}
+
+// ── Update the date card text ─────────────────────────────────
+function lp_updateDateCard(){
+  const d = new Date();
+  const day = d.getDay();
+  const dayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const isNaturalWeekend = (day===0||day===6);
+  const holidayActive = isNaturalWeekend || ttIsHoliday;
+
+  const dayEl  = document.getElementById('lp-day-name');
+  const noteEl = document.getElementById('lp-date-note');
+
+  if(dayEl) dayEl.textContent = dayNames[day];
+  if(noteEl){
+    if(holidayActive){
+      noteEl.textContent = '☀️ Holiday / Weekend schedule · Full day from 7:00 AM';
+      noteEl.style.color='#92400E'; noteEl.style.background='#FEF3C7';
+    } else {
+      noteEl.textContent = '🏫 School day · Timetable unlocks at 3:00 PM';
+      noteEl.style.color='#1E3A8A'; noteEl.style.background='#EFF6FF';
+    }
+  }
 }
 
 // ── Initialise day (called on date change too) ─────────────────
@@ -9077,39 +9158,17 @@ function ttInitDay(){
   const d = new Date();
   const day = d.getDay();
   const isWeekend = (day===0||day===6);
-  const dayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const banner = document.getElementById('tt-day-banner');
-  const label  = document.getElementById('tt-day-label');
-  const title  = document.getElementById('tt-day-title');
-  const sub    = document.getElementById('tt-day-sub');
-  const icon   = document.getElementById('tt-day-icon');
-  const btn    = document.getElementById('tt-holiday-btn');
+  // On weekends, force holiday schedule automatically
+  if(isWeekend) ttIsHoliday = false; // natural weekend handled by lp_syncTabStyles logic
 
-  if(isWeekend){
-    if(banner) banner.style.background='linear-gradient(135deg,#FFF7ED,#FEF3C7)';
-    if(banner) banner.style.border='2px solid #FCD34D';
-    if(banner) banner.style.color='#92400E';
-    if(label)  label.textContent = dayNames[day]+' · Weekend';
-    if(title)  title.textContent = "Vaanya's Weekend Schedule";
-    if(sub)    sub.textContent   = 'Full day from 7:00am — enjoy and learn! 🌟';
-    if(icon)   icon.textContent  = '☀️';
-    if(btn)    btn.style.display = 'none';
-  } else {
-    if(banner) banner.style.background='linear-gradient(135deg,#EFF6FF,#E0E7FF)';
-    if(banner) banner.style.border='2px solid #BFDBFE';
-    if(banner) banner.style.color='#1E3A8A';
-    if(label)  label.textContent = dayNames[day]+' · School day';
-    if(title)  title.textContent = "Vaanya's Weekday Schedule";
-    if(sub)    sub.textContent   = 'App unlocks at 3:00pm when you\'re back from school 🏫';
-    if(icon)   icon.textContent  = '🏫';
-    if(btn)    btn.style.display = 'block';
-    if(btn)    btn.textContent   = ttIsHoliday ? '↩ Switch back to school day' : '🏖️ Switch to Holiday schedule';
-  }
+  // Drive left panel
+  lp_updateDateCard();
+  lp_syncTabStyles();
+
   ttRender();
-  ttRenderMiniSchedule();
   // Refresh every minute
   if(ttClockInterval) clearInterval(ttClockInterval);
-  ttClockInterval = setInterval(()=>{ttRender();ttRenderMiniSchedule();ttUpdateClock();}, 60000);
+  ttClockInterval = setInterval(()=>{ttRender();ttUpdateClock();lp_updateDateCard();}, 60000);
 }
 
 // ── Toggle block open/close ────────────────────────────────────
