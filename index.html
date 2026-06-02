@@ -7449,6 +7449,12 @@ function loadDraftDay(d){
   if(d.ttBlockStatesJSON){
     try{ ttBlockStates = JSON.parse(d.ttBlockStatesJSON)||{}; }
     catch(e){ ttBlockStates = {}; }
+    // In test mode: clear any stale markedDone flags so blocks aren't stuck as COMPLETED
+    if(typeof TT_TEST_MODE !== 'undefined' && TT_TEST_MODE){
+      Object.keys(ttBlockStates).forEach(k=>{
+        if(ttBlockStates[k]) ttBlockStates[k].markedDone = false;
+      });
+    }
     ttRender();
     if(typeof ttRenderMiniSchedule==='function') ttRenderMiniSchedule();
   }
@@ -8913,7 +8919,7 @@ const TT_WEEKDAY = [
     type:'normal', maxPts:10, unlockHour:21.0,
     activities:[
       {id:'wd-v1', name:'Read Moral Values Book — 1 chapter + explain', pts:5, type:'self'},
-      {id:'wd-v2', name:'Solve questionnaire by parents',                pts:5, type:'parent', note:'⏳ Parents give the questionnaire'},
+      {id:'wd-v2', name:'Solve questionnaire by parents',                pts:0, type:'pct-calc', maxCalcPts:10, note:'App calculates pts from % — max 10 pts'},
     ]
   },
 
@@ -8921,11 +8927,12 @@ const TT_WEEKDAY = [
   {
     id:'wd-wind', time:'9:15 PM – 9:30 PM', name:'Wind-Down Routine', icon:'🌙',
     iconBg:'#F0F4FF', iconColor:'#4F46E5', color:'#4F46E5', lightBg:'#F0F4FF',
-    type:'normal', maxPts:19, unlockHour:21.25,
+    type:'normal', maxPts:27, unlockHour:21.25,
     activities:[
       {id:'wd-w1', name:'Shloka reciting to parents',  pts:0,  type:'parent', note:'⏳ Parents award pts on review'},
       {id:'wd-w2', name:'Daily gratitude journal',     pts:5,  type:'self'},
       {id:'wd-w3', name:'Everything done on time',     pts:7,  type:'self'},
+      {id:'wd-w4', name:'Night Routine completed',     pts:8,  type:'self'},
     ]
   },
 
@@ -8972,10 +8979,10 @@ const TT_WEEKEND = [
     type:'normal', maxPts:30, unlockHour:10,
     activities:[
       {id:'we-ma1', name:'Practice Maths',                pts:10, type:'self'},
-      {id:'we-ma2', name:'Maths Olympiad questions',      pts:0,  type:'parent', note:'⏳ Parents award pts as per marks achieved'},
+      {id:'we-ma2', name:'Maths Olympiad questions',      pts:0,  type:'pct-calc', maxCalcPts:10,  note:'App calculates pts from % — max 10 pts'},
       {id:'we-ma3', name:'Brain Lab — Maths Sprint',      pts:0,  type:'link',   tab:'brain', note:'→ Brain Lab · pts pulled from there'},
       {id:'we-ma4', name:'Brain Lab — Logic puzzles',     pts:0,  type:'link',   tab:'brain', note:'→ Brain Lab · pts pulled from there'},
-      {id:'we-ma5', name:'Complex maths practice',        pts:10, type:'self'},
+      {id:'we-ma5', name:'Complex maths practice',        pts:0,  type:'pct-calc', maxCalcPts:15,  note:'App calculates pts from % — max 15 pts'},
     ]
   },
 
@@ -8990,13 +8997,16 @@ const TT_WEEKEND = [
   {
     id:'we-study1', time:'12:30 PM – 2:00 PM', name:'Self Study Block', icon:'📖',
     iconBg:'#F0FDF4', iconColor:'#059669', color:'#059669', lightBg:'#F0FDF4',
-    type:'normal', maxPts:50, unlockHour:12.5,
+    type:'normal', maxPts:80, unlockHour:12.5,
     activities:[
       {id:'we-ss1', name:'Self Study — Maths',   pts:10, type:'self'},
       {id:'we-ss2', name:'Self Study — English', pts:10, type:'self'},
       {id:'we-ss3', name:'Self Study — Science', pts:10, type:'self'},
       {id:'we-ss4', name:'Self Study — Hindi',   pts:10, type:'self'},
       {id:'we-ss5', name:'Self Study — SST',     pts:10, type:'self'},
+      {id:'we-ws1', name:'Worksheet 1',          pts:0,  type:'pct-calc', maxCalcPts:10, note:'App calculates pts from % — max 10 pts'},
+      {id:'we-ws2', name:'Worksheet 2',          pts:0,  type:'pct-calc', maxCalcPts:10, note:'App calculates pts from % — max 10 pts'},
+      {id:'we-ws3', name:'Worksheet 3',          pts:0,  type:'pct-calc', maxCalcPts:10, note:'App calculates pts from % — max 10 pts'},
     ]
   },
 
@@ -9011,12 +9021,12 @@ const TT_WEEKEND = [
   {
     id:'we-papers', time:'2:30 PM – 4:00 PM', name:'Practice Papers & Writing', icon:'✍️',
     iconBg:'#F5F3FF', iconColor:'#7C3AED', color:'#7C3AED', lightBg:'#F5F3FF',
-    type:'normal', maxPts:15, unlockHour:14.5,
+    type:'normal', maxPts:45, unlockHour:14.5,
     activities:[
-      {id:'we-pp1', name:'Practice Papers — Any Subject',       pts:0,  type:'parent', note:'⏳ Parents award pts as per marks obtained'},
-      {id:'we-pp2', name:'Olympiad Papers solve',               pts:0,  type:'parent', note:'⏳ Parents award pts'},
-      {id:'we-pp3', name:'English Paragraph / Story Writing',   pts:5,  type:'parent', note:'⏳ Parents award pts · max 5 pts'},
-      {id:'we-pp4', name:'Spoken English & Debate Practice',    pts:5,  type:'parent', note:'⏳ Parents award pts · max 5 pts'},
+      {id:'we-pp1', name:'Practice Papers — Any Subject',     pts:0, type:'pct-calc', maxCalcPts:10, note:'App calculates pts from % — max 10 pts'},
+      {id:'we-pp2', name:'Olympiad Papers solve',             pts:0, type:'pct-calc', maxCalcPts:15, note:'App calculates pts from % — max 15 pts'},
+      {id:'we-pp3', name:'English Paragraph / Story Writing', pts:0, type:'dropdown', options:[3,5,7,10], note:'Select points based on quality'},
+      {id:'we-pp4', name:'Spoken English & Debate Practice',  pts:0, type:'dropdown', options:[3,5,7,10], note:'Select points based on quality'},
     ]
   },
 
@@ -9051,7 +9061,7 @@ const TT_WEEKEND = [
       {id:'we-br2', name:'Brain Lab — Riddles',                   pts:0,  type:'link', tab:'brain', note:'→ Brain Lab · pts pulled from there'},
       {id:'we-br3', name:'Silence of 7 mins — Focus on thoughts', pts:7,  type:'self'},
       {id:'we-br4', name:'Make Kinnu learn a new thing',           pts:7,  type:'self'},
-      {id:'we-br5', name:'Worksheet solve',                        pts:7,  type:'parent', note:'⏳ Parents award pts as per marks achieved'},
+      {id:'we-br5', name:'Worksheet solve',                        pts:0,  type:'pct-calc', maxCalcPts:15, note:'App calculates pts from % — max 15 pts'},
     ]
   },
 
@@ -9067,7 +9077,7 @@ const TT_WEEKEND = [
 
   // ── 6:50 PM – 8:00 PM — ODDA ────────────────────────────────
   {
-    id:'we-odda', time:'6:50 PM – 8:00 PM', name:'Odda Class + Assignment', icon:'💻',
+    id:'we-odda', time:'6:50 PM – 8:00 PM', name:'Odda Class + Dinner', icon:'💻',
     iconBg:'#F3EFFE', iconColor:'#7C3AED', color:'#7C3AED', lightBg:'#F3EFFE',
     type:'normal', maxPts:20, unlockHour:18.83,
     activities:[
@@ -9075,6 +9085,7 @@ const TT_WEEKEND = [
       {id:'we-od2', name:'No Odda — Read about AI and make notes',        pts:5,  type:'self', note:'Only if no Odda class today'},
       {id:'we-od3', name:'No Odda — Read about Ayurvedic herbs + notes',  pts:5,  type:'self', note:'Only if no Odda class today'},
       {id:'we-od4', name:'No Odda — Read about Vedas and make notes',     pts:5,  type:'self', note:'Only if no Odda class today'},
+      {id:'we-od5', name:'Dinner',                                        pts:0,  type:'self', note:'No pts — nourish yourself! 🍽️'},
     ]
   },
 
@@ -9085,7 +9096,7 @@ const TT_WEEKEND = [
     type:'normal', maxPts:25, unlockHour:20,
     activities:[
       {id:'we-en1', name:'Kathak class',                                      pts:10, type:'self'},
-      {id:'we-en2', name:'Maths Practice — Solve 10 complex questions',       pts:0,  type:'parent', note:'⏳ Parents award pts as per marks'},
+      {id:'we-en2', name:'Maths Practice — Solve 10 complex questions',       pts:0,  type:'pct-calc', maxCalcPts:20, note:'App calculates pts from % — max 20 pts'},
       {id:'we-en3', name:'Odda class + make notes',                           pts:5,  type:'self'},
       {id:'we-en4', name:'Learn one FACT from Indian History + make notes',   pts:10, type:'self'},
     ]
@@ -9098,7 +9109,7 @@ const TT_WEEKEND = [
     type:'normal', maxPts:10, unlockHour:21.0,
     activities:[
       {id:'we-v1', name:'Read Moral Values Book — 1 chapter + explain', pts:5, type:'self'},
-      {id:'we-v2', name:'Solve questionnaire by parents',                pts:5, type:'parent', note:'⏳ Parents give the questionnaire'},
+      {id:'we-v2', name:'Solve questionnaire by parents',                pts:0, type:'pct-calc', maxCalcPts:10, note:'App calculates pts from % — max 10 pts'},
     ]
   },
 
@@ -9106,11 +9117,12 @@ const TT_WEEKEND = [
   {
     id:'we-wind', time:'9:15 PM – 9:30 PM', name:'Wind-Down Routine', icon:'🌙',
     iconBg:'#F0F4FF', iconColor:'#4F46E5', color:'#4F46E5', lightBg:'#F0F4FF',
-    type:'normal', maxPts:19, unlockHour:21.25,
+    type:'normal', maxPts:27, unlockHour:21.25,
     activities:[
       {id:'we-w1', name:'Shloka reciting to parents',  pts:0,  type:'parent', note:'⏳ Parents award pts on review'},
       {id:'we-w2', name:'Daily gratitude journal',     pts:5,  type:'self'},
       {id:'we-w3', name:'Everything done on time',     pts:7,  type:'self'},
+      {id:'we-w4', name:'Night Routine completed',     pts:8,  type:'self'},
     ]
   },
 
@@ -9132,6 +9144,7 @@ function ttGetSchedule(){
 }
 
 // ── Get current hour (0-23) ────────────────────────────────────
+const TT_TEST_MODE = true; // ⚠️ TEST MODE ON — set to false for live production
 function ttNowHour(){
   return new Date().getHours() + new Date().getMinutes()/60;
 }
@@ -9142,6 +9155,9 @@ function ttBlockState(block, nowH){
   if(block.type==='break') return 'break';
   const bState = ttBlockStates[block.id];
   if(bState && bState.markedDone) return 'done';
+
+  // TEST MODE: every block is fully editable — no time restrictions
+  if(typeof TT_TEST_MODE !== 'undefined' && TT_TEST_MODE) return 'current';
 
   const schedule = ttGetSchedule();
   const thisIdx  = schedule.findIndex(b => b.id === block.id);
@@ -9303,12 +9319,27 @@ function ttGoToTab(tabName){
 }
 
 // ── Main render function ───────────────────────────────────────
+let _ttFirstCurrentOpened = false; // reset each render
 function ttRender(){
+  _ttFirstCurrentOpened = false;
   const container = document.getElementById('tt-blocks-container');
   if(!container) return;
   const schedule = ttGetSchedule();
   const nowH = ttNowHour();
   container.innerHTML = '';
+
+  // Test mode banner
+  if(typeof TT_TEST_MODE !== 'undefined' && TT_TEST_MODE){
+    const banner = document.createElement('div');
+    banner.innerHTML = `<div style="background:linear-gradient(135deg,#FEF3C7,#FFFBEB);border:2px solid #FCD34D;border-radius:12px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:18px">🧪</span>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:900;color:#92400E">TEST MODE is ON — all blocks are unlocked</div>
+        <div style="font-size:10px;color:#78350F;margin-top:1px">Set <code>TT_TEST_MODE = false</code> in the code to restore live time-based locking</div>
+      </div>
+    </div>`;
+    container.appendChild(banner);
+  }
 
   schedule.forEach(block => {
     const state = ttBlockState(block, nowH);
@@ -9317,7 +9348,12 @@ function ttRender(){
     const wrapper = document.createElement('div');
     wrapper.className = 'tt-block';
     wrapper.id = 'ttb-'+block.id;
-    if(state==='current') wrapper.classList.add('state-current','open');
+    // In test mode only auto-open the first current block, not all
+    const isFirstCurrent = (state==='current' && !_ttFirstCurrentOpened);
+    if(state==='current'){
+      wrapper.classList.add('state-current');
+      if(isFirstCurrent){ wrapper.classList.add('open'); _ttFirstCurrentOpened=true; }
+    }
     else if(state==='done') wrapper.classList.add('state-done');
     else if(state==='locked')  wrapper.classList.add('state-locked');
     else if(state==='normal')  wrapper.classList.add('state-past');
@@ -9328,7 +9364,6 @@ function ttRender(){
     const statusColors = {current:'background:#DBEAFE;color:#1D4ED8',done:'background:#DCFCE7;color:#166534',locked:'background:#F3F4F6;color:#6B7280',normal:'background:#F3F4F6;color:#6B7280',break:'background:#F9FAFB;color:#9CA3AF'};
 
     const earnedPts = bState.pts || 0;
-    const ptsText = block.maxPts>0 ? (earnedPts+' / '+block.maxPts+' pts') : (block.type==='break'?'Free time':'–');
 
     wrapper.innerHTML = `
       <div class="tt-block-hdr" onclick="ttToggleBlock('${block.id}')">
@@ -9338,7 +9373,6 @@ function ttRender(){
           <div class="tt-block-name" style="color:${block.color}">${block.name}</div>
         </div>
         <div class="tt-block-right">
-          <span class="tt-pts-badge" id="ttptsbadge-${block.id}" style="${statusColors[state]||statusColors.normal}">${ptsText}</span>
           <span class="tt-status-badge" style="${statusColors[state]||statusColors.normal}">${statusMap[state]||'UPCOMING'}</span>
           <span class="tt-chevron">▼</span>
         </div>
@@ -9353,6 +9387,58 @@ function ttRender(){
             ${block.activities.map(act=>{
               const isChecked = bState.checkedActs[act.id]||false;
               const cls = act.type==='parent'?'parent-pending':act.type==='link'?'linked':act.type==='wordbook'?'linked':'';
+
+              // Special rendering: points dropdown selector
+              if(act.type==='dropdown'){
+                const isCheckedDd = bState.checkedActs[act.id]||false;
+                const savedDdPts  = (bState.ddPts && bState.ddPts[act.id]) || 0;
+                const opts = (act.options||[3,5,7,10]).map(v =>
+                  `<button onclick="ttSelectDropdownPts('${block.id}','${act.id}',${v})"
+                    id="ddopt-${act.id}-${v}"
+                    style="padding:5px 12px;border-radius:8px;font-size:12px;font-weight:900;cursor:pointer;
+                      font-family:'Nunito',sans-serif;border:1.5px solid ${block.color}30;
+                      background:${savedDdPts===v?block.color:'#fff'};
+                      color:${savedDdPts===v?'#fff':block.color};transition:all .15s">
+                    ${v} pts
+                  </button>`
+                ).join('');
+                return `
+                  <div class="tt-act ${isCheckedDd?'checked':''}" id="ttact-${act.id}"
+                    style="flex-direction:column;align-items:flex-start;gap:6px;cursor:default">
+                    <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+                      <div>
+                        <div class="tt-act-name">${act.name}</div>
+                        <div class="tt-act-sub">${act.note||'Select points earned'}</div>
+                      </div>
+                      <div class="tt-act-pts" style="color:${block.color}" id="ttact-pts-${act.id}">
+                        ${savedDdPts>0?'+'+savedDdPts+' pts':'0 pts'}
+                      </div>
+                    </div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap">${opts}</div>
+                  </div>`;
+              }
+
+              // Special rendering: percentage calculator
+              if(act.type==='pct-calc'){
+                const isCheckedPct = bState.checkedActs[act.id]||false;
+                return `<div class="tt-act ${isCheckedPct?'checked':''}" id="ttact-${act.id}"
+                  style="flex-direction:column;align-items:flex-start;gap:0;cursor:default;padding:0;border:none;background:transparent">
+                  <div style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid #E5E7EB;background:${isCheckedPct?'#ECFDF5':'#FAFAFA'};cursor:pointer;box-sizing:border-box;transition:all .15s"
+                    onclick="ttTogglePctCalc('${block.id}','${act.id}')">
+                    <div class="tt-act-cb" style="display:flex">${isCheckedPct?'✓':''}</div>
+                    <div style="flex:1">
+                      <div class="tt-act-name">${act.name}</div>
+                      <div class="tt-act-sub">Tap to enter marks · auto-calculates pts · max ${act.maxCalcPts} pts</div>
+                    </div>
+                    <div class="tt-act-pts" style="color:${block.color}" id="ttact-pts-${act.id}">
+                      ${(bState.calcPts&&bState.calcPts[act.id])||0} pts
+                    </div>
+                  </div>
+                  <div id="pctcalc-${act.id}" style="display:${isCheckedPct?'block':'none'};width:100%;margin-top:6px">
+                    ${ttPctCalcHTML(act.id, act.maxCalcPts, block.color, bState)}
+                  </div>
+                </div>`;
+              }
 
               // Special rendering: inline wordbook entry
               if(act.type==='wordbook'){
@@ -9498,6 +9584,205 @@ function ttWordEntryHTML(){
       <div id="save-wordbook-status" style="font-size:11px;font-weight:800;color:#059669;margin-top:6px;text-align:center;min-height:16px"></div>
     </div>
   </div>`;
+}
+
+// ── Percentage Calculator for Maths blocks ────────────────────
+function ttPctCalcHTML(actId, maxPts, color, bState){
+  const saved    = bState.calcPts && bState.calcPts[actId] ? bState.calcPts[actId] : 0;
+  const savedObt = bState.calcObt && bState.calcObt[actId] ? bState.calcObt[actId] : '';
+  const savedTot = bState.calcTot && bState.calcTot[actId] ? bState.calcTot[actId] : '';
+  const savedPct = savedObt && savedTot ? Math.round(savedObt/savedTot*100) : 0;
+
+  // Pre-build result bar if saved data exists
+  let savedResultHTML = '';
+  if(savedObt && savedTot && saved > 0){
+    const {grade, gradeColor} = _ttGradeInfo(savedPct);
+    savedResultHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:5px;padding:4px 8px;background:#F0FDF4;border-radius:7px;border:1px solid #BBF7D0">
+        <span style="font-size:11px;font-weight:800;color:${gradeColor}">${savedPct}% — ${grade}</span>
+        <span style="font-size:12px;font-weight:900;color:${gradeColor}">+${saved} pts ✅</span>
+      </div>`;
+  }
+
+  return `
+  <div style="background:#F8FAFF;border:1px solid #BFDBFE;border-radius:9px;padding:8px 10px;margin-top:4px">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <span style="font-size:11px;font-weight:900;color:#2563EB">📊 Marks</span>
+      <input type="number" id="pct-obt-${actId}" min="0" placeholder="Obtained"
+        value="${savedObt}"
+        style="width:70px;padding:4px 7px;border-radius:6px;border:1.5px solid #BFDBFE;
+          font-size:12px;font-weight:800;color:#1E1B4B;background:#fff;
+          font-family:'Nunito',sans-serif;outline:none;text-align:center"
+        oninput="ttCalcPct('${actId}',${maxPts},'${color}')"
+        onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='#BFDBFE'">
+      <span style="font-size:11px;color:#6B7280;font-weight:700">/</span>
+      <input type="number" id="pct-tot-${actId}" min="1" placeholder="Total"
+        value="${savedTot}"
+        style="width:70px;padding:4px 7px;border-radius:6px;border:1.5px solid #BFDBFE;
+          font-size:12px;font-weight:800;color:#1E1B4B;background:#fff;
+          font-family:'Nunito',sans-serif;outline:none;text-align:center"
+        oninput="ttCalcPct('${actId}',${maxPts},'${color}')"
+        onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='#BFDBFE'">
+      <span style="font-size:10px;color:#9CA3AF;font-weight:700">max ${maxPts} pts</span>
+    </div>
+    <div id="pct-result-${actId}">${savedResultHTML}</div>
+  </div>`;
+}
+
+// ── Grade helper — shared by HTML builder and calc ─────────────
+function _ttGradeInfo(pct){
+  if(pct===100)  return {grade:'🌟 Perfect! Full marks!',  gradeColor:'#059669'};
+  if(pct>=90)    return {grade:'⭐ Excellent! 90%+',       gradeColor:'#0284C7'};
+  if(pct>=80)    return {grade:'👍 Very Good! 80%+',       gradeColor:'#2563EB'};
+  if(pct>=70)    return {grade:'📚 Good! 70%+',            gradeColor:'#7C3AED'};
+  if(pct>=60)    return {grade:'✏️ Fair 60%+',              gradeColor:'#D97706'};
+  if(pct>=40)    return {grade:'💪 Keep trying! 40%+',     gradeColor:'#EA580C'};
+  return              {grade:'🔄 Practice more!',           gradeColor:'#DC2626'};
+}
+
+// ── Toggle pct-calc section open/close ─────────────────────────
+function ttTogglePctCalc(blockId, actId){
+  if(!ttBlockStates[blockId]) ttBlockStates[blockId]={pts:0,checkedActs:{},markedDone:false,calcPts:{},calcObt:{},calcTot:{}};
+  const bState = ttBlockStates[blockId];
+  const wasChecked = bState.checkedActs[actId]||false;
+  bState.checkedActs[actId] = !wasChecked;
+
+  // If unchecking, remove the calc pts
+  if(wasChecked){
+    const oldPts = (bState.calcPts&&bState.calcPts[actId])||0;
+    bState.pts = Math.max(0, bState.pts - oldPts);
+    if(bState.calcPts) delete bState.calcPts[actId];
+    if(bState.calcObt) delete bState.calcObt[actId];
+    if(bState.calcTot) delete bState.calcTot[actId];
+  }
+
+  const panel = document.getElementById('pctcalc-'+actId);
+  const actEl = document.getElementById('ttact-'+actId);
+  const ptsEl = document.getElementById('ttact-pts-'+actId);
+  if(panel) panel.style.display = bState.checkedActs[actId] ? 'block' : 'none';
+  if(actEl){
+    const row = actEl.querySelector('[onclick*="ttTogglePctCalc"]');
+    if(row) row.style.background = bState.checkedActs[actId] ? '#ECFDF5' : '#FAFAFA';
+    const cb = actEl.querySelector('.tt-act-cb');
+    if(cb) cb.textContent = bState.checkedActs[actId] ? '✓' : '';
+  }
+  if(ptsEl) ptsEl.textContent = '0 pts';
+  ttUpdateBlockPts(blockId);
+  calcDayPts();
+}
+
+// ── Live percentage calculation ────────────────────────────────
+function ttCalcPct(actId, maxPts, color){
+  const obt = parseFloat(document.getElementById('pct-obt-'+actId)?.value)||0;
+  const tot = parseFloat(document.getElementById('pct-tot-'+actId)?.value)||0;
+  const resultEl = document.getElementById('pct-result-'+actId);
+  const ptsEl    = document.getElementById('ttact-pts-'+actId);
+  if(!resultEl) return;
+
+  if(!tot || obt < 0){
+    resultEl.innerHTML = '';
+    return;
+  }
+
+  const pct = Math.round(obt/tot*100);
+
+  // New points scale: only 100% = full marks
+  let pts;
+  if(pct===100)    pts = maxPts;
+  else if(pct>=90) pts = Math.round(maxPts*0.85);
+  else if(pct>=80) pts = Math.round(maxPts*0.70);
+  else if(pct>=70) pts = Math.round(maxPts*0.55);
+  else if(pct>=60) pts = Math.round(maxPts*0.40);
+  else if(pct>=40) pts = Math.round(maxPts*0.20);
+  else             pts = 0;
+
+  const {grade, gradeColor} = _ttGradeInfo(pct);
+
+  // Progress bar width (capped at 100)
+  const barW = Math.min(100, pct);
+
+  resultEl.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;padding:4px 8px;background:#F0FDF4;border-radius:7px;border:1px solid #BBF7D0">
+      <div>
+        <span style="font-size:11px;font-weight:900;color:${gradeColor}">${pct}% — ${grade}</span>
+        <div style="background:#E5E7EB;border-radius:3px;height:5px;overflow:hidden;margin-top:3px;width:120px">
+          <div style="width:${barW}%;height:100%;background:${gradeColor};border-radius:3px;transition:width .4s"></div>
+        </div>
+      </div>
+      <span style="font-size:13px;font-weight:900;color:${gradeColor};margin-left:10px">+${pts} pts</span>
+    </div>`;
+
+  if(ptsEl) ptsEl.textContent = '+'+pts+' pts';
+
+  // Save into block state
+  // Find which block this activity belongs to
+  const schedule = ttGetSchedule();
+  for(const block of schedule){
+    const act = (block.activities||[]).find(a=>a.id===actId);
+    if(act){
+      if(!ttBlockStates[block.id]) ttBlockStates[block.id]={pts:0,checkedActs:{},markedDone:false};
+      const bst = ttBlockStates[block.id];
+      if(!bst.calcPts) bst.calcPts={};
+      if(!bst.calcObt) bst.calcObt={};
+      if(!bst.calcTot) bst.calcTot={};
+      const oldPts = bst.calcPts[actId]||0;
+      bst.pts = Math.max(0, bst.pts - oldPts + pts);
+      bst.calcPts[actId] = pts;
+      bst.calcObt[actId] = obt;
+      bst.calcTot[actId] = tot;
+      ttUpdateBlockPts(block.id);
+      calcDayPts();
+      break;
+    }
+  }
+}
+
+
+// ── Dropdown points selector ───────────────────────────────────
+function ttSelectDropdownPts(blockId, actId, selectedPts){
+  if(!ttBlockStates[blockId]) ttBlockStates[blockId]={pts:0,checkedActs:{},markedDone:false};
+  const bState = ttBlockStates[blockId];
+  if(!bState.ddPts) bState.ddPts = {};
+
+  // Remove old pts
+  const oldPts = bState.ddPts[actId] || 0;
+  bState.pts = Math.max(0, bState.pts - oldPts);
+
+  // Toggle off if same pts selected again
+  if(oldPts === selectedPts){
+    bState.ddPts[actId] = 0;
+    bState.checkedActs[actId] = false;
+  } else {
+    bState.ddPts[actId] = selectedPts;
+    bState.pts += selectedPts;
+    bState.checkedActs[actId] = true;
+  }
+
+  // Update button visuals
+  const act = ttGetSchedule().flatMap(b=>b.activities||[]).find(a=>a.id===actId);
+  const block = ttGetSchedule().find(b=>(b.activities||[]).some(a=>a.id===actId));
+  const opts = act?.options||[3,5,7,10];
+  opts.forEach(v=>{
+    const btn = document.getElementById('ddopt-'+actId+'-'+v);
+    if(btn){
+      const active = bState.ddPts[actId]===v;
+      btn.style.background = active?(block?.color||'#7C3AED'):'#fff';
+      btn.style.color      = active?'#fff':(block?.color||'#7C3AED');
+    }
+  });
+
+  // Update pts display
+  const ptsEl = document.getElementById('ttact-pts-'+actId);
+  const actEl = document.getElementById('ttact-'+actId);
+  const curPts = bState.ddPts[actId]||0;
+  if(ptsEl) ptsEl.textContent = curPts>0?'+'+curPts+' pts':'0 pts';
+  if(actEl){
+    if(curPts>0) actEl.classList.add('checked');
+    else actEl.classList.remove('checked');
+  }
+
+  ttUpdateBlockPts(blockId);
+  calcDayPts();
 }
 
 buildAll();
