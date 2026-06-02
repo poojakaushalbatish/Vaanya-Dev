@@ -8916,145 +8916,187 @@ const TT_WEEKDAY = [
 ];
 
 const TT_WEEKEND = [
+
+  // ── 7:00 AM – 9:00 AM ───────────────────────────────────────
   {
-    id:'we-morning', time:'7:00 AM – 8:00 AM', name:'Wake Up & Morning Routine', icon:'🌅',
+    id:'we-morning', time:'7:00 AM – 9:00 AM', name:'Rise & Morning Routine', icon:'🌅',
     iconBg:'#FFFBEB', iconColor:'#D97706', color:'#D97706', lightBg:'#FFFBEB',
-    type:'normal', maxPts:30, unlockHour:7,
+    type:'normal', maxPts:15, unlockHour:7,
     activities:[
-      {id:'we-m1',name:'Wake up on time',pts:5,type:'self'},
-      {id:'we-m2',name:'Morning prayer done',pts:10,type:'self'},
-      {id:'we-m3',name:'Exercise / stretching',pts:15,type:'self'},
+      {id:'we-m1', name:'Rise on time',                           pts:5,  type:'self'},
+      {id:'we-m2', name:'Outdoor + RSS Shaka',                    pts:5,  type:'self'},
+      {id:'we-m3', name:'Get Ready',                              pts:0,  type:'self', note:'No pts — just do it! 💪'},
     ]
   },
+
+  // ── 9:00 AM – 10:00 AM ──────────────────────────────────────
   {
-    id:'we-breakfast', time:'8:00 AM – 9:00 AM', name:'Breakfast & Book Reading', icon:'📚',
-    iconBg:'#ECFDF5', iconColor:'#059669', color:'#059669', lightBg:'#ECFDF5',
-    type:'normal', maxPts:20, unlockHour:8,
+    id:'we-puja', time:'9:00 AM – 10:00 AM', name:'Morning Puja & Wellness', icon:'🪔',
+    iconBg:'#FFF7ED', iconColor:'#EA580C', color:'#EA580C', lightBg:'#FFF7ED',
+    type:'normal', maxPts:20, unlockHour:9,
     activities:[
-      {id:'we-b1',name:'Breakfast done',pts:5,type:'self'},
-      {id:'we-b2',name:'Book reading (30+ min)',pts:15,type:'self'},
+      {id:'we-p1', name:'Puja + Mandir + Surya Jal Arpan + Yoga Asana', pts:10, type:'self'},
+      {id:'we-p2', name:'Set your Almirah',                              pts:5,  type:'self'},
+      {id:'we-p3', name:'Set your Room',                                 pts:5,  type:'self'},
+      {id:'we-p4', name:'Breakfast',                                     pts:0,  type:'self', note:'No pts — nourish yourself! 🍽️'},
     ]
   },
+
+  // ── 10:00 AM – 12:00 PM ─────────────────────────────────────
   {
-    id:'we-maths', time:'9:00 AM – 11:00 AM', name:'Maths Practice', icon:'📐',
+    id:'we-maths', time:'10:00 AM – 12:00 PM', name:'Maths Deep Practice', icon:'📐',
     iconBg:'#EFF6FF', iconColor:'#2563EB', color:'#2563EB', lightBg:'#EFF6FF',
-    type:'normal', maxPts:80, unlockHour:9,
+    type:'normal', maxPts:30, unlockHour:10,
     activities:[
-      {id:'we-ma1',name:'Maths chapters studied',pts:30,type:'self'},
-      {id:'we-ma2',name:'Maths Sprint',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
-      {id:'we-ma3',name:'Worksheet completed',pts:15,type:'link',tab:'brain',note:'→ Brain Lab'},
-      {id:'we-ma4',name:'Olympiad practice',pts:25,type:'self'},
+      {id:'we-ma1', name:'Practice Maths',                pts:10, type:'self'},
+      {id:'we-ma2', name:'Maths Olympiad questions',      pts:0,  type:'parent', note:'⏳ Parents award pts as per marks achieved'},
+      {id:'we-ma3', name:'Brain Lab — Maths Sprint',      pts:0,  type:'link',   tab:'brain', note:'→ Brain Lab · pts pulled from there'},
+      {id:'we-ma4', name:'Brain Lab — Logic puzzles',     pts:0,  type:'link',   tab:'brain', note:'→ Brain Lab · pts pulled from there'},
+      {id:'we-ma5', name:'Complex maths practice',        pts:10, type:'self'},
     ]
   },
-  {
-    id:'we-creative', time:'11:00 AM – 12:00 PM', name:'Creative & Brain Block', icon:'🎨',
-    iconBg:'#FDF2F8', iconColor:'#DB2777', color:'#DB2777', lightBg:'#FDF2F8',
-    type:'normal', maxPts:40, unlockHour:11,
-    activities:[
-      {id:'we-c1',name:'Creative Moments',pts:20,type:'parent',note:'⏳ Parent awards pts'},
-      {id:'we-c2',name:'Riddles',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
-      {id:'we-c3',name:'Maths Sprint',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
-      {id:'we-c4',name:'Sudoku',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
-    ]
-  },
+
+  // ── 12:00 PM – 12:30 PM — BREAK ─────────────────────────────
   {
     id:'we-break1', time:'12:00 PM – 12:30 PM', name:'Break', icon:'☕',
     iconBg:'#F9FAFB', iconColor:'#6B7280', color:'#6B7280', lightBg:'#F9FAFB',
     type:'break', maxPts:0, unlockHour:12, activities:[]
   },
+
+  // ── 12:30 PM – 2:00 PM ──────────────────────────────────────
   {
-    id:'we-study1', time:'12:30 PM – 2:00 PM', name:'Self Study — Afternoon Session', icon:'📖',
-    iconBg:'#EFF6FF', iconColor:'#2563EB', color:'#2563EB', lightBg:'#EFF6FF',
-    type:'normal', maxPts:80, unlockHour:12,
+    id:'we-study1', time:'12:30 PM – 2:00 PM', name:'Self Study Block', icon:'📖',
+    iconBg:'#F0FDF4', iconColor:'#059669', color:'#059669', lightBg:'#F0FDF4',
+    type:'normal', maxPts:50, unlockHour:12.5,
     activities:[
-      {id:'we-s1',name:'Self study — Maths',pts:20,type:'self'},
-      {id:'we-s2',name:'Self study — English',pts:20,type:'self'},
-      {id:'we-s3',name:'Self study — Science',pts:20,type:'self'},
-      {id:'we-s4',name:'Self study — Hindi',pts:20,type:'self'},
-      {id:'we-s5',name:'Self study — SST',pts:20,type:'self'},
+      {id:'we-ss1', name:'Self Study — Maths',   pts:10, type:'self'},
+      {id:'we-ss2', name:'Self Study — English', pts:10, type:'self'},
+      {id:'we-ss3', name:'Self Study — Science', pts:10, type:'self'},
+      {id:'we-ss4', name:'Self Study — Hindi',   pts:10, type:'self'},
+      {id:'we-ss5', name:'Self Study — SST',     pts:10, type:'self'},
     ]
   },
+
+  // ── 2:00 PM – 2:30 PM — BREAK + LUNCH ──────────────────────
   {
-    id:'we-lunch', time:'2:00 PM – 2:30 PM', name:'Lunch Break', icon:'🍱',
+    id:'we-lunch', time:'2:00 PM – 2:30 PM', name:'Break + Lunch Time', icon:'🍱',
     iconBg:'#F9FAFB', iconColor:'#6B7280', color:'#6B7280', lightBg:'#F9FAFB',
-    type:'break', maxPts:0, unlockHour:14, activities:[]
+    type:'break', maxPts:0, unlockHour:14.0, activities:[]
   },
+
+  // ── 2:30 PM – 4:00 PM ───────────────────────────────────────
   {
-    id:'we-study2', time:'2:30 PM – 4:00 PM', name:'Self Study / Olympiad Practice', icon:'🏆',
-    iconBg:'#EFF6FF', iconColor:'#2563EB', color:'#2563EB', lightBg:'#EFF6FF',
-    type:'normal', maxPts:80, unlockHour:14,
+    id:'we-papers', time:'2:30 PM – 4:00 PM', name:'Practice Papers & Writing', icon:'✍️',
+    iconBg:'#F5F3FF', iconColor:'#7C3AED', color:'#7C3AED', lightBg:'#F5F3FF',
+    type:'normal', maxPts:15, unlockHour:14.5,
     activities:[
-      {id:'we-s2a',name:'Self study (any subject)',pts:20,type:'self'},
-      {id:'we-s2b',name:'Olympiad practice',pts:40,type:'self'},
-      {id:'we-s2c',name:'Test paper attempted',pts:40,type:'self'},
+      {id:'we-pp1', name:'Practice Papers — Any Subject',       pts:0,  type:'parent', note:'⏳ Parents award pts as per marks obtained'},
+      {id:'we-pp2', name:'Olympiad Papers solve',               pts:0,  type:'parent', note:'⏳ Parents award pts'},
+      {id:'we-pp3', name:'English Paragraph / Story Writing',   pts:5,  type:'parent', note:'⏳ Parents award pts · max 5 pts'},
+      {id:'we-pp4', name:'Spoken English & Debate Practice',    pts:5,  type:'parent', note:'⏳ Parents award pts · max 5 pts'},
     ]
   },
+
+  // ── 4:00 PM – 4:30 PM — BOOK READING + WORDBOOK ────────────
   {
-    id:'we-tv', time:'4:00 PM – 4:30 PM', name:'TV / Screen Break', icon:'📺',
-    iconBg:'#F9FAFB', iconColor:'#6B7280', color:'#6B7280', lightBg:'#F9FAFB',
-    type:'break', maxPts:0, unlockHour:16, activities:[]
-  },
-  {
-    id:'we-shloka', time:'4:30 PM – 5:00 PM', name:'Shloka & Life Values', icon:'🕉️',
+    id:'we-reading', time:'4:00 PM – 4:30 PM', name:'Book Reading + New Words', icon:'📚',
     iconBg:'#ECFDF5', iconColor:'#059669', color:'#059669', lightBg:'#ECFDF5',
-    type:'normal', maxPts:25, unlockHour:16,
+    type:'wordbook-inline', maxPts:10, unlockHour:16.0,
     activities:[
-      {id:'we-sh1',name:'Shloka learning / recitation',pts:25,type:'parent',note:'⏳ Parent awards pts'},
+      {id:'we-rd1', name:'Book Reading + Add 3 new words to Wordbook', pts:10, type:'wordbook', note:'10 pts when all 3 words are added with meaning & sentence'},
     ]
   },
+
+  // ── 4:30 PM – 5:00 PM — SHLOKA & PROVERB ───────────────────
   {
-    id:'we-brain', time:'5:00 PM – 5:45 PM', name:'Brain Challenge Block', icon:'🧠',
+    id:'we-shloka', time:'4:30 PM – 5:00 PM', name:'Shloka & Wisdom', icon:'🕉️',
+    iconBg:'#F0FDF4', iconColor:'#065F46', color:'#065F46', lightBg:'#F0FDF4',
+    type:'normal', maxPts:35, unlockHour:16.5,
+    activities:[
+      {id:'we-sh1', name:'Shloka learning & writing in copy',              pts:25, type:'parent', note:'⏳ Parents award pts on Parents Review · 25 pts for full mastery'},
+      {id:'we-sh2', name:'Learn a proverb by a famous writer',             pts:10, type:'parent', note:'⏳ Parents check and award · 10 pts'},
+    ]
+  },
+
+  // ── 5:00 PM – 6:00 PM — BRAIN + FOCUS ──────────────────────
+  {
+    id:'we-brain', time:'5:00 PM – 6:00 PM', name:'Brain Lab + Focus Time', icon:'🧠',
     iconBg:'#FFFBEB', iconColor:'#D97706', color:'#D97706', lightBg:'#FFFBEB',
-    type:'normal', maxPts:55, unlockHour:17,
+    type:'normal', maxPts:21, unlockHour:17,
     activities:[
-      {id:'we-br1',name:'Test paper solved',pts:30,type:'self'},
-      {id:'we-br2',name:'Brain Lab session',pts:40,type:'link',tab:'brain',note:'→ Brain Lab'},
-      {id:'we-br3',name:'Maths Sprint',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
-      {id:'we-br4',name:'Riddles',pts:10,type:'link',tab:'brain',note:'→ Brain Lab'},
+      {id:'we-br1', name:'Brain Lab — Sudoku',                    pts:0,  type:'link', tab:'brain', note:'→ Brain Lab · pts pulled from there'},
+      {id:'we-br2', name:'Brain Lab — Riddles',                   pts:0,  type:'link', tab:'brain', note:'→ Brain Lab · pts pulled from there'},
+      {id:'we-br3', name:'Silence of 7 mins — Focus on thoughts', pts:7,  type:'self'},
+      {id:'we-br4', name:'Make Kinnu learn a new thing',           pts:7,  type:'self'},
+      {id:'we-br5', name:'Worksheet solve',                        pts:7,  type:'parent', note:'⏳ Parents award pts as per marks achieved'},
     ]
   },
+
+  // ── 6:00 PM – 6:50 PM — OUTDOOR ─────────────────────────────
   {
-    id:'we-outdoor', time:'6:00 PM – 6:45 PM', name:'Play Outdoor', icon:'🌳',
+    id:'we-outdoor', time:'6:00 PM – 6:50 PM', name:'Outdoor Playing', icon:'🌳',
     iconBg:'#ECFDF5', iconColor:'#059669', color:'#059669', lightBg:'#ECFDF5',
-    type:'normal', maxPts:15, unlockHour:18,
+    type:'normal', maxPts:7, unlockHour:18.0,
     activities:[
-      {id:'we-ou1',name:'Played outdoors',pts:15,type:'self'},
+      {id:'we-ou1', name:'Outdoor playing', pts:7, type:'self'},
     ]
   },
+
+  // ── 6:50 PM – 8:00 PM — ODDA ────────────────────────────────
   {
-    id:'we-odda', time:'7:00 PM – 8:00 PM', name:'Odda Class', icon:'💻',
+    id:'we-odda', time:'6:50 PM – 8:00 PM', name:'Odda Class + Assignment', icon:'💻',
     iconBg:'#F3EFFE', iconColor:'#7C3AED', color:'#7C3AED', lightBg:'#F3EFFE',
-    type:'normal', maxPts:30, unlockHour:19,
+    type:'normal', maxPts:20, unlockHour:18.83,
     activities:[
-      {id:'we-od1',name:'Attend class',pts:15,type:'self'},
-      {id:'we-od2',name:'Complete assignments',pts:15,type:'self'},
+      {id:'we-od1', name:'Odda Class + Assignment',                       pts:10, type:'self'},
+      {id:'we-od2', name:'No Odda — Read about AI and make notes',        pts:5,  type:'self', note:'Only if no Odda class today'},
+      {id:'we-od3', name:'No Odda — Read about Ayurvedic herbs + notes',  pts:5,  type:'self', note:'Only if no Odda class today'},
+      {id:'we-od4', name:'No Odda — Read about Vedas and make notes',     pts:5,  type:'self', note:'Only if no Odda class today'},
     ]
   },
+
+  // ── 8:00 PM – 9:00 PM — EVENING ENRICHMENT ──────────────────
   {
-    id:'we-enrich', time:'8:00 PM – 9:00 PM', name:'Evening Enrichment Block', icon:'⭐',
+    id:'we-enrich', time:'8:00 PM – 9:00 PM', name:'Evening Enrichment', icon:'⭐',
     iconBg:'#FDF2F8', iconColor:'#DB2777', color:'#DB2777', lightBg:'#FDF2F8',
-    type:'normal', maxPts:65, unlockHour:20,
+    type:'normal', maxPts:25, unlockHour:20,
     activities:[
-      {id:'we-en1',name:'Kathak practice',pts:25,type:'self'},
-      {id:'we-en2',name:'Olympiad practice',pts:25,type:'self'},
-      {id:'we-en3',name:'Self study (any subject)',pts:20,type:'self'},
-      {id:'we-en4',name:'Brain Lab session',pts:40,type:'link',tab:'brain',note:'→ Brain Lab'},
+      {id:'we-en1', name:'Kathak class',                                      pts:10, type:'self'},
+      {id:'we-en2', name:'Maths Practice — Solve 10 complex questions',       pts:0,  type:'parent', note:'⏳ Parents award pts as per marks'},
+      {id:'we-en3', name:'Odda class + make notes',                           pts:5,  type:'self'},
+      {id:'we-en4', name:'Learn one FACT from Indian History + make notes',   pts:10, type:'self'},
     ]
   },
+
+  // ── 9:00 PM – 9:15 PM — EVENING WIND DOWN ───────────────────
   {
-    id:'we-wind', time:'9:00 PM – 9:30 PM', name:'Wind-Down Routine', icon:'🌙',
-    iconBg:'#F0F4FF', iconColor:'#4F46E5', color:'#4F46E5', lightBg:'#F0F4FF',
-    type:'normal', maxPts:20, unlockHour:21,
+    id:'we-values', time:'9:00 PM – 9:15 PM', name:'Values & Reflection', icon:'📿',
+    iconBg:'#F0FDF4', iconColor:'#065F46', color:'#065F46', lightBg:'#F0FDF4',
+    type:'normal', maxPts:10, unlockHour:21.0,
     activities:[
-      {id:'we-w1',name:'Daily journal / gratitude',pts:10,type:'self'},
-      {id:'we-w2',name:'Shloka reciting to parents',pts:10,type:'parent',note:'⏳ Parent awards pts'},
+      {id:'we-v1', name:'Read Moral Values Book — 1 chapter + explain', pts:5, type:'self'},
+      {id:'we-v2', name:'Solve questionnaire by parents',                pts:5, type:'parent', note:'⏳ Parents give the questionnaire'},
     ]
   },
+
+  // ── 9:15 PM – 9:30 PM — WIND-DOWN ──────────────────────────
+  {
+    id:'we-wind', time:'9:15 PM – 9:30 PM', name:'Wind-Down Routine', icon:'🌙',
+    iconBg:'#F0F4FF', iconColor:'#4F46E5', color:'#4F46E5', lightBg:'#F0F4FF',
+    type:'normal', maxPts:19, unlockHour:21.25,
+    activities:[
+      {id:'we-w1', name:'Shloka reciting to parents',  pts:0,  type:'parent', note:'⏳ Parents award pts on review'},
+      {id:'we-w2', name:'Daily gratitude journal',     pts:5,  type:'self'},
+      {id:'we-w3', name:'Everything done on time',     pts:7,  type:'self'},
+    ]
+  },
+
+  // ── 9:30 PM — SLEEP ─────────────────────────────────────────
   {
     id:'we-sleep', time:'9:30 PM', name:'Sleep', icon:'😴',
     iconBg:'#F9FAFB', iconColor:'#6B7280', color:'#6B7280', lightBg:'#F9FAFB',
     type:'break', maxPts:0, unlockHour:21,
-    activities:[{id:'we-sl1',name:'Go to bed on time',pts:0,type:'self'}]
+    activities:[]
   },
 ];
 
@@ -9229,7 +9271,7 @@ function ttUpdateBlockPts(blockId){
 
 // ── Navigate to linked tab ─────────────────────────────────────
 function ttGoToTab(tabName){
-  const map={'brain':'brain','creative':'creative','geeta':'geeta','wordbook':'wordbook'};
+  const map={'brain':'brain','creative':'creative','geeta':'geeta','wordbook':'wordbook','book':'wordbook'};
   const id = map[tabName]||tabName;
   const btn = document.querySelector('.nb.t'+(id==='brain'?'1':id==='geeta'?'2':id==='creative'?'3':'4'));
   // Use showTab directly
@@ -9287,7 +9329,22 @@ function ttRender(){
           <div class="tt-activities">
             ${block.activities.map(act=>{
               const isChecked = bState.checkedActs[act.id]||false;
-              const cls = act.type==='parent'?'parent-pending':act.type==='link'?'linked':'';
+              const cls = act.type==='parent'?'parent-pending':act.type==='link'?'linked':act.type==='wordbook'?'linked':'';
+
+              // Special rendering: inline wordbook entry
+              if(act.type==='wordbook'){
+                return `<div class="tt-act linked" id="ttact-${act.id}" style="flex-direction:column;align-items:flex-start;gap:10px;cursor:default">
+                  <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+                    <div>
+                      <div class="tt-act-name">📖 ${act.name}</div>
+                      <div class="tt-act-sub">${act.note||''}</div>
+                    </div>
+                    <div class="tt-act-pts" style="color:${block.color}">+${act.pts} pts 📖</div>
+                  </div>
+                  ${ttWordEntryHTML()}
+                </div>`;
+              }
+
               return `
                 <div class="tt-act ${cls} ${isChecked?'checked':''}" id="ttact-${act.id}"
                   onclick="ttToggleAct('${block.id}','${act.id}',${act.pts},'${act.type}')">
@@ -9383,6 +9440,41 @@ function ttRenderMiniSchedule(){
       </div>
     </div>`;
   }).join('');
+}
+
+// ── Wordbook inline entry HTML (used inside Book Reading block) ──
+function ttWordEntryHTML(){
+  return `
+  <div style="width:100%;background:#F0FDF4;border-radius:12px;padding:14px;border:1.5px solid #A7F3D0">
+    <div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#065F46;margin-bottom:10px">
+      📝 Write 3 new words — Word, Meaning and an Example Sentence:
+    </div>
+    ${[1,2,3].map(n=>`
+    <div style="margin-bottom:10px;background:#fff;border-radius:10px;padding:10px 12px;border:1.5px solid #D1FAE5">
+      <div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#059669;margin-bottom:6px">Word ${n}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <input type="text" id="word${n}" placeholder="e.g. perseverance"
+          style="padding:7px 10px;border-radius:8px;border:1.5px solid #D1FAE5;font-size:12px;font-family:'Nunito',sans-serif;background:#F0FDF4;color:#065F46;outline:none;box-sizing:border-box"
+          oninput="calcWordPts();checkWordSaved()" onfocus="this.style.borderColor='#059669'" onblur="this.style.borderColor='#D1FAE5'">
+        <input type="text" id="mean${n}" placeholder="Meaning"
+          style="padding:7px 10px;border-radius:8px;border:1.5px solid #D1FAE5;font-size:12px;font-family:'Nunito',sans-serif;background:#F0FDF4;color:#065F46;outline:none;box-sizing:border-box"
+          oninput="calcWordPts();checkWordSaved()" onfocus="this.style.borderColor='#059669'" onblur="this.style.borderColor='#D1FAE5'">
+      </div>
+      <input type="text" id="exam${n}" placeholder="Example sentence (required to save)"
+        style="width:100%;padding:7px 10px;border-radius:8px;border:1.5px solid #D1FAE5;font-size:12px;font-family:'Nunito',sans-serif;background:#F0FDF4;color:#065F46;outline:none;box-sizing:border-box"
+        oninput="checkWordSaved()" onfocus="this.style.borderColor='#059669'" onblur="this.style.borderColor='#D1FAE5'">
+    </div>`).join('')}
+    <div id="save-wordbook-wrap" style="margin-top:4px">
+      <button id="save-wordbook-btn" onclick="saveWordsToWordBook()"
+        style="width:100%;padding:10px;border-radius:10px;border:none;
+          background:linear-gradient(135deg,#059669,#047857);color:#fff;
+          font-size:13px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;
+          box-shadow:0 4px 12px rgba(5,150,105,.3)">
+        💾 Save to My Wordbook
+      </button>
+      <div id="save-wordbook-status" style="font-size:11px;font-weight:800;color:#059669;margin-top:6px;text-align:center;min-height:16px"></div>
+    </div>
+  </div>`;
 }
 
 buildAll();
