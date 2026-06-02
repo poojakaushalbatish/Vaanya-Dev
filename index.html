@@ -740,10 +740,25 @@ tr:hover td{background:#FAFBFF}
 .tt-block{border-radius:16px;border:2px solid #E5E7EB;background:#fff;overflow:hidden;transition:all .25s}
 .tt-block.state-current{border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
 .tt-block.state-done{border-color:#10B981;background:#F0FDF4}
-.tt-block.state-locked{opacity:.55;pointer-events:none}
-.tt-block.state-past .tt-act{opacity:.7;pointer-events:none}
-.tt-block.state-past .tt-mark-done-btn{display:none!important}
+
+/* LOCKED (upcoming) — header clickable to expand/view, but activities not interactive */
+.tt-block.state-locked{opacity:.75}
+.tt-block.state-locked .tt-block-hdr{cursor:pointer}
+.tt-block.state-locked .tt-act{opacity:.6;pointer-events:none;cursor:default}
+.tt-block.state-locked .tt-mark-done-btn{display:none!important}
+.tt-block.state-locked .tt-act-cb{display:none}
+.tt-block.state-locked .tt-act-name{color:#6B7280}
+.tt-block.state-locked .tt-act-pts{color:#9CA3AF}
+
+/* PAST (completed window, not marked done) — viewable, not editable */
 .tt-block.state-past .tt-block-hdr{cursor:pointer}
+.tt-block.state-past .tt-act{opacity:.65;pointer-events:none;cursor:default}
+.tt-block.state-past .tt-mark-done-btn{display:none!important}
+.tt-block.state-past .tt-act-cb{display:none}
+
+/* DONE — viewable summary only */
+.tt-block.state-done .tt-act{pointer-events:none;cursor:default}
+.tt-block.state-done .tt-mark-done-btn{display:none!important}
 .tt-block.state-break{border-color:#E5E7EB;background:#FAFAFA}
 .tt-block-hdr{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;user-select:none}
 .tt-block-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
@@ -9244,7 +9259,7 @@ function ttRender(){
     else if(state==='break') wrapper.classList.add('state-break');
 
     // Status badge text
-    const statusMap = {current:'🔴 CURRENT',done:'✅ COMPLETED',locked:'⏳ UPCOMING',normal:'👁 VIEW ONLY',break:'☕ BREAK'};
+    const statusMap = {current:'🔴 CURRENT',done:'✅ COMPLETED',locked:'👁 UPCOMING',normal:'👁 VIEW ONLY',break:'☕ BREAK'};
     const statusColors = {current:'background:#DBEAFE;color:#1D4ED8',done:'background:#DCFCE7;color:#166534',locked:'background:#F3F4F6;color:#6B7280',normal:'background:#F3F4F6;color:#6B7280',break:'background:#F9FAFB;color:#9CA3AF'};
 
     const earnedPts = bState.pts || 0;
@@ -9265,6 +9280,8 @@ function ttRender(){
       </div>
       <div class="tt-block-body" id="ttbody-${block.id}">
         ${state==='current'?'<div class="tt-current-indicator"><span class="tt-current-dot"></span>You are here right now!</div>':''}
+        ${state==='locked'?'<div style="font-size:11px;font-weight:800;color:#6B7280;background:#F3F4F6;border-radius:8px;padding:6px 10px;margin-bottom:10px;display:flex;align-items:center;gap:6px"><span style=\"font-size:14px\">🔒</span> This block is coming up later — you can see what\'s inside but it will unlock at the right time!</div>':''}
+        ${state==='normal'?'<div style="font-size:11px;font-weight:800;color:#6B7280;background:#F3F4F6;border-radius:8px;padding:6px 10px;margin-bottom:10px;display:flex;align-items:center;gap:6px"><span style=\"font-size:14px\">⏰</span> This block\'s time has passed. Tap Mark Done above if you completed it.</div>':''}
         ${block.type==='break'?'<div style="font-size:12px;color:#6B7280;padding:4px 0">Free time — relax, no tasks required.</div>':''}
         ${block.activities && block.activities.length>0 ? `
           <div class="tt-activities">
@@ -9289,7 +9306,7 @@ function ttRender(){
             <span style="font-size:11px;font-weight:800;color:#6B7280">Points earned this block</span>
             <span style="font-size:14px;font-weight:900;color:${block.color}" id="ttpts-${block.id}">${earnedPts} pts</span>
           </div>
-          ${state!=='done' && state!=='locked' && state!=='break' && block.maxPts>0 ? `
+          ${(state==='current'||state==='normal') && state!=='break' && block.maxPts>0 ? `
             <button class="tt-mark-done-btn ${bState.markedDone?'done':'primary'}" onclick="ttMarkDone('${block.id}')">
               ${bState.markedDone?'✅ Block completed!':'✅ Mark this block as done'}
             </button>`:''}`:''}
