@@ -2710,7 +2710,8 @@ function checkLogicAnswers(){
   var pts=Math.round((correct/10)*15);
   logicPtsTotal=pts;
   brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
-  updateBrainDisplay();calcDayPts();
+  if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();
+  updateBrainDisplay();if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();calcDayPts();
   var scoreDiv=document.getElementById('logic-score-display');
   var scoreNum=document.getElementById('logic-score-num');
   var scoreMsg=document.getElementById('logic-score-msg');
@@ -4158,8 +4159,7 @@ function calcOddaAssign(){
 }
 
 function calcDayPts(){
-  // Sync brain lab pts into timetable blocks (guard prevents circular call)
-  if(typeof ttSyncBrainLabPts==='function' && !_ttSyncing) ttSyncBrainLabPts();
+  // Brain lab sync is called directly from brain lab check functions — not from here
   const ttPts = (typeof ttGetTotalPts==='function') ? ttGetTotalPts() : 0;
   let pts=0;
   let breakdown={};
@@ -6119,9 +6119,10 @@ function checkSudoku(){
     const bonus={easy:0,medium:5,hard:10}[sudokuDifficulty]||0;
     sudokuPts=Math.max(sudokuPts,30+bonus);
     brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
+  if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();
     msg.innerHTML=`<span style="color:#10B981;font-size:16px">🎉 PERFECT! +${30+bonus} pts!</span>`;
     toast('Sudoku solved! +'+(30+bonus)+' brain pts!');
-    updateBrainDisplay();calcDayPts();
+    updateBrainDisplay();if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();calcDayPts();
   } else if(!allFilled){
     msg.innerHTML='<span style="color:#F97316">Some cells are empty — sudoku checked & locked now! 🔒</span>';
   } else {
@@ -6135,7 +6136,8 @@ function checkSudoku(){
 function revealSudokuHint(){
   sudokuPts=Math.max(0,sudokuPts-5);
   brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
-  updateBrainDisplay();calcDayPts();
+  if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();
+  updateBrainDisplay();if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();calcDayPts();
   for(let r=0;r<9;r++)for(let c=0;c<9;c++){
     if(sudokuGrid[r][c]===0){
       sudokuGrid[r][c]=sudokuSolution[r][c];
@@ -6178,9 +6180,10 @@ function checkRiddle(i,correct,hint){
   riddleAnswered.push(i);
   if(isRight){
     riddlePts+=10;riddlePtsTotal+=10;brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
+  if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();
     document.getElementById('rid-result-'+i).innerHTML='<span style="color:#10B981;font-weight:800">🎉 Correct! +10 pts! Answer: '+correct+'</span>';
     toast('Riddle solved! +10 brain pts!');
-    updateBrainDisplay();calcDayPts();
+    updateBrainDisplay();if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();calcDayPts();
   }else{
     document.getElementById('rid-result-'+i).innerHTML='<span style="color:#EF4444;font-weight:800">❌ Not quite! Answer: '+correct+'</span>';
   }
@@ -9276,9 +9279,11 @@ function ttInitDay(){
   lp_syncTabStyles();
 
   ttRender();
+  // Sync brain pts into timetable on each render
+  if(typeof ttSyncBrainLabPts==='function') setTimeout(ttSyncBrainLabPts, 100);
   // Refresh every minute
   if(ttClockInterval) clearInterval(ttClockInterval);
-  ttClockInterval = setInterval(()=>{ttRender();ttUpdateClock();lp_updateDateCard();}, 60000);
+  ttClockInterval = setInterval(()=>{ttRender();ttUpdateClock();lp_updateDateCard();if(typeof ttSyncBrainLabPts==='function')ttSyncBrainLabPts();}, 60000);
 }
 
 // ── Toggle block open/close ────────────────────────────────────
@@ -9915,39 +9920,47 @@ const _TT_BRAIN_MAP = {
 
 function ttSyncBrainLabPts(){
   if(_ttSyncing) return; _ttSyncing=true;
-  // For every brain-linked activity, update pts display and block total
+
   const schedule = ttGetSchedule();
+
   schedule.forEach(block => {
     const acts = block.activities || [];
-    let changed = false;
+    const brainActs = acts.filter(a => a.type==='link' && _TT_BRAIN_MAP && _TT_BRAIN_MAP[a.id]);
+    if(!brainActs.length) return;
+
+    // Ensure block state exists
+    if(!ttBlockStates[block.id])
+      ttBlockStates[block.id] = {pts:0, checkedActs:{}, markedDone:false, linkPts:{}};
+    if(!ttBlockStates[block.id].linkPts)
+      ttBlockStates[block.id].linkPts = {};
+
+    const bst = ttBlockStates[block.id];
+
+    // Recalculate block pts from scratch: self + pct-calc + dropdown + brain
+    let selfPts = 0;
     acts.forEach(act => {
-      if(act.type !== 'link' || !_TT_BRAIN_MAP[act.id]) return;
+      if(act.type==='self' && bst.checkedActs[act.id]) selfPts += (act.pts||0);
+      if(act.type==='pct-calc' && bst.calcPts && bst.calcPts[act.id]) selfPts += bst.calcPts[act.id];
+      if(act.type==='dropdown' && bst.ddPts && bst.ddPts[act.id]) selfPts += bst.ddPts[act.id];
+      if(act.type==='text-entry' && bst.checkedActs[act.id]) selfPts += (act.pts||0);
+    });
+
+    // Sum all live brain lab pts
+    let brainTotal = 0;
+    brainActs.forEach(act => {
       const livePts = _TT_BRAIN_MAP[act.id]();
-      if(!ttBlockStates[block.id])
-        ttBlockStates[block.id] = {pts:0, checkedActs:{}, markedDone:false, linkPts:{}};
-      if(!ttBlockStates[block.id].linkPts)
-        ttBlockStates[block.id].linkPts = {};
+      bst.linkPts[act.id] = livePts;
+      if(livePts > 0) bst.checkedActs[act.id] = true;
+      else delete bst.checkedActs[act.id];
+      brainTotal += livePts;
 
-      const oldPts = ttBlockStates[block.id].linkPts[act.id] || 0;
-      const diff = livePts - oldPts;
-      if(diff !== 0){
-        ttBlockStates[block.id].pts = Math.max(0, (ttBlockStates[block.id].pts||0) + diff);
-        ttBlockStates[block.id].linkPts[act.id] = livePts;
-
-        // Auto-mark the activity as checked if it has pts
-        if(livePts > 0) ttBlockStates[block.id].checkedActs[act.id] = true;
-        else delete ttBlockStates[block.id].checkedActs[act.id];
-
-        changed = true;
-      }
-
-      // Update the displayed pts on the activity row
+      // Update pts display
       const ptsEl = document.getElementById('ttact-pts-'+act.id);
       if(ptsEl){
-        ptsEl.textContent = '+'+livePts+' pts \uD83D\uDD17';
+        ptsEl.textContent = '+'+livePts+' pts';
         ptsEl.style.color = livePts > 0 ? block.color : '#9CA3AF';
       }
-      // Update the checkbox visual
+      // Update checkbox
       const actEl = document.getElementById('ttact-'+act.id);
       if(actEl){
         if(livePts > 0) actEl.classList.add('checked');
@@ -9956,11 +9969,18 @@ function ttSyncBrainLabPts(){
         if(cb) cb.textContent = livePts > 0 ? '\u2713' : '';
       }
     });
-    if(changed){
-      ttUpdateBlockPts(block.id);
-    }
+
+    // Set block total
+    bst.pts = selfPts + brainTotal;
+
+    // Update footer
+    const footerEl = document.getElementById('ttpts-'+block.id);
+    if(footerEl) footerEl.textContent = bst.pts + ' pts earned';
   });
-  calcDayPts();
+
+  _ttSyncing = false;
+  // calcDayPts is NOT called here — it reads ttBlockStates directly via ttGetTotalPts()
+  // The caller (brain lab check fn) calls calcDayPts after this sync
 }
 
 buildAll();
