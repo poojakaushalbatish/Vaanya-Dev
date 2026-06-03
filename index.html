@@ -719,8 +719,7 @@ tr:hover td{background:#FAFBFF}
   <button class="nb t7" onclick="showTab('creative',this)">🎨 Creative Moments</button>
   <button class="nb t3" onclick="showTab('wordbook',this)">📖 My WordBook</button>
   <button class="nb t4" id="btn-parent-tab" onclick="showParentTabWithPin(this)">👨‍👩‍👧 Parents Review</button>
-  <button class="nb t1" onclick="showTab('rewards',this)">🎁 Rewards</button>
-  <button class="nb t2" onclick="showTab('spend',this)">🛒 Spend</button>
+  <button class="nb t1" onclick="showTab('rewards',this);renderRewards();">🏆 Rewards</button>
   <button class="nb t5" onclick="showTab('history',this)">📅 History</button>
   <button class="nb t6" onclick="showTab('graphs',this)">📈 Progress</button>
   <button class="nb t7" onclick="showTab('gallery',this);loadCreativeGallery()">🖼️ My Gallery</button>
@@ -1018,9 +1017,12 @@ tr:hover td{background:#FAFBFF}
 </div><!-- end tab-report -->
 
 <!-- ═══════════════════════════════════════
-     TAB: REWARDS
+     TAB: REWARDS (merged Rewards + Spend)
 ═══════════════════════════════════════ -->
 <div class="tab" id="tab-rewards">
+<div id="tab-spend" style="display:none"></div><!-- compat: old spend tab id kept for JS refs -->
+
+<!-- TOP BANNER -->
 <div style="background:linear-gradient(135deg,#FF006E,#FB5607,#FFBE0B,#06D6A0);border-radius:22px;
   padding:18px;margin-bottom:16px;color:#fff;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
   border:3px solid rgba(255,255,255,.4);position:relative;overflow:hidden">
@@ -1029,7 +1031,7 @@ tr:hover td{background:#FAFBFF}
   <div style="font-size:42px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.25));position:relative">🏆</div>
   <div class="tb-info" style="position:relative">
     <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.2)" id="rwd-total-pts">0 points earned</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.9);margin-top:2px;font-weight:800">Earn big · Save smart · Claim EPIC prizes! 🌟</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.9);margin-top:2px;font-weight:800">Earn big · Treat yourself · Claim EPIC prizes! 🌟</div>
   </div>
   <div class="tb-pts" style="position:relative">
     <div style="background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.5);border-radius:14px;padding:7px 14px;text-align:center">
@@ -1044,55 +1046,59 @@ tr:hover td{background:#FAFBFF}
       <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.2)" id="rwd-streak">0🔥</div>
       <div style="font-size:9px;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em;font-weight:900">Streak</div>
     </div>
+    <!-- compat IDs for spend tab JS -->
+    <span id="spend-avail" style="display:none">0</span>
+    <span id="streak-spend" style="display:none">0</span>
   </div>
 </div>
-<div id="reward-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:16px"></div>
+
+<!-- ROTATING MOTIVATIONAL QUOTE -->
+<div id="spend-quote-bar" style="margin-bottom:14px"></div>
+
+<!-- ─────────────────────────────────────
+     SECTION 1: DAILY TREATS
+───────────────────────────────────── -->
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+  <div style="font-size:20px">🍬</div>
+  <div style="font-family:'Fredoka One',cursive;font-size:20px;color:#FB5607">Daily Treats</div>
+  <div style="flex:1;height:2px;background:linear-gradient(90deg,#FB5607,transparent);border-radius:2px;margin-left:4px"></div>
+</div>
+<div style="background:linear-gradient(135deg,#FFF9C4,#FFE082);border:2px solid #FFB300;border-radius:14px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+  <div style="font-size:20px">💡</div>
+  <div style="font-size:11px;color:#5D4037;font-weight:800;line-height:1.6">Each treat costs points from your bank · Used today = locked till midnight · Tell Mamma or Papa first!</div>
+</div>
+<div id="spend-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px"></div>
+
+<!-- ─────────────────────────────────────
+     SECTION 2: STAR REWARDS
+───────────────────────────────────── -->
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+  <div style="font-size:20px">🌟</div>
+  <div style="font-family:'Fredoka One',cursive;font-size:20px;color:#8338EC">Star Rewards</div>
+  <div style="flex:1;height:2px;background:linear-gradient(90deg,#8338EC,transparent);border-radius:2px;margin-left:4px"></div>
+</div>
+<div style="background:linear-gradient(135deg,#EDE9FE,#DDD6FE);border:2px solid #8338EC;border-radius:14px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+  <div style="font-size:20px">💜</div>
+  <div style="font-size:11px;color:#4C1D95;font-weight:800;line-height:1.6">Save your points for big milestones! Once claimed stays as your trophy · You can re-claim by spending pts again!</div>
+</div>
+<div id="reward-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:16px"></div>
+
+<!-- SPENDING HISTORY -->
+<div class="sec mt14">
+  <div class="sh" style="justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="si" style="background:var(--al);color:var(--a)">📜</div>My spending history
+    </div>
+    <button onclick="clearAllSpendHistory()" style="font-size:11px;font-weight:800;color:#B91C1C;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:8px;padding:5px 12px;cursor:pointer;font-family:'Nunito',sans-serif">🗑️ Clear all</button>
+  </div>
+  <div id="spend-hist-list"></div>
+</div>
+
+<!-- POINTS EARNING GUIDE -->
 <div class="sec mt14">
   <div class="sh"><div class="si" style="background:var(--al);color:var(--a)">📋</div>Points earning guide — every day</div>
   <table><thead><tr><th>Activity</th><th>Points</th><th>Note</th></tr></thead>
   <tbody id="earn-guide"></tbody></table>
-</div>
-</div>
-
-<!-- ═══════════════════════════════════════
-     TAB: SPEND
-═══════════════════════════════════════ -->
-<div class="tab" id="tab-spend">
-<div style="background:linear-gradient(135deg,#3A86FF,#8338EC,#FF006E);border-radius:22px;
-  padding:18px;margin-bottom:14px;color:#fff;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  border:3px solid rgba(255,255,255,.4);position:relative;overflow:hidden">
-  <div style="position:absolute;font-size:80px;right:-10px;top:-10px;opacity:.22;transform:rotate(-10deg);pointer-events:none">🎮</div>
-  <div style="position:absolute;font-size:42px;left:10px;bottom:-10px;opacity:.28;animation:wobble-icon 2s ease-in-out infinite alternate;pointer-events:none">💫</div>
-  <div style="font-size:42px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.25));position:relative">🛒</div>
-  <div class="tb-info" style="position:relative">
-    <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.2)">Spend Your Points!</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.9);margin-top:2px;font-weight:800">Daily treats · Tell Mamma or Papa first! 🎉</div>
-  </div>
-  <div class="tb-pts" style="position:relative">
-    <div style="background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.5);border-radius:14px;padding:7px 16px;text-align:center">
-      <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.2)" id="spend-avail">0</div>
-      <div style="font-size:9px;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em;font-weight:900">Available pts</div>
-    </div>
-    <div style="background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.5);border-radius:14px;padding:7px 16px;text-align:center">
-      <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.2)" id="streak-spend">0🔥</div>
-      <div style="font-size:9px;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em;font-weight:900">Streak</div>
-    </div>
-  </div>
-</div>
-<div style="background:linear-gradient(135deg,#FFF9C4,#FFE082);border:3px solid #FFB300;border-radius:16px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
-  <div style="font-size:26px;flex-shrink:0">💡</div>
-  <div style="font-size:12px;color:#5D4037;font-weight:800;line-height:1.7">
-    Each item costs points from your bank. Once used today it locks till tomorrow! Save big pts for the 🏆 Rewards tab!
-  </div>
-</div>
-<div id="spend-quote-bar" style="margin-bottom:14px"></div>
-<div id="spend-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:14px"></div>
-<div class="sec">
-  <div class="sh" style="justify-content:space-between">
-    <div style="display:flex;align-items:center;gap:8px"><div class="si" style="background:var(--al);color:var(--a)">📜</div>My spending history</div>
-    <button onclick="clearAllSpendHistory()" style="font-size:11px;font-weight:800;color:#B91C1C;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:8px;padding:5px 12px;cursor:pointer;font-family:'Nunito',sans-serif">🗑️ Clear all</button>
-  </div>
-  <div id="spend-hist-list"></div>
 </div>
 </div>
 
@@ -2289,6 +2295,10 @@ tr:hover td{background:#FAFBFF}
   <button class="cg-filter" onclick="cgSetFilter('journal',this)">📔 Journal</button>
   <button class="cg-filter" onclick="cgSetFilter('moral_values',this)">📿 Moral Values</button>
   <button class="cg-filter" onclick="cgSetFilter('proverb',this)">💬 Proverbs</button>
+  <button class="cg-filter" onclick="cgSetFilter('ai_notes',this)">🤖 AI Notes</button>
+  <button class="cg-filter" onclick="cgSetFilter('ayurvedic_notes',this)">🌿 Ayurvedic</button>
+  <button class="cg-filter" onclick="cgSetFilter('vedas_notes',this)">🕉️ Vedas</button>
+  <button class="cg-filter" onclick="cgSetFilter('interesting_facts',this)">🏛️ Interesting Facts</button>
 </div>
 
 <!-- DETAIL VIEW -->
@@ -2763,7 +2773,6 @@ function showTab(id,btn){
   if(id==='brain'){} // worksheets load when Worksheets tab clicked
   if(id==='wordbook'){ wbWords=[]; wbLoad(); }
   if(id==='rewards'){renderRewards();setTimeout(showVaanyaMotivation,600);}
-  if(id==='spend')renderSpend();
   if(id==='history')renderHistory();
   if(id==='graphs')renderGraphs();
   if(id==='parent'){
@@ -3164,6 +3173,15 @@ function _buildNotepadPanel(key, opt){
   const placeholder = isPoem
     ? 'Write your poem here...\n\nEvery great poem starts with one honest line.\nLet your heart speak — in Hindi or English!'
     : 'Write your story here...\n\nOnce upon a time...\n\nLet your imagination take you on an adventure!';
+  const poemToolbar = isPoem
+    ? '<div style="display:flex;gap:6px;margin-bottom:10px;padding:7px 10px;background:#F5F3FF;border-radius:10px;border:1.5px solid #DDD6FE;align-items:center;flex-wrap:wrap">'
+      + '<span style="font-size:10px;font-weight:800;color:#7C3AED;margin-right:4px">Format:</span>'
+      + '<button onclick="cmFormatText(\'bold\')" style="width:30px;height:30px;border-radius:7px;border:1.5px solid #C4B5FD;background:#fff;font-weight:900;font-size:14px;cursor:pointer;font-family:Georgia,serif;color:#3B0764">B</button>'
+      + '<button onclick="cmFormatText(\'italic\')" style="width:30px;height:30px;border-radius:7px;border:1.5px solid #C4B5FD;background:#fff;font-size:14px;cursor:pointer;font-family:Georgia,serif;font-style:italic;color:#3B0764">I</button>'
+      + '<button onclick="cmFormatText(\'underline\')" style="width:30px;height:30px;border-radius:7px;border:1.5px solid #C4B5FD;background:#fff;font-size:14px;cursor:pointer;font-family:Georgia,serif;text-decoration:underline;color:#3B0764">U</button>'
+      + '<span style="font-size:10px;color:#9CA3AF;font-weight:700;margin-left:6px">Select text then tap</span>'
+      + '</div>'
+    : '';
 
   return `
 <div style="background:#fff;border:2px solid ${isPoem?'#DDD6FE':'#93C5FD'};border-radius:18px;overflow:hidden;margin-bottom:14px;box-shadow:0 4px 20px rgba(0,0,0,.06)">
@@ -3177,6 +3195,7 @@ function _buildNotepadPanel(key, opt){
     <div style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:800;color:#fff">Notepad \U0001f4dd</div>
   </div>
   <div style="padding:18px">
+    ${poemToolbar}
     <!-- Notepad -->
     <div style="${noteStyle}border-radius:14px;padding:6px 0;position:relative;overflow:hidden;margin-bottom:16px;box-shadow:inset 0 2px 6px rgba(0,0,0,.04)">
       <!-- Binding strip -->
@@ -5031,36 +5050,98 @@ function showVaanyaMotivation(){
 // ════════════════════════════════════════════
 // REWARDS TAB
 // ════════════════════════════════════════════
+// ── Claimed rewards helpers ────────────────────────────────────
+function getClaimedRewards(){
+  try{ return JSON.parse(localStorage.getItem('vaanya_claimed_rewards')||'{}'); }
+  catch(e){ return {}; }
+}
+function markRewardClaimed(key, pts, title){
+  const claimed = getClaimedRewards();
+  if(!claimed[key]) claimed[key] = {count:0, history:[]};
+  claimed[key].count++;
+  claimed[key].lastClaimed = new Date().toISOString();
+  claimed[key].history.unshift({date:new Date().toLocaleDateString('en-IN'), pts, title});
+  localStorage.setItem('vaanya_claimed_rewards', JSON.stringify(claimed));
+}
+
+function claimReward(rewardIdx, pts){
+  const _rData=(()=>{try{return JSON.parse(localStorage.getItem('vaanya_admin_rewards')||'null')||REWARDS;}catch(e){return REWARDS;}})();
+  const _r=_rData.filter(x=>x.active!==false).sort((a,b)=>a.pts-b.pts)[rewardIdx]||{};
+  const title=_r.title||'Reward';
+  if(availablePts() < pts){ toast('Not enough points yet! Keep earning! 💪'); return; }
+  if(!confirm('Claim "'+title+'" for '+pts.toLocaleString()+' pts?\n\nTell Mamma or Papa!\nDeducts '+pts.toLocaleString()+' pts from your bank.')) return;
+  // Reuse spendPts mechanism to deduct pts + log to Supabase
+  const key = 'reward_'+rewardIdx;
+  totalSpent += pts;
+  const spendItem = {id:key, cost:pts, title, date:new Date().toISOString().split('T')[0]};
+  spendHist.unshift(spendItem);
+  localStorage.setItem('vaanya_spent_total', totalSpent);
+  localStorage.setItem('vaanya_spend_hist', JSON.stringify(spendHist));
+  saveSpendToSupabase(spendItem);
+  markRewardClaimed(key, pts, title);
+  updateTopBar();
+  showPop('🎉', 'Reward Claimed! 🌟', 'You claimed "'+title+'"! Tell Mamma & Papa to make it happen! 🏆');
+  renderRewards();
+  renderSpend();
+}
+
 function renderRewards(){
-  const avail=availablePts();const earned=totalEarned();
-  const el=document.getElementById('rwd-total-pts');if(el)el.textContent=earned.toLocaleString()+' total points earned';
-  const ea=document.getElementById('rwd-avail');if(ea)ea.textContent=avail.toLocaleString();
-  const ed=document.getElementById('rwd-days');if(ed)ed.textContent=savedDays.length;
-  const es=document.getElementById('rwd-streak');if(es)es.textContent=getStreak()+'🔥';
+  const avail=availablePts(); const earned=totalEarned();
+  const el=document.getElementById('rwd-total-pts'); if(el)el.textContent=earned.toLocaleString()+' total points earned';
+  const ea=document.getElementById('rwd-avail');     if(ea)ea.textContent=avail.toLocaleString();
+  const ed=document.getElementById('rwd-days');      if(ed)ed.textContent=savedDays.length;
+  const es=document.getElementById('rwd-streak');    if(es)es.textContent=getStreak()+'🔥';
+  // Keep spend-avail in sync for any legacy JS
+  const sa=document.getElementById('spend-avail');   if(sa)sa.textContent=avail;
 
   const rewardsData=(()=>{try{return JSON.parse(localStorage.getItem('vaanya_admin_rewards')||'null')||REWARDS;}catch(e){return REWARDS;}})();
-  const g=document.getElementById('reward-grid');if(!g)return;g.innerHTML='';
-  rewardsData.filter(r=>r.active!==false).sort((a,b)=>a.pts-b.pts).forEach(r=>{
-    // Unlock based on AVAILABLE bank pts (earned minus spent) — not total earned
-    const unlocked=avail>=r.pts;
-    const prog=Math.min(100,Math.round(avail/r.pts*100));
-    const grad=r.grad||('linear-gradient(135deg,'+r.col+','+r.col+'CC)');
+  const claimed = getClaimedRewards();
+  const g=document.getElementById('reward-grid'); if(!g)return; g.innerHTML='';
+
+  rewardsData.filter(r=>r.active!==false).sort((a,b)=>a.pts-b.pts).forEach((r,idx)=>{
+    const unlocked = avail>=r.pts;
+    const prog = Math.min(100,Math.round(avail/r.pts*100));
+    const grad = r.grad||('linear-gradient(135deg,'+r.col+','+r.col+'CC)');
+    const key = 'reward_'+idx;
+    const claimInfo = claimed[key];
+    const claimCount = claimInfo ? claimInfo.count : 0;
+
     const div=document.createElement('div');
     div.className='rcard '+(unlocked?'unlocked':'locked');
-    div.style.cssText=`background:${grad}`;
-    div.innerHTML=`
-      <div class="rc-lock">${unlocked?'✅':'🔒'}</div>
-      <div class="rc-icon">${r.icon}</div>
-      <div class="rc-pts">${r.pts.toLocaleString()} pts needed</div>
-      <div class="rc-title">${r.title}</div>
-      <div class="rc-items">${(r.items||[]).map(i=>'• '+i).join('<br>')}</div>
-      <div class="rc-prog"><div class="rc-fill" style="width:0%"></div></div>
-      <div style="font-size:9px;color:rgba(255,255,255,.9);margin-top:3px;font-weight:900">${prog}% · ${Math.min(avail,r.pts).toLocaleString()}/${r.pts.toLocaleString()} bank pts</div>
-      ${unlocked?`<div class="rc-claim" style="color:${r.bdr||r.col}">🎉 CLAIM IT!</div>`:''}`;
+    div.style.cssText='background:'+grad;
+
+    // Trophy badge if ever claimed
+    const trophyBadge = claimCount>0
+      ? '<div style="position:absolute;top:9px;left:11px;background:rgba(255,255,255,.9);border-radius:20px;padding:2px 8px;font-size:10px;font-weight:900;color:#B45309">'
+        + '✅ Claimed '+(claimCount>1?claimCount+'x':'')+'</div>'
+      : '';
+
+    div.innerHTML=
+      trophyBadge+
+      '<div class="rc-lock">'+(unlocked?'🔓':'🔒')+'</div>'+
+      '<div class="rc-icon">'+r.icon+'</div>'+
+      '<div class="rc-pts">'+r.pts.toLocaleString()+' pts</div>'+
+      '<div class="rc-title">'+r.title+'</div>'+
+      '<div class="rc-items">'+(r.items||[]).map(i=>'• '+i).join('<br>')+'</div>'+
+      '<div class="rc-prog"><div class="rc-fill" style="width:0%"></div></div>'+
+      '<div style="font-size:9px;color:rgba(255,255,255,.9);margin-top:3px;font-weight:900">'+
+        prog+'% · '+Math.min(avail,r.pts).toLocaleString()+'/'+r.pts.toLocaleString()+' pts'+
+      '</div>'+
+      (unlocked
+        ? '<button onclick="claimReward('+idx+','+r.pts+')" '
+          + 'style="width:100%;margin-top:8px;padding:8px;border-radius:14px;border:2px solid rgba(255,255,255,.7);'
+          + 'background:rgba(255,255,255,.95);color:'+(r.bdr||'#8338EC')+';font-family:Fredoka One,cursive;'
+          + 'font-size:14px;cursor:pointer;font-weight:900;transition:all .15s">'
+          + (claimCount>0 ? '🔄 Claim Again!' : '🎉 CLAIM IT!')
+          + '</button>'
+        : '<div style="font-size:11px;color:rgba(255,255,255,.8);margin-top:8px;font-weight:800">Need '+(r.pts-avail).toLocaleString()+' more pts</div>');
+
     g.appendChild(div);
-    // Animate progress bar after render
-    setTimeout(()=>{const f=div.querySelector('.rc-fill');if(f)f.style.width=prog+'%';},80);
+    setTimeout(()=>{ const f=div.querySelector('.rc-fill'); if(f)f.style.width=prog+'%'; },80);
   });
+
+  // Also render the spend grid and history now that they're on the same page
+  renderSpend();
 }
 
 // ════════════════════════════════════════════
@@ -8869,14 +8950,16 @@ const TT_WEEKDAY = [
   {
     id:'wd-study', time:'4:00 PM – 6:00 PM', name:'Homework & Self Study', icon:'✏️',
     iconBg:'#EFF6FF', iconColor:'#2563EB', color:'#2563EB', lightBg:'#EFF6FF',
-    type:'normal', maxPts:34, unlockHour:16.0,
+    type:'normal', maxPts:62, unlockHour:16.0,
     activities:[
       {id:'wd-st1', name:'Homework',                      pts:0,  type:'self',   note:'No pts — must be done every day 📚'},
       {id:'wd-st2', name:'Brain Lab — Maths Sprint',      pts:0,  type:'link',   tab:'brain', note:'→ Brain Lab · pts pulled from there'},
       {id:'wd-st3', name:'Brain Lab — Logic',             pts:0,  type:'link',   tab:'brain', note:'→ Brain Lab · pts pulled from there'},
       {id:'wd-st4', name:'Brain Lab — Sudoku',            pts:0,  type:'link',   tab:'brain', note:'→ Brain Lab · pts pulled from there'},
       {id:'wd-st5', name:'Self Study',                    pts:7,  type:'self'},
-      {id:'wd-st6', name:'Olympiad Practice & Papers',    pts:10, type:'self'},
+      {id:'wd-st6', name:'Olympiad Practice & Papers',    pts:0,  type:'pct-calc', maxCalcPts:15, note:'App calculates pts from % — max 15 pts'},
+      {id:'wd-ws1', name:'Worksheet 1',                   pts:0,  type:'pct-calc', maxCalcPts:10, note:'App calculates pts from % — max 10 pts'},
+      {id:'wd-ws2', name:'Worksheet 2',                   pts:0,  type:'pct-calc', maxCalcPts:10, note:'App calculates pts from % — max 10 pts'},
     ]
   },
 
@@ -8892,14 +8975,15 @@ const TT_WEEKDAY = [
 
   // ── 6:50 PM – 8:00 PM — ODDA ────────────────────────────────
   {
-    id:'wd-odda', time:'6:50 PM – 8:00 PM', name:'Odda Class + Assignment', icon:'💻',
+    id:'wd-odda', time:'6:50 PM – 8:00 PM', name:'Odda Class + Dinner', icon:'💻',
     iconBg:'#F3EFFE', iconColor:'#7C3AED', color:'#7C3AED', lightBg:'#F3EFFE',
     type:'normal', maxPts:20, unlockHour:18.83,
     activities:[
       {id:'wd-od1', name:'Odda Class + Assignment',                        pts:10, type:'self'},
-      {id:'wd-od2', name:'No Odda — Read about AI and make notes',         pts:5,  type:'self', note:'Only if no Odda class today'},
-      {id:'wd-od3', name:'No Odda — Read about Ayurvedic herbs + notes',   pts:5,  type:'self', note:'Only if no Odda class today'},
-      {id:'wd-od4', name:'No Odda — Read about Vedas and make notes',      pts:5,  type:'self', note:'Only if no Odda class today'},
+      {id:'wd-od5', name:'Dinner',                                         pts:0,  type:'self', note:'No pts — nourish yourself! 🍽️'},
+      {id:'wd-od2', name:'No Odda — Read about AI and make notes',         pts:5,  type:'text-entry', entryKey:'ai_notes', saveTo:'gallery', galleryKey:'ai_notes', note:'Write your AI learning notes here'},
+      {id:'wd-od3', name:'No Odda — Read about Ayurvedic herbs + notes',   pts:5,  type:'text-entry', entryKey:'ayurvedic_notes', saveTo:'gallery', galleryKey:'ayurvedic_notes', note:'Write your Ayurvedic herbs notes here'},
+      {id:'wd-od4', name:'No Odda — Read about Vedas and make notes',      pts:5,  type:'text-entry', entryKey:'vedas_notes', saveTo:'gallery', galleryKey:'vedas_notes', note:'Write your Vedas learning notes here'},
     ]
   },
 
@@ -8907,12 +8991,15 @@ const TT_WEEKDAY = [
   {
     id:'wd-enrich', time:'8:00 PM – 9:00 PM', name:'Evening Enrichment', icon:'⭐',
     iconBg:'#FDF2F8', iconColor:'#DB2777', color:'#DB2777', lightBg:'#FDF2F8',
-    type:'normal', maxPts:15, unlockHour:20.0,
+    type:'normal', maxPts:55, unlockHour:20.0,
     activities:[
-      {id:'wd-e1', name:'Kathak class',                                pts:10, type:'self'},
-      {id:'wd-e2', name:'Maths Practice — Solve 10 complex questions', pts:0,  type:'parent', note:'⏳ Parents award pts as per marks'},
-      {id:'wd-e3', name:'Odda class + make notes',                     pts:5,  type:'self'},
-      {id:'wd-e4', name:'Any school activity / preparation',           pts:0,  type:'self', note:'No pts — but important! ✅'},
+      {id:'wd-e1', name:'Kathak class',                                         pts:10, type:'self'},
+      {id:'wd-e2', name:'Maths Practice — Solve 10 complex questions',          pts:0,  type:'pct-calc', maxCalcPts:15, note:'App calculates pts from % — max 15 pts'},
+      {id:'wd-e5', name:'Questionnaire — 10 Questions',                         pts:0,  type:'pct-calc', maxCalcPts:15, note:'App calculates pts from % — max 15 pts'},
+      {id:'wd-e3', name:'Odda class + make notes',                              pts:5,  type:'self'},
+      {id:'wd-e6', name:'Learn one FACT from Indian History and make notes',    pts:10, type:'text-entry', entryKey:'indian_history', saveTo:'gallery', galleryKey:'interesting_facts', note:'Write the historical fact and what you learned'},
+      {id:'wd-e4', name:'Any school activity / preparation',                    pts:0,  type:'self', note:'No pts — but important! ✅'},
+      {id:'wd-e7', name:'Creative Task',                                          pts:0,  type:'parent-select', maxCalcPts:20, note:'Parents award up to 20 pts on review · No points added from this page'},
     ]
   },
 
@@ -9085,11 +9172,11 @@ const TT_WEEKEND = [
     iconBg:'#F3EFFE', iconColor:'#7C3AED', color:'#7C3AED', lightBg:'#F3EFFE',
     type:'normal', maxPts:20, unlockHour:18.83,
     activities:[
-      {id:'we-od1', name:'Odda Class + Assignment',                       pts:10, type:'self'},
-      {id:'we-od2', name:'No Odda — Read about AI and make notes',        pts:5,  type:'self', note:'Only if no Odda class today'},
-      {id:'we-od3', name:'No Odda — Read about Ayurvedic herbs + notes',  pts:5,  type:'self', note:'Only if no Odda class today'},
-      {id:'we-od4', name:'No Odda — Read about Vedas and make notes',     pts:5,  type:'self', note:'Only if no Odda class today'},
-      {id:'we-od5', name:'Dinner',                                        pts:0,  type:'self', note:'No pts — nourish yourself! 🍽️'},
+      {id:'we-od1', name:'Odda Class + Assignment',                        pts:10, type:'self'},
+      {id:'we-od5', name:'Dinner',                                         pts:0,  type:'self', note:'No pts — nourish yourself!'},
+      {id:'we-od2', name:'No Odda — Read about AI and make notes',         pts:5,  type:'text-entry', entryKey:'ai_notes', saveTo:'gallery', galleryKey:'ai_notes', note:'Write your AI learning notes here'},
+      {id:'we-od3', name:'No Odda — Read about Ayurvedic herbs + notes',   pts:5,  type:'text-entry', entryKey:'ayurvedic_notes', saveTo:'gallery', galleryKey:'ayurvedic_notes', note:'Write your Ayurvedic herbs notes here'},
+      {id:'we-od4', name:'No Odda — Read about Vedas and make notes',      pts:5,  type:'text-entry', entryKey:'vedas_notes', saveTo:'gallery', galleryKey:'vedas_notes', note:'Write your Vedas learning notes here'},
     ]
   },
 
@@ -9102,7 +9189,8 @@ const TT_WEEKEND = [
       {id:'we-en1', name:'Kathak class',                                      pts:10, type:'self'},
       {id:'we-en2', name:'Maths Practice — Solve 10 complex questions',       pts:0,  type:'pct-calc', maxCalcPts:20, note:'App calculates pts from % — max 20 pts'},
       {id:'we-en3', name:'Odda class + make notes',                           pts:5,  type:'self'},
-      {id:'we-en4', name:'Learn one FACT from Indian History + make notes',   pts:10, type:'self'},
+      {id:'we-en4', name:'Learn one FACT from Indian History and make notes',  pts:10, type:'text-entry', entryKey:'indian_history', saveTo:'gallery', galleryKey:'interesting_facts', note:'Write the historical fact and what you learned'},
+      {id:'we-en5', name:'Creative Task',                                         pts:0,  type:'parent-select', maxCalcPts:20, note:'Parents award up to 20 pts on review · No points added from this page'},
     ]
   },
 
@@ -9407,6 +9495,25 @@ function ttRender(){
               const isChecked = bState.checkedActs[act.id]||false;
               const cls = act.type==='parent'?'parent-pending':act.type==='link'?'linked':act.type==='wordbook'?'linked':'';
 
+              // Special rendering: parent-select (child marks done, parent awards pts)
+              if(act.type==='parent-select'){
+                const isCheckedPs = bState.checkedActs[act.id]||false;
+                return `
+                  <div class="tt-act parent-pending ${isCheckedPs?'checked':''}" id="ttact-${act.id}"
+                    style="cursor:pointer" onclick="ttToggleAct('${block.id}','${act.id}',0,'parent-select')">
+                    <div class="tt-act-left">
+                      <div class="tt-act-cb">${isCheckedPs?'\u2713':''}</div>
+                      <div>
+                        <div class="tt-act-name">${act.name}</div>
+                        <div class="tt-act-sub">${act.note||''}</div>
+                      </div>
+                    </div>
+                    <div class="tt-act-pts" style="color:#F59E0B">
+                      ${isCheckedPs?'\u2713 Done · awaiting parent':'up to '+act.maxCalcPts+' pts \U0001f468\u200d\U0001f469\u200d\U0001f467'}
+                    </div>
+                  </div>`;
+              }
+
               // Special rendering: text entry (moral values, proverbs)
               if(act.type==='text-entry'){
                 const isCheckedTe = bState.checkedActs[act.id]||false;
@@ -9546,8 +9653,13 @@ function ttRender(){
 
 // ── Collect timetable pts for calcDayPts ──────────────────────
 function ttGetTotalPts(){
+  // Only sum the ACTIVE schedule's blocks to prevent cross-contamination
+  const activeSchedule = ttGetSchedule();
+  const activeIds = new Set(activeSchedule.map(b=>b.id));
   let total = 0;
-  Object.values(ttBlockStates).forEach(s=>{ total += (s.pts||0); });
+  Object.keys(ttBlockStates).forEach(id=>{
+    if(activeIds.has(id)) total += (ttBlockStates[id].pts||0);
+  });
   return total;
 }
 
@@ -9983,6 +10095,31 @@ function ttSyncBrainLabPts(){
   // The caller (brain lab check fn) calls calcDayPts after this sync
 }
 
+// ── Poem text formatting (Bold/Italic/Underline via markdown-style markers) ──
+function cmFormatText(type){
+  const ta = document.getElementById('cm-text-input');
+  if(!ta) return;
+  const start = ta.selectionStart;
+  const end   = ta.selectionEnd;
+  const selected = ta.value.substring(start, end);
+  if(!selected){ toast('Select some text first, then tap the format button!'); return; }
+
+  const markers = {bold:'**', italic:'_', underline:'__'};
+  const m = markers[type];
+  const already = selected.startsWith(m) && selected.endsWith(m);
+  let replacement;
+  if(already){
+    replacement = selected.slice(m.length, -m.length); // remove formatting
+  } else {
+    replacement = m + selected + m;
+  }
+  ta.value = ta.value.substring(0,start) + replacement + ta.value.substring(end);
+  ta.selectionStart = start;
+  ta.selectionEnd   = start + replacement.length;
+  ta.focus();
+  onCreativeTextInput();
+}
+
 buildAll();
 _sessionWireInputs(); // start per-date session tracking
 _sessionStartAutoSave(); // background Supabase auto-save every 60s
@@ -10028,8 +10165,12 @@ const _CG_MAP = {
   craft:        {icon:'✂️',  label:'Paper Craft',         dotColor:'#10B981', textBg:'#ECFDF5', textColor:'#065F46'},
   mandala:      {icon:'🌸', label:'Mandala Art',          dotColor:'#EC4899', textBg:'#FDF2F8', textColor:'#9D174D'},
   journal:      {icon:'📔', label:'Journal',              dotColor:'#F59E0B', textBg:'#FFFDE7', textColor:'#92400E'},
-  moral_values: {icon:'📿', label:'Moral Values',         dotColor:'#065F46', textBg:'#F0FDF4', textColor:'#065F46'},
-  proverb:      {icon:'💬', label:'Proverb',              dotColor:'#7C3AED', textBg:'#F5F3FF', textColor:'#5B21B6'},
+  moral_values:      {icon:'📿', label:'Moral Values',        dotColor:'#065F46', textBg:'#F0FDF4', textColor:'#065F46'},
+  proverb:           {icon:'💬', label:'Proverb',             dotColor:'#7C3AED', textBg:'#F5F3FF', textColor:'#5B21B6'},
+  ai_notes:          {icon:'🤖', label:'AI Notes',            dotColor:'#2563EB', textBg:'#EFF6FF', textColor:'#1E3A8A'},
+  ayurvedic_notes:   {icon:'🌿', label:'Ayurvedic Notes',     dotColor:'#059669', textBg:'#ECFDF5', textColor:'#065F46'},
+  vedas_notes:       {icon:'🕉️', label:'Vedas Notes',         dotColor:'#D97706', textBg:'#FFFBEB', textColor:'#92400E'},
+  interesting_facts: {icon:'🏛️', label:'Interesting Facts',   dotColor:'#7C3AED', textBg:'#F5F3FF', textColor:'#5B21B6'},
 };
 
 async function loadCreativeGallery(force=false){
