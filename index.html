@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vaanya's Performance Report 🏆</title>
+<title>Vaanya's Schedule & Scoreboard 🏆</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -688,7 +688,7 @@ tr:hover td{background:#FAFBFF}
     <div class="av-photo-badge">🌈 AURORA STAR</div>
   </div>
   <div class="tb-info" style="position:relative;z-index:10">
-    <div class="aurora-title">VAANYA'S PERFORMANCE REPORT 🏆</div>
+    <div class="aurora-title">VAANYA'S SCHEDULE & SCOREBOARD 🏆</div>
     <div class="aurora-sub">Class 6 · DPS Noida · CBSE 2026–27</div>
     <div class="aurora-xp-wrap" style="margin-top:8px"><div class="aurora-xp-fill" id="xp-bar" style="width:0%"></div></div>
     <div style="font-size:12px;color:#047857;margin-top:4px;font-weight:800" id="xp-lbl">0 pts earned today</div>
@@ -2287,6 +2287,8 @@ tr:hover td{background:#FAFBFF}
   <button class="cg-filter" onclick="cgSetFilter('craft',this)">✂️ Craft</button>
   <button class="cg-filter" onclick="cgSetFilter('mandala',this)">🌸 Mandala</button>
   <button class="cg-filter" onclick="cgSetFilter('journal',this)">📔 Journal</button>
+  <button class="cg-filter" onclick="cgSetFilter('moral_values',this)">📿 Moral Values</button>
+  <button class="cg-filter" onclick="cgSetFilter('proverb',this)">💬 Proverbs</button>
 </div>
 
 <!-- DETAIL VIEW -->
@@ -4289,13 +4291,9 @@ function calcDayPts(){
     // Parent has explicitly set a value — use it directly, no auto-calc
     shlokaPts=_lgPts;
   } else {
-    // Auto-calc from geetaProgress — only count today's activity
+    // Auto-calc: only mastered TODAY by parent adds pts. inprogress = 0 auto-pts.
     Object.values(geetaProgress||{}).forEach(function(v){
-      if(v.status==='mastered' && v.date===_loadedDate){
-        shlokaPts+=25; // mastered today
-      } else if((v.status==='inprogress'||v.status==='relearning') && (!v.date||v.date>=_loadedDate)){
-        shlokaPts+=10; // actively learning on or after today
-      }
+      if(v.status==='mastered' && v.date===_loadedDate){ shlokaPts+=25; }
     });
   }
   pts+=shlokaPts; breakdown.shloka=shlokaPts;
@@ -8918,7 +8916,7 @@ const TT_WEEKDAY = [
     iconBg:'#F0FDF4', iconColor:'#065F46', color:'#065F46', lightBg:'#F0FDF4',
     type:'normal', maxPts:10, unlockHour:21.0,
     activities:[
-      {id:'wd-v1', name:'Read Moral Values Book — 1 chapter + explain', pts:5, type:'self'},
+      {id:'wd-v1', name:'Read Moral Values Book — 1 chapter + explain', pts:5, type:'text-entry', entryKey:'moral_values', saveTo:'gallery', galleryKey:'moral_values', note:'Write what you learned from this chapter'},
       {id:'wd-v2', name:'Solve questionnaire by parents',                pts:0, type:'pct-calc', maxCalcPts:10, note:'App calculates pts from % — max 10 pts'},
     ]
   },
@@ -9047,7 +9045,7 @@ const TT_WEEKEND = [
     type:'normal', maxPts:35, unlockHour:16.5,
     activities:[
       {id:'we-sh1', name:'Shloka learning & writing in copy',              pts:25, type:'parent', note:'⏳ Parents award pts on Parents Review · 25 pts for full mastery'},
-      {id:'we-sh2', name:'Learn a proverb by a famous writer',             pts:10, type:'parent', note:'⏳ Parents check and award · 10 pts'},
+      {id:'we-sh2', name:'Learn a proverb by a famous writer',             pts:10, type:'text-entry', entryKey:'proverb', saveTo:'gallery', galleryKey:'proverb', note:'Write the proverb and what it means to you'},
     ]
   },
 
@@ -9108,7 +9106,7 @@ const TT_WEEKEND = [
     iconBg:'#F0FDF4', iconColor:'#065F46', color:'#065F46', lightBg:'#F0FDF4',
     type:'normal', maxPts:10, unlockHour:21.0,
     activities:[
-      {id:'we-v1', name:'Read Moral Values Book — 1 chapter + explain', pts:5, type:'self'},
+      {id:'we-v1', name:'Read Moral Values Book — 1 chapter + explain', pts:5, type:'text-entry', entryKey:'moral_values', saveTo:'gallery', galleryKey:'moral_values', note:'Write what you learned from this chapter'},
       {id:'we-v2', name:'Solve questionnaire by parents',                pts:0, type:'pct-calc', maxCalcPts:10, note:'App calculates pts from % — max 10 pts'},
     ]
   },
@@ -9187,22 +9185,34 @@ function ttToggleHoliday(){
 
 // ── Left panel: set schedule tab ──────────────────────────────
 function lp_setSchedule(mode){
-  // 'weekday' or 'holiday'
   const d = new Date();
   const day = d.getDay();
   const isNaturalWeekend = (day===0||day===6);
-  if(mode==='holiday'){
-    // On a natural weekend, holiday IS the default — no override needed
-    // On a weekday, set the holiday override flag
-    if(!isNaturalWeekend) ttIsHoliday = true;
-  } else {
-    // weekday tab pressed — clear holiday override
-    ttIsHoliday = false;
+  const frozen = localStorage.getItem('tt_frozen_schedule');
+  const todayKey = new Date().toLocaleDateString('en-CA');
+  const frozenDate = localStorage.getItem('tt_frozen_date');
+  if(frozen && frozen !== mode && frozenDate === todayKey){
+    const msg = 'You already have activities on the '+(frozen==='holiday'?'Holiday':'Weekday')+' schedule today.\n\nSwitch anyway?';
+    if(!confirm(msg)) return;
   }
-  lp_syncTabStyles();
-  ttRender();
-  calcDayPts();
-  lp_updateDateCard();
+  if(mode==='holiday'){ if(!isNaturalWeekend) ttIsHoliday = true; }
+  else { ttIsHoliday = false; }
+  localStorage.setItem('tt_frozen_schedule', mode);
+  localStorage.setItem('tt_frozen_date', todayKey);
+  lp_syncTabStyles(); ttRender(); calcDayPts(); lp_updateDateCard();
+}
+
+function lp_restoreFrozenSchedule(){
+  const frozen = localStorage.getItem('tt_frozen_schedule');
+  const frozenDate = localStorage.getItem('tt_frozen_date');
+  const todayKey = new Date().toLocaleDateString('en-CA');
+  if(frozen && frozenDate === todayKey){
+    const d = new Date();
+    const isNaturalWeekend = (d.getDay()===0||d.getDay()===6);
+    if(frozen==='holiday' && !isNaturalWeekend) ttIsHoliday = true;
+    else if(frozen==='weekday') ttIsHoliday = false;
+    lp_syncTabStyles(); lp_updateDateCard();
+  }
 }
 
 // ── Style the two tabs based on active schedule ───────────────
@@ -9258,6 +9268,7 @@ function ttInitDay(){
   if(isWeekend) ttIsHoliday = false; // natural weekend handled by lp_syncTabStyles logic
 
   // Drive left panel
+  lp_restoreFrozenSchedule();
   lp_updateDateCard();
   lp_syncTabStyles();
 
@@ -9387,6 +9398,42 @@ function ttRender(){
             ${block.activities.map(act=>{
               const isChecked = bState.checkedActs[act.id]||false;
               const cls = act.type==='parent'?'parent-pending':act.type==='link'?'linked':act.type==='wordbook'?'linked':'';
+
+              // Special rendering: text entry (moral values, proverbs)
+              if(act.type==='text-entry'){
+                const isCheckedTe = bState.checkedActs[act.id]||false;
+                const savedText   = (bState.textEntries && bState.textEntries[act.id]) || '';
+                return `
+                  <div class="tt-act ${isCheckedTe?'checked':''}" id="ttact-${act.id}"
+                    style="flex-direction:column;align-items:flex-start;gap:8px;cursor:default">
+                    <div style="display:flex;align-items:center;gap:10px;width:100%;cursor:pointer"
+                      onclick="ttToggleTextEntry('${block.id}','${act.id}',${act.pts})">
+                      <div class="tt-act-cb">${isCheckedTe?'\u2713':''}</div>
+                      <div style="flex:1">
+                        <div class="tt-act-name">${act.name}</div>
+                        <div class="tt-act-sub">${act.note||''}</div>
+                      </div>
+                      <div class="tt-act-pts" style="color:${block.color}">+${act.pts} pts</div>
+                    </div>
+                    <div id="te-panel-${act.id}" style="display:${isCheckedTe?'block':'none'};width:100%">
+                      <textarea id="te-text-${act.id}" rows="3"
+                        style="width:100%;background:#FFFBF0;border:1.5px solid #FDE68A;border-radius:10px;
+                          padding:10px 12px;font-size:13px;font-family:'Nunito',sans-serif;
+                          color:#1E1B4B;resize:none;outline:none;box-sizing:border-box;line-height:1.7"
+                        placeholder="${act.note||'Write your thoughts here...'}"
+                        onfocus="this.style.borderColor='#F59E0B'" onblur="this.style.borderColor='#FDE68A'"
+                        oninput="ttSaveTextEntry('${block.id}','${act.id}')"
+                        >${savedText}</textarea>
+                      <button id="te-save-btn-${act.id}"
+                        onclick="ttSaveTextEntryToGallery('${block.id}','${act.id}','${act.galleryKey||act.entryKey||act.id}','${act.name}')"
+                        style="margin-top:6px;padding:6px 16px;border-radius:8px;border:none;
+                          background:${block.color};color:#fff;font-size:11px;font-weight:900;
+                          cursor:pointer;font-family:'Nunito',sans-serif">
+                        Save to Gallery
+                      </button>
+                    </div>
+                  </div>`;
+              }
 
               // Special rendering: points dropdown selector
               if(act.type==='dropdown'){
@@ -9785,6 +9832,60 @@ function ttSelectDropdownPts(blockId, actId, selectedPts){
   calcDayPts();
 }
 
+// ── Text Entry (moral values, proverbs) ───────────────────────
+function ttToggleTextEntry(blockId, actId, pts){
+  if(!ttBlockStates[blockId]) ttBlockStates[blockId]={pts:0,checkedActs:{},markedDone:false};
+  const bState = ttBlockStates[blockId];
+  const wasChecked = bState.checkedActs[actId]||false;
+  bState.checkedActs[actId] = !wasChecked;
+  if(wasChecked){ bState.pts = Math.max(0, bState.pts - pts); }
+  else { bState.pts += pts; }
+  const panel = document.getElementById('te-panel-'+actId);
+  const actEl = document.getElementById('ttact-'+actId);
+  if(panel) panel.style.display = bState.checkedActs[actId] ? 'block' : 'none';
+  if(actEl){
+    if(bState.checkedActs[actId]) actEl.classList.add('checked');
+    else actEl.classList.remove('checked');
+    const cb = actEl.querySelector('.tt-act-cb');
+    if(cb) cb.textContent = bState.checkedActs[actId] ? '\u2713' : '';
+  }
+  ttUpdateBlockPts(blockId); calcDayPts();
+}
+
+function ttSaveTextEntry(blockId, actId){
+  if(!ttBlockStates[blockId]) return;
+  const ta = document.getElementById('te-text-'+actId);
+  if(!ta) return;
+  if(!ttBlockStates[blockId].textEntries) ttBlockStates[blockId].textEntries = {};
+  ttBlockStates[blockId].textEntries[actId] = ta.value;
+}
+
+async function ttSaveTextEntryToGallery(blockId, actId, galleryKey, actName){
+  const ta = document.getElementById('te-text-'+actId);
+  if(!ta || !ta.value.trim()){ toast('Please write something first!'); return; }
+  ttSaveTextEntry(blockId, actId);
+  const date = document.getElementById('rpt-date')?.value || new Date().toLocaleDateString('en-CA');
+  if(!_supabase){ toast('Not connected to database.'); return; }
+  const btn = document.getElementById('te-save-btn-'+actId);
+  if(btn){ btn.disabled=true; btn.textContent='Saving...'; }
+  try{
+    const {error} = await _supabase.from('vaanya_creative_works').insert([{
+      date, activity_key: galleryKey, activity_name: actName,
+      text_content: ta.value.trim(), created_at: new Date().toISOString(),
+    }]);
+    if(error) throw error;
+    if(btn){ btn.disabled=false; btn.textContent='Saved to Gallery!'; }
+    toast('Saved to Gallery!');
+    setTimeout(()=>{ if(btn){ btn.textContent='Save to Gallery'; btn.disabled=false; } },3000);
+    _cgLoaded = false;
+  } catch(e){
+    console.error('Gallery save error:',e);
+    if(btn){ btn.disabled=false; btn.textContent='Save to Gallery'; }
+    toast('Could not save. Check connection.');
+  }
+}
+
+
 buildAll();
 _sessionWireInputs(); // start per-date session tracking
 _sessionStartAutoSave(); // background Supabase auto-save every 60s
@@ -9824,12 +9925,14 @@ loadFromSupabase().then(ok => {
 // CREATIVE GALLERY — load, filter, display from Supabase
 // ════════════════════════════════════════════════════════════════
 const _CG_MAP = {
-  draw:    {icon:'🎨', label:'Drawing / Painting', dotColor:'#F97316', textBg:'#FFF7ED', textColor:'#92400E'},
-  poem:    {icon:'✍️',  label:'Poem',               dotColor:'#8B5CF6', textBg:'#F5F3FF', textColor:'#5B21B6'},
-  story:   {icon:'📖', label:'Story',               dotColor:'#3B82F6', textBg:'#EFF6FF', textColor:'#1E3A8A'},
-  craft:   {icon:'✂️',  label:'Paper Craft',         dotColor:'#10B981', textBg:'#ECFDF5', textColor:'#065F46'},
-  mandala: {icon:'🌸', label:'Mandala Art',          dotColor:'#EC4899', textBg:'#FDF2F8', textColor:'#9D174D'},
-  journal: {icon:'📔', label:'Journal',              dotColor:'#F59E0B', textBg:'#FFFDE7', textColor:'#92400E'},
+  draw:         {icon:'🎨', label:'Drawing / Painting', dotColor:'#F97316', textBg:'#FFF7ED', textColor:'#92400E'},
+  poem:         {icon:'✍️',  label:'Poem',               dotColor:'#8B5CF6', textBg:'#F5F3FF', textColor:'#5B21B6'},
+  story:        {icon:'📖', label:'Story',               dotColor:'#3B82F6', textBg:'#EFF6FF', textColor:'#1E3A8A'},
+  craft:        {icon:'✂️',  label:'Paper Craft',         dotColor:'#10B981', textBg:'#ECFDF5', textColor:'#065F46'},
+  mandala:      {icon:'🌸', label:'Mandala Art',          dotColor:'#EC4899', textBg:'#FDF2F8', textColor:'#9D174D'},
+  journal:      {icon:'📔', label:'Journal',              dotColor:'#F59E0B', textBg:'#FFFDE7', textColor:'#92400E'},
+  moral_values: {icon:'📿', label:'Moral Values',         dotColor:'#065F46', textBg:'#F0FDF4', textColor:'#065F46'},
+  proverb:      {icon:'💬', label:'Proverb',              dotColor:'#7C3AED', textBg:'#F5F3FF', textColor:'#5B21B6'},
 };
 
 async function loadCreativeGallery(force=false){
@@ -10001,6 +10104,8 @@ function cgOpenDetail(idx){
         <div style="font-size:13px;font-weight:700">No photo was uploaded for this entry.</div>
       </div>`;
     }
+  } else if(work.activity_key==='moral_values'||work.activity_key==='proverb'){
+    content.innerHTML = `<div class="cg-story-display" style="background:#F0FDF4;border-color:#A7F3D0;color:#064E3B">${(work.text_content||'').replace(/\n/g,'<br>')}</div>`;
   } else if(work.activity_key==='poem'){
     content.innerHTML = `<div class="cg-poem-display">${(work.text_content||'').replace(/\n/g,'<br>')}</div>`;
   } else if(work.activity_key==='story'){
