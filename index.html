@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vaanya's Daily Schedule & Scoreboard 🏆</title>
+<title>Vaanya's Schedule & Scoreboard 🏆</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -688,7 +688,7 @@ tr:hover td{background:#FAFBFF}
     <div class="av-photo-badge">🌈 AURORA STAR</div>
   </div>
   <div class="tb-info" style="position:relative;z-index:10">
-    <div class="aurora-title">VAANYA'S DAILY SCHEDULE & SCOREBOARD 🏆</div>
+    <div class="aurora-title">VAANYA'S SCHEDULE & SCOREBOARD 🏆</div>
     <div class="aurora-sub">Class 6 · DPS Noida · CBSE 2026–27</div>
     <div class="aurora-xp-wrap" style="margin-top:8px"><div class="aurora-xp-fill" id="xp-bar" style="width:0%"></div></div>
     <div style="font-size:12px;color:#047857;margin-top:4px;font-weight:800" id="xp-lbl">0 pts earned today</div>
@@ -4158,6 +4158,8 @@ function calcOddaAssign(){
 }
 
 function calcDayPts(){
+  // Sync brain lab pts into timetable blocks (guard prevents circular call)
+  if(typeof ttSyncBrainLabPts==='function' && !_ttSyncing) ttSyncBrainLabPts();
   const ttPts = (typeof ttGetTotalPts==='function') ? ttGetTotalPts() : 0;
   let pts=0;
   let breakdown={};
@@ -7447,7 +7449,6 @@ function loadDraftDay(d){
   if(d.ttBlockStatesJSON){
     try{ ttBlockStates = JSON.parse(d.ttBlockStatesJSON)||{}; }
     catch(e){ ttBlockStates = {}; }
-    // In test mode: clear any stale markedDone flags so blocks aren't stuck as COMPLETED
     if(typeof TT_TEST_MODE !== 'undefined' && TT_TEST_MODE){
       Object.keys(ttBlockStates).forEach(k=>{
         if(ttBlockStates[k]) ttBlockStates[k].markedDone = false;
@@ -7455,6 +7456,8 @@ function loadDraftDay(d){
     }
     ttRender();
     if(typeof ttRenderMiniSchedule==='function') ttRenderMiniSchedule();
+    // Sync brain lab pts after restoring state
+    setTimeout(()=>{ if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts(); }, 300);
   }
 
   if(d.creativeChosen){
@@ -9501,17 +9504,25 @@ function ttRender(){
                 </div>`;
               }
 
+              // For brain-linked activities: read live pts from global variable
+              let displayPts = act.pts;
+              let displayChecked = isChecked;
+              if(act.type==='link' && typeof _TT_BRAIN_MAP!=='undefined' && _TT_BRAIN_MAP[act.id]){
+                displayPts = _TT_BRAIN_MAP[act.id]();
+                displayChecked = displayPts > 0;
+              }
+
               return `
-                <div class="tt-act ${cls} ${isChecked?'checked':''}" id="ttact-${act.id}"
-                  onclick="ttToggleAct('${block.id}','${act.id}',${act.pts},'${act.type}')">
+                <div class="tt-act ${cls} ${displayChecked?'checked':''}" id="ttact-${act.id}"
+                  onclick="${act.type==='link'?`ttGoToTab('${act.tab||'brain'}')`:`ttToggleAct('${block.id}','${act.id}',${act.pts},'${act.type}')`}">
                   <div class="tt-act-left">
-                    <div class="tt-act-cb">${isChecked?'✓':''}</div>
+                    <div class="tt-act-cb">${displayChecked?'✓':''}</div>
                     <div>
                       <div class="tt-act-name">${act.name}</div>
                       ${act.note?`<div class="tt-act-sub">${act.note}</div>`:''}
                     </div>
                   </div>
-                  <div class="tt-act-pts" style="color:${block.color}">+${act.pts} pts${act.type==='parent'?' 👨‍👩‍👧':act.type==='link'?' 🔗':''}</div>
+                  <div class="tt-act-pts" style="color:${displayPts>0?block.color:'#9CA3AF'}" id="ttact-pts-${act.id}">+${displayPts} pts${act.type==='parent'?' 👨‍👩‍👧':act.type==='link'?' 🔗':''}</div>
                 </div>`;
             }).join('')}
           </div>
@@ -9885,6 +9896,72 @@ async function ttSaveTextEntryToGallery(blockId, actId, galleryKey, actName){
   }
 }
 
+
+// ── Brain Lab → Timetable point sync ──────────────────────────
+let _ttSyncing = false;
+// Maps timetable activity IDs to their brain lab global variable
+const _TT_BRAIN_MAP = {
+  // Holiday: Maths Deep Practice block
+  'we-ma3': ()=>mathsPtsToday,   // Brain Lab Maths Sprint
+  'we-ma4': ()=>logicPtsTotal,   // Brain Lab Logic
+  // Holiday: Brain Lab + Focus block
+  'we-br1': ()=>sudokuPts,       // Sudoku
+  'we-br2': ()=>riddlePtsTotal,  // Riddles
+  // Weekday: Homework & Study block
+  'wd-st2': ()=>mathsPtsToday,   // Brain Lab Maths Sprint
+  'wd-st3': ()=>logicPtsTotal,   // Brain Lab Logic
+  'wd-st4': ()=>sudokuPts,       // Sudoku
+};
+
+function ttSyncBrainLabPts(){
+  if(_ttSyncing) return; _ttSyncing=true;
+  // For every brain-linked activity, update pts display and block total
+  const schedule = ttGetSchedule();
+  schedule.forEach(block => {
+    const acts = block.activities || [];
+    let changed = false;
+    acts.forEach(act => {
+      if(act.type !== 'link' || !_TT_BRAIN_MAP[act.id]) return;
+      const livePts = _TT_BRAIN_MAP[act.id]();
+      if(!ttBlockStates[block.id])
+        ttBlockStates[block.id] = {pts:0, checkedActs:{}, markedDone:false, linkPts:{}};
+      if(!ttBlockStates[block.id].linkPts)
+        ttBlockStates[block.id].linkPts = {};
+
+      const oldPts = ttBlockStates[block.id].linkPts[act.id] || 0;
+      const diff = livePts - oldPts;
+      if(diff !== 0){
+        ttBlockStates[block.id].pts = Math.max(0, (ttBlockStates[block.id].pts||0) + diff);
+        ttBlockStates[block.id].linkPts[act.id] = livePts;
+
+        // Auto-mark the activity as checked if it has pts
+        if(livePts > 0) ttBlockStates[block.id].checkedActs[act.id] = true;
+        else delete ttBlockStates[block.id].checkedActs[act.id];
+
+        changed = true;
+      }
+
+      // Update the displayed pts on the activity row
+      const ptsEl = document.getElementById('ttact-pts-'+act.id);
+      if(ptsEl){
+        ptsEl.textContent = '+'+livePts+' pts \uD83D\uDD17';
+        ptsEl.style.color = livePts > 0 ? block.color : '#9CA3AF';
+      }
+      // Update the checkbox visual
+      const actEl = document.getElementById('ttact-'+act.id);
+      if(actEl){
+        if(livePts > 0) actEl.classList.add('checked');
+        else actEl.classList.remove('checked');
+        const cb = actEl.querySelector('.tt-act-cb');
+        if(cb) cb.textContent = livePts > 0 ? '\u2713' : '';
+      }
+    });
+    if(changed){
+      ttUpdateBlockPts(block.id);
+    }
+  });
+  calcDayPts();
+}
 
 buildAll();
 _sessionWireInputs(); // start per-date session tracking
