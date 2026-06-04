@@ -1022,66 +1022,99 @@ tr:hover td{background:#FAFBFF}
 <div class="tab" id="tab-rewards">
 <div id="tab-spend" style="display:none"></div><!-- compat: old spend tab id kept for JS refs -->
 
-<!-- TOP BANNER -->
-<div style="background:linear-gradient(135deg,#FF006E,#FB5607,#FFBE0B,#06D6A0);border-radius:22px;
-  padding:18px;margin-bottom:16px;color:#fff;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  border:3px solid rgba(255,255,255,.4);position:relative;overflow:hidden">
-  <div style="position:absolute;font-size:90px;right:-15px;top:-20px;opacity:.2;transform:rotate(15deg);pointer-events:none">🏆</div>
-  <div style="position:absolute;font-size:50px;left:8px;bottom:-14px;opacity:.25;animation:spin-slow 5s linear infinite;pointer-events:none">⭐</div>
-  <div style="font-size:42px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.25));position:relative">🏆</div>
-  <div class="tb-info" style="position:relative">
-    <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.2)" id="rwd-total-pts">0 points earned</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.9);margin-top:2px;font-weight:800">Earn big · Treat yourself · Claim EPIC prizes! 🌟</div>
-  </div>
-  <div class="tb-pts" style="position:relative">
-    <div style="background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.5);border-radius:14px;padding:7px 14px;text-align:center">
-      <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.2)" id="rwd-avail">0</div>
-      <div style="font-size:9px;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em;font-weight:900">Available</div>
+<!-- REWARDS PAGE CSS -->
+<style>
+@keyframes confetti-fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(60px) rotate(720deg);opacity:0}}
+@keyframes pop-in{0%{transform:scale(.8);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+.rw-strip-row{display:flex;align-items:stretch;border-radius:16px;border:1.5px solid #F3F4F6;background:#fff;margin-bottom:8px;overflow:hidden;transition:all .2s;cursor:pointer}
+.rw-strip-row:hover{border-color:#E5E7EB;box-shadow:0 4px 16px rgba(0,0,0,.07);transform:translateY(-1px)}
+.rw-strip-row.used{opacity:.55}
+.rw-accent{width:5px;flex-shrink:0;align-self:stretch;border-radius:16px 0 0 16px}
+.rw-body{display:flex;align-items:center;gap:12px;padding:12px 14px;flex:1;min-width:0}
+.rw-icon{font-size:26px;width:34px;text-align:center;flex-shrink:0}
+.rw-info{flex:1;min-width:0}
+.rw-name{font-size:13px;font-weight:900;color:#1E1B4B;font-family:'Nunito',sans-serif}
+.rw-sub{font-size:10px;color:#6B7280;margin-top:2px;font-family:'Nunito',sans-serif}
+.rw-prog{height:4px;background:#F3F4F6;border-radius:2px;margin-top:5px;overflow:hidden}
+.rw-prog-fill{height:100%;border-radius:2px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
+.rw-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;padding:12px 14px 12px 0;flex-shrink:0}
+.rw-pts{font-size:11px;font-weight:900;color:#6B7280;font-family:'Nunito',sans-serif}
+.rw-btn{font-size:11px;font-weight:900;padding:5px 14px;border-radius:20px;border:2px solid currentColor;background:transparent;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .15s;white-space:nowrap}
+.rw-btn:hover:not(:disabled){filter:brightness(.9)}
+.rw-btn:disabled{opacity:.4;cursor:not-allowed}
+.rw-trophy{font-size:9px;background:#EFF6FF;color:#1D4ED8;border-radius:6px;padding:1px 6px;margin-left:5px;font-family:'Nunito',sans-serif;font-weight:900;vertical-align:middle}
+.rw-section-hdr{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+.rw-section-line{flex:1;height:2px;border-radius:2px}
+.confetti-dot{position:absolute;width:8px;height:8px;border-radius:50%;pointer-events:none;animation:confetti-fall .8s ease-out forwards}
+</style>
+
+<!-- CELEBRATION BANNER -->
+<div style="position:relative;border-radius:20px;overflow:hidden;margin-bottom:16px;padding:20px 20px 16px">
+  <div style="position:absolute;inset:0;background:linear-gradient(135deg,#FF006E,#FB5607,#FFBE0B,#06D6A0,#3A86FF,#8338EC);background-size:300% 300%;animation:auroraShift 6s ease infinite"></div>
+  <!-- Floating stars -->
+  <div style="position:absolute;font-size:28px;right:20px;top:10px;animation:spin-slow 4s linear infinite;opacity:.5;pointer-events:none">⭐</div>
+  <div style="position:absolute;font-size:18px;right:60px;top:30px;animation:spin-slow 6s linear infinite reverse;opacity:.4;pointer-events:none">✨</div>
+  <div style="position:absolute;font-size:24px;right:110px;top:8px;opacity:.35;pointer-events:none">🎊</div>
+  <div style="position:absolute;font-size:16px;left:200px;bottom:6px;opacity:.3;animation:wobble-icon 3s ease-in-out infinite;pointer-events:none">🎉</div>
+  <div style="position:relative;z-index:1;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <div style="font-size:44px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))">🏆</div>
+    <div>
+      <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.2);line-height:1.1" id="rwd-total-pts">0 points earned</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.92);font-weight:800;margin-top:3px">Every point is a trophy of your hard work! Keep shining! ⭐</div>
     </div>
-    <div style="background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.5);border-radius:14px;padding:7px 14px;text-align:center">
-      <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.2)" id="rwd-days">0</div>
-      <div style="font-size:9px;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em;font-weight:900">Days saved</div>
+    <div style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap">
+      <div style="background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.5);border-radius:14px;padding:8px 16px;text-align:center">
+        <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#fff;line-height:1" id="rwd-avail">0</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em;font-weight:900;margin-top:2px">Available ✨</div>
+      </div>
+      <div style="background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.5);border-radius:14px;padding:8px 16px;text-align:center">
+        <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#fff;line-height:1" id="rwd-days">0</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em;font-weight:900;margin-top:2px">Days saved 🌟</div>
+      </div>
+      <div style="background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.5);border-radius:14px;padding:8px 16px;text-align:center">
+        <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#fff;line-height:1" id="rwd-streak">0🔥</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em;font-weight:900;margin-top:2px">Streak 🔥</div>
+      </div>
     </div>
-    <div style="background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.5);border-radius:14px;padding:7px 14px;text-align:center">
-      <div style="font-family:'Fredoka One',cursive;font-size:22px;color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.2)" id="rwd-streak">0🔥</div>
-      <div style="font-size:9px;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em;font-weight:900">Streak</div>
-    </div>
-    <!-- compat IDs for spend tab JS -->
+    <!-- compat IDs -->
     <span id="spend-avail" style="display:none">0</span>
     <span id="streak-spend" style="display:none">0</span>
   </div>
 </div>
 
-<!-- ROTATING MOTIVATIONAL QUOTE -->
+<!-- ROTATING QUOTE (kept for motivation) -->
 <div id="spend-quote-bar" style="margin-bottom:14px"></div>
 
-<!-- ─────────────────────────────────────
-     SECTION 1: DAILY TREATS
-───────────────────────────────────── -->
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-  <div style="font-size:20px">🍬</div>
-  <div style="font-family:'Fredoka One',cursive;font-size:20px;color:#FB5607">Daily Treats</div>
-  <div style="flex:1;height:2px;background:linear-gradient(90deg,#FB5607,transparent);border-radius:2px;margin-left:4px"></div>
-</div>
-<div style="background:linear-gradient(135deg,#FFF9C4,#FFE082);border:2px solid #FFB300;border-radius:14px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
-  <div style="font-size:20px">💡</div>
-  <div style="font-size:11px;color:#5D4037;font-weight:800;line-height:1.6">Each treat costs points from your bank · Used today = locked till midnight · Tell Mamma or Papa first!</div>
-</div>
-<div id="spend-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px"></div>
+<!-- TWO COLUMN LAYOUT -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
 
-<!-- ─────────────────────────────────────
-     SECTION 2: STAR REWARDS
-───────────────────────────────────── -->
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-  <div style="font-size:20px">🌟</div>
-  <div style="font-family:'Fredoka One',cursive;font-size:20px;color:#8338EC">Star Rewards</div>
-  <div style="flex:1;height:2px;background:linear-gradient(90deg,#8338EC,transparent);border-radius:2px;margin-left:4px"></div>
+  <!-- ── LEFT: DAILY TREATS ── -->
+  <div style="padding-right:16px;border-right:1.5px solid #F3F4F6">
+    <div class="rw-section-hdr">
+      <span style="font-size:22px">🍬</span>
+      <span style="font-family:'Fredoka One',cursive;font-size:18px;color:#FB5607">Daily Treats</span>
+      <div class="rw-section-line" style="background:linear-gradient(90deg,#FB5607,transparent)"></div>
+    </div>
+    <div style="font-size:10px;color:#92400E;background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:10px;padding:6px 10px;margin-bottom:10px;font-weight:800">
+      💡 Used today = locked till midnight · Tell Mamma or Papa first!
+    </div>
+    <div id="spend-grid"></div>
+  </div>
+
+  <!-- ── RIGHT: STAR REWARDS ── -->
+  <div style="padding-left:16px">
+    <div class="rw-section-hdr">
+      <span style="font-size:22px">🌟</span>
+      <span style="font-family:'Fredoka One',cursive;font-size:18px;color:#8338EC">Star Rewards</span>
+      <div class="rw-section-line" style="background:linear-gradient(90deg,#8338EC,transparent)"></div>
+    </div>
+    <div style="font-size:10px;color:#4C1D95;background:#F5F3FF;border:1.5px solid #DDD6FE;border-radius:10px;padding:6px 10px;margin-bottom:10px;font-weight:800">
+      💜 Save up · Claim · Trophy stays forever · Re-claim anytime!
+    </div>
+    <div id="reward-grid"></div>
+  </div>
+
 </div>
-<div style="background:linear-gradient(135deg,#EDE9FE,#DDD6FE);border:2px solid #8338EC;border-radius:14px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
-  <div style="font-size:20px">💜</div>
-  <div style="font-size:11px;color:#4C1D95;font-weight:800;line-height:1.6">Save your points for big milestones! Once claimed stays as your trophy · You can re-claim by spending pts again!</div>
-</div>
-<div id="reward-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:16px"></div>
 
 <!-- SPENDING HISTORY -->
 <div class="sec mt14">
@@ -1092,13 +1125,6 @@ tr:hover td{background:#FAFBFF}
     <button onclick="clearAllSpendHistory()" style="font-size:11px;font-weight:800;color:#B91C1C;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:8px;padding:5px 12px;cursor:pointer;font-family:'Nunito',sans-serif">🗑️ Clear all</button>
   </div>
   <div id="spend-hist-list"></div>
-</div>
-
-<!-- POINTS EARNING GUIDE -->
-<div class="sec mt14">
-  <div class="sh"><div class="si" style="background:var(--al);color:var(--a)">📋</div>Points earning guide — every day</div>
-  <table><thead><tr><th>Activity</th><th>Points</th><th>Note</th></tr></thead>
-  <tbody id="earn-guide"></tbody></table>
 </div>
 </div>
 
@@ -2400,24 +2426,25 @@ function updateSS(){
 }
 
 const REWARDS=[
-  {pts:500, icon:'🎬',title:'Extra movie at home',       grad:'linear-gradient(135deg,#FF6B6B,#FF8E53)',bdr:'#FF4444',items:['Family movie of your choice!','Popcorn & snacks included!','Any day, any time!']},
-  {pts:600, icon:'🍽️',title:'Family dinner — your pick!', grad:'linear-gradient(135deg,#FF9A3C,#FF6B6B)',bdr:'#FF6B00',items:['Restaurant of your choice!','Place of your choice!','Full veto power! 🎉']},
-  {pts:800, icon:'📚',title:'New book of your choice',   grad:'linear-gradient(135deg,#06D6A0,#1B9AAA)',bdr:'#028A6A',items:['Fiction, comics, knowledge!','Any book you want!','Visit bookstore together!']},
-  {pts:1000,icon:'🍿',title:'Movie in a theatre!',       grad:'linear-gradient(135deg,#FFBE0B,#FB5607)',bdr:'#CC8800',items:['Big screen experience!','Popcorn + cold drink! 🎬','You pick the film!']},
-  {pts:1200,icon:'🎁',title:'Surprise gift from Parents!',grad:'linear-gradient(135deg,#FF006E,#8338EC)',bdr:'#C0004C',items:['Mystery wrapped gift!','Could be ANYTHING amazing! 🌟']},
-  {pts:1600,icon:'🎡',title:'Outing of your choice!',    grad:'linear-gradient(135deg,#8338EC,#3A86FF)',bdr:'#5500CC',items:['Go-carting, theme park!','Full day out!','Your choice, your day! 🎢']},
-  {pts:2000,icon:'🛍️',title:'Shopping spree!',           grad:'linear-gradient(135deg,#3A86FF,#06D6A0)',bdr:'#1A56CC',items:['Shop what you want!','Within budget by parents!','Your pick, your style! 💫']},
-  {pts:2500,icon:'🎉',title:'YES DAY!!',                 grad:'linear-gradient(135deg,#FFBE0B,#FF006E,#8338EC)',bdr:'#CC8800',items:['Vaanya says YES to EVERYTHING!','One magical day — YOU rule! 👑','The most epic reward ever! 🌟']},
+  {pts:400,  icon:'🎬', strip:'#FF6B6B', title:'A Movie at Home',                        items:['Family movie of your choice!','Popcorn & snacks included!','Any day, any time!']},
+  {pts:600,  icon:'📚', strip:'#06D6A0', title:'Buy a New Book of your choice',           items:['Any book you want — fiction, comics, knowledge!','Visit bookstore together!']},
+  {pts:800,  icon:'🌱', strip:'#FFBE0B', title:'1 Hour Do Not Disturb — anything you want', items:['No interruptions! 100% your time!','Read, draw, play, relax — you decide!','Parents will not disturb 🤐']},
+  {pts:1000, icon:'🍿', strip:'#FB5607', title:'Movie in a Theater with Parents',         items:['Big screen experience!','Popcorn + cold drink included!','You pick the film!']},
+  {pts:1200, icon:'🎁', strip:'#FF006E', title:'Surprise Gift by Parents',                items:['Mystery wrapped gift!','Could be ANYTHING amazing! 🌟']},
+  {pts:1500, icon:'🌟', strip:'#8338EC', title:'Half Yes Day',                            items:['Half a day — you decide everything!','Morning or afternoon — your call!','Mamma & Papa say YES to your ideas!']},
+  {pts:2700, icon:'👑', strip:'#FF006E', title:'Full Yes Day',                            items:['Vaanya rules for a FULL day!','One magical day — YOU decide EVERYTHING!','👑 The most epic reward EVER!']},
 ];
 
 const SPEND_ITEMS=[
-  {id:'sweets', icon:'🍬',  title:'Eat sweets today',      cost:50,  col:'#EC4899',grad:'linear-gradient(135deg,#FF006E,#FF6B6B)', desc:'Treat yourself to mithai, chocolate or sweets!'},
-  {id:'snack',  icon:'🍟',  title:'Snack of your choice',  cost:50,  col:'#06B6D4',grad:'linear-gradient(135deg,#06D6A0,#3A86FF)', desc:'Pick any snack you want from kitchen or shop!'},
-  {id:'game',   icon:'🎮',  title:'Play a game',           cost:70,  col:'#10B981',grad:'linear-gradient(135deg,#8338EC,#FF006E)', desc:'Play your favourite game — board, outdoor or video!'},
-  {id:'tv30',   icon:'📺',  title:'30 min extra TV',       cost:80,  col:'#3B82F6',grad:'linear-gradient(135deg,#3A86FF,#06D6A0)', desc:'Watch 30 extra minutes of TV or YouTube!'},
-  {id:'canteen',icon:'🏫',  title:'₹30 for canteen',       cost:100, col:'#F97316',grad:'linear-gradient(135deg,#FF9A3C,#FFBE0B)', desc:'Get ₹30 to spend at the school canteen!'},
-  {id:'buy50',  icon:'🛒',  title:'Buy something — ₹50',   cost:100, col:'#D97706',grad:'linear-gradient(135deg,#FF6B6B,#FFBE0B)', desc:'Buy any small item worth up to ₹50!'},
-  {id:'tv60',   icon:'📺✨',title:'1 hour screen time',    cost:200, col:'#8B5CF6',grad:'linear-gradient(135deg,#8338EC,#3A86FF)', desc:'A full extra hour of screen time today!'},
+  {id:'snack_s',  icon:'🍭', title:'Special Snack of Your Choice', cost:30,  col:'#EC4899', strip:'#FF006E', desc:'Any snack you want — your pick!'},
+  {id:'tv15',     icon:'📺', title:'Extra 15 Mins TV',             cost:40,  col:'#3B82F6', strip:'#3A86FF', desc:'15 extra minutes of TV or YouTube'},
+  {id:'choc',     icon:'🍫', title:'A Chocolate',                  cost:50,  col:'#D97706', strip:'#FFBE0B', desc:'Any chocolate of your choice!'},
+  {id:'tv30',     icon:'📺', title:'Extra 30 Mins TV',             cost:80,  col:'#0284C7', strip:'#06D6A0', desc:'30 extra minutes of TV or YouTube'},
+  {id:'game_par', icon:'🎮', title:'Play Game with Parents',       cost:90,  col:'#7C3AED', strip:'#8338EC', desc:'Board game or outdoor — parents play with you!'},
+  {id:'chess',    icon:'♟️', title:'Play Chess for 20 Mins',     cost:100, col:'#059669', strip:'#06D6A0', desc:'20 minutes of chess — sharpen your brain!'},
+  {id:'tv60',     icon:'📺', title:'1 Hour Screen Time',           cost:200, col:'#8B5CF6', strip:'#8338EC', desc:'A full extra hour of screen time today!'},
+  {id:'gift_s',   icon:'🎁', title:'Small Surprise Gift by Parents', cost:250, col:'#DB2777', strip:'#FF006E', desc:'A small surprise gift from Mamma or Papa!'},
+  {id:'date',     icon:'❤️', title:'Date with Mom or Dad',       cost:250, col:'#E11D48', strip:'#FB5607', desc:'Special 1-on-1 time — your choice of activity!'},
 ];
 
 const EARN_GUIDE=[
@@ -2512,7 +2539,7 @@ async function loadFromSupabase() {
           odda: d.odda_done === true || d.odda_done === 'true',
           parentComment: d.notes || '',
           parentRating: d.parent_rating || 0,
-          approved: d.approved === true || d.approved === 'true', // DB column is truth
+          approved: (()=>{ const ap=d.approved===true||d.approved==='true'; if(ap){ try{sessionStorage.removeItem('vaanya_session_'+d.date);}catch(e){} } return ap; })(),
           savedAt: d.saved_at,
           ...safeFullData  // spread full_data EXCEPT approved
         };
@@ -2987,6 +3014,14 @@ function totalEarned(){
 })();
 
 function buildAll(){
+  // Clear stale admin-overridden spend/reward data when version changes
+  // Bump this version string whenever SPEND_ITEMS or REWARDS data changes
+  const DATA_VERSION = 'v2-2026-06-03';
+  if(localStorage.getItem('vaanya_data_version') !== DATA_VERSION){
+    localStorage.removeItem('vaanya_admin_spend_items');
+    localStorage.removeItem('vaanya_admin_rewards');
+    localStorage.setItem('vaanya_data_version', DATA_VERSION);
+  }
   // Reset all in-memory pts to 0 — will be restored from cloud/session after load
   // Pre-fill today's date
   const _todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
@@ -3374,7 +3409,7 @@ async function saveCreativeWork(){
   if(!key||!opt){toast('Please choose an activity first!');return;}
 
   const date=document.getElementById('rpt-date')?.value;
-  if(!date){toast('Please set a date on the Daily Report tab first!');return;}
+  if(!date){toast('Please select a date to approve first!');return;}
 
   const btn=document.getElementById('cm-save-btn');
   const status=document.getElementById('cm-status');
@@ -4917,7 +4952,7 @@ function unlockParentActions(){
 }
 
 async function approveReport(){
-  const date=document.getElementById('rpt-date').value;
+  const date = (typeof _pendingReviewDate!=='undefined'&&_pendingReviewDate) ? _pendingReviewDate : document.getElementById('rpt-date').value;
   if(!date){toast("Please set today\'s date first!");return;}
   todayApproved=true;
 
@@ -4972,7 +5007,9 @@ async function approveReport(){
 
   updateTopBar();
   lockForm(date, pts);
-  _sessionClearDate(date); // approved — session no longer needed
+  _sessionClearDate(date); // approved — session must never override Supabase
+  const _rptEl=document.getElementById('rpt-date');
+  if(_rptEl && _rptEl.value!==date) _rptEl.value=date;
   populateResetDatePicker();
   showPop('✅','Report Approved! 🎉','Vaanya your report has been approved! You earned '+pts+' points today! ⭐ Keep it up!');
   toast('Report approved! +'+pts+' points saved! Report is now locked.');
@@ -4987,7 +5024,7 @@ async function approveReport(){
 }
 
 async function rejectReport(){
-  const date = document.getElementById('rpt-date')?.value;
+  const date = _pendingReviewDate || document.getElementById('rpt-date')?.value;
   if(!confirm('REJECT this report? This will completely erase all entries for '+(date||'today')+'. Vaanya will need to start fresh.')) return;
 
   // 1. Delete from Supabase (remove the draft entirely)
@@ -5107,8 +5144,7 @@ function renderRewards(){
     const claimCount = claimInfo ? claimInfo.count : 0;
 
     const div=document.createElement('div');
-    div.className='rcard '+(unlocked?'unlocked':'locked');
-    div.style.cssText='background:'+grad;
+    div.className='';div.style.cssText='';
 
     // Trophy badge if ever claimed
     const trophyBadge = claimCount>0
@@ -5116,28 +5152,43 @@ function renderRewards(){
         + '✅ Claimed '+(claimCount>1?claimCount+'x':'')+'</div>'
       : '';
 
+    const strip = r.strip||r.bdr||'#8338EC';
+    let btnText, btnStyle, btnClick;
+    if(unlocked){
+      btnText = claimCount>0 ? '🔄 Claim again!' : '🎉 Claim it!';
+      btnStyle = 'color:'+strip+';border-color:'+strip;
+      btnClick = 'onclick="claimReward('+idx+','+r.pts+')"';
+    } else {
+      btnText = '🔒 '+(r.pts-avail).toLocaleString()+' more needed';
+      btnStyle = 'color:#9CA3AF;border-color:#E5E7EB;cursor:not-allowed';
+      btnClick = 'disabled';
+    }
+
+    const trophyHtml = claimCount>0
+      ? '<span class="rw-trophy">✅ '+( claimCount>1?'Claimed '+claimCount+'x':'Claimed')+'</span>'
+      : '';
+
+    div.className='rw-strip-row';
     div.innerHTML=
-      trophyBadge+
-      '<div class="rc-lock">'+(unlocked?'🔓':'🔒')+'</div>'+
-      '<div class="rc-icon">'+r.icon+'</div>'+
-      '<div class="rc-pts">'+r.pts.toLocaleString()+' pts</div>'+
-      '<div class="rc-title">'+r.title+'</div>'+
-      '<div class="rc-items">'+(r.items||[]).map(i=>'• '+i).join('<br>')+'</div>'+
-      '<div class="rc-prog"><div class="rc-fill" style="width:0%"></div></div>'+
-      '<div style="font-size:9px;color:rgba(255,255,255,.9);margin-top:3px;font-weight:900">'+
-        prog+'% · '+Math.min(avail,r.pts).toLocaleString()+'/'+r.pts.toLocaleString()+' pts'+
+      '<div class="rw-accent" style="background:'+strip+'"></div>'+
+      '<div class="rw-body">'+
+        '<div class="rw-icon">'+r.icon+'</div>'+
+        '<div class="rw-info">'+
+          '<div class="rw-name">'+r.title+trophyHtml+'</div>'+
+          '<div class="rw-sub">'+r.pts.toLocaleString()+' pts'+(unlocked?' · you have '+avail.toLocaleString():' · need '+(r.pts-avail).toLocaleString()+' more')+'</div>'+
+          '<div class="rw-prog"><div class="rw-prog-fill" style="width:0%;background:'+strip+'" id="rfill-'+idx+'"></div></div>'+
+        '</div>'+
       '</div>'+
-      (unlocked
-        ? '<button onclick="claimReward('+idx+','+r.pts+')" '
-          + 'style="width:100%;margin-top:8px;padding:8px;border-radius:14px;border:2px solid rgba(255,255,255,.7);'
-          + 'background:rgba(255,255,255,.95);color:'+(r.bdr||'#8338EC')+';font-family:Fredoka One,cursive;'
-          + 'font-size:14px;cursor:pointer;font-weight:900;transition:all .15s">'
-          + (claimCount>0 ? '🔄 Claim Again!' : '🎉 CLAIM IT!')
-          + '</button>'
-        : '<div style="font-size:11px;color:rgba(255,255,255,.8);margin-top:8px;font-weight:800">Need '+(r.pts-avail).toLocaleString()+' more pts</div>');
+      '<div class="rw-right">'+
+        '<span class="rw-pts">'+r.pts.toLocaleString()+' pts</span>'+
+        '<button class="rw-btn" style="'+btnStyle+'" '+btnClick+'>'+btnText+'</button>'+
+      '</div>';
 
     g.appendChild(div);
-    setTimeout(()=>{ const f=div.querySelector('.rc-fill'); if(f)f.style.width=prog+'%'; },80);
+    setTimeout(()=>{
+      const f=document.getElementById('rfill-'+idx);
+      if(f) f.style.width=prog+'%';
+    },80);
   });
 
   // Also render the spend grid and history now that they're on the same page
@@ -5216,35 +5267,56 @@ function renderSpend(){
   const spendData=(()=>{try{return JSON.parse(localStorage.getItem('vaanya_admin_spend_items')||'null')||SPEND_ITEMS;}catch(e){return SPEND_ITEMS;}})();
   const usedToday=getUsedToday();
   const g=document.getElementById('spend-grid');if(!g)return;g.innerHTML='';
+
   spendData.filter(s=>s.active!==false).sort((a,b)=>a.cost-b.cost).forEach(item=>{
     const can=avail>=item.cost;
     const used=usedToday.includes(item.id);
-    const grad=item.grad||('linear-gradient(135deg,'+item.col+','+item.col+'BB)');
+    const strip=item.strip||item.col||'#8338EC';
     const div=document.createElement('div');
-    div.className='scard'+(used?' scard-used':'');
-    div.style.cssText=used
-      ?'background:linear-gradient(135deg,#6EE7B7,#34D399);border-color:rgba(255,255,255,.6);opacity:.82'
-      :`background:${grad}`;
-    const btnHtml=used
-      ?`<button class="sc-btn" disabled style="background:rgba(255,255,255,.2);border-style:dashed">✅ Used today — enjoy!</button>`
-      :`<button class="sc-btn" ${can?'':'disabled'}
-          onclick="spendPts('${item.id}',${item.cost},'${item.title}','${item.col}')">
-          ${can?'🛒 Spend '+item.cost+' pts':'🔒 Need '+(item.cost-avail)+' more'}</button>`;
-    div.innerHTML=`
-      <div class="sc-cost-badge">${item.cost} pts</div>
-      <span class="sc-icon">${item.icon}</span>
-      <div class="sc-title">${item.title}</div>
-      <div class="sc-desc">${item.desc}</div>
-      ${btnHtml}`;
-    g.appendChild(div);
-  });
+    div.className='rw-strip-row'+(used?' used':'');
+
+    let btnStyle, btnText, btnDisabled;
+    if(used){
+      btnStyle='color:#6B7280;border-color:#D1D5DB;cursor:not-allowed';
+      btnText='✅ Used today'; btnDisabled='disabled';
+    } else if(can){
+      btnStyle='color:'+strip+';border-color:'+strip;
+      btnText='🎁 Claim '+item.cost+' pts'; btnDisabled='';
+    } else {
+      btnStyle='color:#9CA3AF;border-color:#E5E7EB;cursor:not-allowed';
+      btnText='🔒 '+(item.cost-avail)+' more needed'; btnDisabled='disabled';
+    }
+
+    const _btn = document.createElement('button');
+    _btn.className='rw-btn';
+    _btn.setAttribute('style',btnStyle);
+    if(btnDisabled) _btn.disabled=true;
+    if(can&&!used) _btn.addEventListener('click',()=>spendPts(item.id,item.cost,item.title));
+    _btn.textContent=btnText;
+
+    div.innerHTML=
+      '<div class="rw-accent" style="background:'+strip+'"></div>'+
+      '<div class="rw-body">'+
+        '<div class="rw-icon">'+item.icon+'</div>'+
+        '<div class="rw-info">'+
+          '<div class="rw-name">'+item.title+'</div>'+
+          '<div class="rw-sub">'+(item.desc||'')+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="rw-right" id="rw-right-'+item.id+'">'+
+        '<span class="rw-pts">'+item.cost+' pts</span>'+
+      '</div>';
+    const _r=div.querySelector('.rw-right');
+    if(_r)_r.appendChild(_btn);
+    g.appendChild(div);  });
+
   const hl=document.getElementById('spend-hist-list');if(!hl)return;
   if(!spendHist.length){
-    hl.innerHTML=`<div style="text-align:center;padding:24px;color:var(--muted)"><div style="font-size:32px;margin-bottom:8px">🛒</div><div style="font-weight:800">No spending yet!</div><div style="font-size:11px;margin-top:4px">Earn points and treat yourself!</div></div>`;
+    hl.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted)"><div style="font-size:32px;margin-bottom:8px">🎁</div><div style="font-weight:800">No spending yet!</div><div style="font-size:11px;margin-top:4px">Earn points and treat yourself!</div></div>';
     return;
   }
   hl.innerHTML='<table><thead><tr><th>Date</th><th>Reward</th><th>Points spent</th></tr></thead><tbody>'+
-    spendHist.slice(0,20).map(s=>`<tr><td style="color:var(--muted);white-space:nowrap">${s.date}</td><td style="font-weight:700">${s.title}</td><td style="font-weight:900;color:var(--r)">−${s.cost} pts</td></tr>`).join('')+
+    spendHist.slice(0,20).map(s=>'<tr><td style="color:var(--muted);white-space:nowrap">'+s.date+'</td><td style="font-weight:700">'+s.title+'</td><td style="font-weight:900;color:var(--r)">−'+s.cost+' pts</td></tr>').join('')+
     '</tbody></table>';
 }
 
@@ -7295,7 +7367,8 @@ function onDateChange(){
   // Step 1: Save session for the PREVIOUS date (before we switch)
   const prevDate = el.dataset.prev;
   if(prevDate && prevDate !== date && !todayApproved){
-    _sessionSaveForDate(prevDate);
+    const _prev = savedDays.find(d => d.date === prevDate);
+    if(!_prev || !_prev.approved) _sessionSaveForDate(prevDate);
   }
 
   // Step 2: Clear the form (suppress flag prevents blank session save)
@@ -8397,6 +8470,9 @@ function _sessionKey(date){ return 'vaanya_sess_' + date; }
 // Save snapshot using collectFormData so pills are always included
 function _sessionSaveForDate(date){
   if(!date || _suppressSession) return;
+  // Never save session for an approved report — DB is truth, session must not override
+  const _existingDay = savedDays.find(d => d.date === date);
+  if(_existingDay && _existingDay.approved) return;
   try {
     const pts = calcDayPts();
     const snap = collectFormData(date, pts);
