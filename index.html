@@ -4952,16 +4952,32 @@ function unlockParentActions(){
 }
 
 async function approveReport(){
-  const date = (typeof _pendingReviewDate!=='undefined'&&_pendingReviewDate) ? _pendingReviewDate : document.getElementById('rpt-date').value;
-  if(!date){toast("Please set today\'s date first!");return;}
-  todayApproved=true;
+  // Use _pendingReviewDate (set by Parent Review tab when a date is selected)
+  // NEVER use rpt-date — that shows the Daily Report tab's date, which may differ
+  const date = (typeof _pendingReviewDate!=='undefined' && _pendingReviewDate)
+    ? _pendingReviewDate
+    : document.getElementById('rpt-date').value;
+  if(!date){ toast('Please select a pending report to approve first!'); return; }
 
-  // ── Auto-promote shloka: if parent awarded 25 pts via dropdown,
-  //    mark the in-progress shloka as mastered in geetaProgress now,
-  //    BEFORE collectFormData snapshots it. This keeps the two systems in sync.
-  const shlokaPtsEl = document.getElementById('shloka-pts-award');
-  const shlokaPtsVal = parseInt(shlokaPtsEl?.value||0)||0;
-  if(shlokaPtsVal >= 25){
+  // Get the EXISTING saved data for this date — do NOT re-collect from the form
+  // The form fields belong to the Daily Report tab (different date context)
+  const existingIdx = savedDays.findIndex(d => d.date === date);
+  const existing = existingIdx >= 0 ? savedDays[existingIdx] : null;
+  if(!existing){
+    toast('Could not find report for '+date+'. Please reload and try again.');
+    return;
+  }
+
+  todayApproved = true;
+
+  // Read parent-awarded values from Parent Review dropdowns
+  const parentRating      = parseInt(document.getElementById('parent-rating')?.value||0);
+  const parentComment     = (document.getElementById('parent-comment')?.value||'').substring(0,2000);
+  const shlokaPtsAwarded  = parseInt(document.getElementById('shloka-pts-award')?.value||0)||0;
+  const creativePtsAwarded= parseInt(document.getElementById('creative-pts-award')?.value||0)||0;
+
+  // Auto-promote shloka if parent awarded 25 pts
+  if(shlokaPtsAwarded >= 25){
     const inProgId = _geetaInProgressId();
     if(inProgId){
       geetaProgress[inProgId] = {status:'mastered', date:date, pts:25};
@@ -4969,33 +4985,30 @@ async function approveReport(){
     }
   }
 
-  const pts=calcDayPts();
+  // Build approved data from EXISTING report — only override approval fields
+  const data = {
+    ...existing,
+    approved:           true,
+    parentRating:       parentRating,
+    parentComment:      parentComment,
+    shlokaPtsAwarded:   shlokaPtsAwarded,
+    creativePtsAwarded: creativePtsAwarded,
+    savedAt:            new Date().toISOString(),
+  };
 
-  const shD=!!document.getElementById('shloka-done')?.querySelector('.pg');
-  const crD=!!(document.getElementById('creative-done')?.querySelector('.pg')||document.getElementById('creative-done')?.querySelector('.pa'));
-  const brD=!!(document.getElementById('brain-done')?.querySelector('.pg')||document.getElementById('brain-done')?.querySelector('.pa'));
-  const odD=!!document.getElementById('odda-att')?.querySelector('.pg');
+  // Final pts = original timetable pts + parent additions
+  data.pts = (existing.pts||0) + parentRating + shlokaPtsAwarded + creativePtsAwarded;
+  const pts = data.pts;
 
-  // Use FULL collectFormData so all form fields are preserved in full_data
-  // Override approved:true explicitly after collectFormData runs
-  const data = collectFormData(date, pts);
-  data.approved    = true;
-  data.shlokaD     = shD;
-  data.creativeD   = crD;
-  data.brainD      = brD;
-  data.odda        = odD;
-  data.parentComment = (document.getElementById('parent-comment')?.value||'').substring(0,2000);
-  data.parentRating  = parseInt(document.getElementById('parent-rating')?.value||0);
-  data.savedAt       = new Date().toISOString();
-
-  const idx=savedDays.findIndex(d=>d.date===date);
-  if(idx>=0)savedDays[idx]={...savedDays[idx],...data};
-  else savedDays.unshift(data);
+  // Update in-memory savedDays
+  savedDays[existingIdx] = data;
   savedDays.sort((a,b)=>new Date(b.date)-new Date(a.date));
-  localStorage.setItem('vaanya_days',JSON.stringify(savedDays));
+  localStorage.setItem('vaanya_days', JSON.stringify(savedDays));
+
+  // Save to Supabase — single source of truth for approval state
   await saveToSupabase(data);
 
-  // Show approved banner
+  // UI updates
   const actions=document.getElementById('parent-action-section');
   if(actions)actions.style.display='none';
   const appSec=document.getElementById('approved-section');
@@ -5007,13 +5020,12 @@ async function approveReport(){
 
   updateTopBar();
   lockForm(date, pts);
-  _sessionClearDate(date); // approved — session must never override Supabase
+  _sessionClearDate(date);
   const _rptEl=document.getElementById('rpt-date');
   if(_rptEl && _rptEl.value!==date) _rptEl.value=date;
   populateResetDatePicker();
-  showPop('✅','Report Approved! 🎉','Vaanya your report has been approved! You earned '+pts+' points today! ⭐ Keep it up!');
+  showPop('✅','Report Approved! 🎉','Vaanya your report has been approved! You earned '+pts+' points! ⭐ Keep it up!');
   toast('Report approved! +'+pts+' points saved! Report is now locked.');
-  // Note: saveToSupabase already called above — no second call needed
 
   // Streak celebration
   const streak=getStreak();
