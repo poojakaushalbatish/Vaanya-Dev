@@ -3504,7 +3504,9 @@ async function saveCreativeDraft(){
   if(!date){toast('Please set a date on the Daily Report tab first!');return;}
   const ex=savedDays.find(d=>d.date===date);
   if(ex&&ex.approved===true){toast('\u2705 Report already approved — creative work is locked in!');return;}
-  const pts=calcDayPts();
+  const pendingReportDate = _pendingReviewDate;
+  const pendingReport = pendingReportDate ? savedDays.find(d => d.date === pendingReportDate) : null;
+  const pts = (pendingReport && pendingReport.approved) ? pendingReport.pts : calcDayPts();
   const data=collectFormData(date,pts);
   const idx=savedDays.findIndex(d=>d.date===date);
   if(idx>=0){savedDays[idx]={...savedDays[idx],...data};}else{savedDays.unshift(data);}
@@ -4744,7 +4746,8 @@ function collectFormData(date, pts){
     // This prevents auto-save from overwriting an approved report back to pending
     approved: (()=>{
       const existing = savedDays.find(d => d.date === date);
-      return existing ? (existing.approved === true) : false;
+      const isApprovedDb = existing ? (existing.approved === true) : false;
+      return (todayApproved === true) ? true : isApprovedDb;
     })(),
 
     parentComment:document.getElementById('parent-comment')?.value||'',
@@ -4827,7 +4830,9 @@ async function saveDraftAndGoBrainLab(){
       if(cAwd && existing.creativePtsAwarded!==undefined) cAwd.value=String(existing.creativePtsAwarded);
     }
   }
-  const pts=calcDayPts();
+  const pendingReportDate = _pendingReviewDate;
+  const pendingReport = pendingReportDate ? savedDays.find(d => d.date === pendingReportDate) : null;
+  const pts = (pendingReport && pendingReport.approved) ? pendingReport.pts : calcDayPts();
   const data = collectFormData(date, pts);
 
   // Save into savedDays array (upsert by date)
@@ -4851,7 +4856,9 @@ async function saveDraftAndGoBrainLab(){
 async function saveDraftOnly(){
   const date=document.getElementById('rpt-date')?.value;
   if(!date){toast('Please set today\'s date first!');return;}
-  const pts=calcDayPts();
+  const pendingReportDate = _pendingReviewDate;
+  const pendingReport = pendingReportDate ? savedDays.find(d => d.date === pendingReportDate) : null;
+  const pts = (pendingReport && pendingReport.approved) ? pendingReport.pts : calcDayPts();
   const data = collectFormData(date, pts);
   const idx = savedDays.findIndex(d=>d.date===date);
   if(idx>=0){ savedDays[idx]={...savedDays[idx],...data}; }
@@ -5430,7 +5437,9 @@ function renderParentTab(){
     if(noImg) noImg.style.display='block';
   }
 
-  const pts=calcDayPts();
+  const pendingReportDate = _pendingReviewDate;
+  const pendingReport = pendingReportDate ? savedDays.find(d => d.date === pendingReportDate) : null;
+  const pts = (pendingReport && pendingReport.approved) ? pendingReport.pts : calcDayPts();
   // Compute section sub-totals for the parent view
   const ttVal=parseInt(document.getElementById('rpt-tt')?.value||0);
   let ssPtsP=0; SS_SUBJECTS.forEach((_,i)=>{ if(document.getElementById('ss-'+i)?.checked) ssPtsP+=10; });
@@ -6851,7 +6860,9 @@ async function saveBrainDraft(){
     toast('✅ Report already approved — brain pts are locked in!');
     return;
   }
-  const pts=calcDayPts();
+  const pendingReportDate = _pendingReviewDate;
+  const pendingReport = pendingReportDate ? savedDays.find(d => d.date === pendingReportDate) : null;
+  const pts = (pendingReport && pendingReport.approved) ? pendingReport.pts : calcDayPts();
   const data = collectFormData(date, pts);
   // Upsert into savedDays
   const idx = savedDays.findIndex(d=>d.date===date);
@@ -7444,9 +7455,12 @@ function silentClearDay(){
     if(e.id!=='rpt-date') e.selectedIndex=0;
   });
   // These dropdowns live in #tab-parent (not #tab-report) so must be reset explicitly
-  const _shAwd=document.getElementById('shloka-pts-award'); if(_shAwd) _shAwd.selectedIndex=0;
-  const _crAwd=document.getElementById('creative-pts-award'); if(_crAwd) _crAwd.selectedIndex=0;
-  const _prRat=document.getElementById('parent-rating'); if(_prRat) _prRat.selectedIndex=0;
+  // BUT: Do NOT reset if the form is locked (approved)
+  if (!todayApproved) {
+    const _shAwd=document.getElementById('shloka-pts-award'); if(_shAwd) _shAwd.selectedIndex=0;
+    const _crAwd=document.getElementById('creative-pts-award'); if(_crAwd) _crAwd.selectedIndex=0;
+    const _prRat=document.getElementById('parent-rating'); if(_prRat) _prRat.selectedIndex=0;
+  }
   PCLS.forEach(cl=>document.querySelectorAll('#tab-report .'+cl).forEach(e=>e.classList.remove(cl)));
   document.querySelectorAll('#tab-report .star').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('#tab-report .creative-option').forEach(o=>o.classList.remove('chosen'));
