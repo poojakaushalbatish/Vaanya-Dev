@@ -6,611 +6,7 @@
 <title>Vaanya's Schedule & Scoreboard 🏆</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap');
-:root{
-  --p:#8B5CF6;--pl:#F3EFFE;--pm:#C4B5FD;--pd:#6D28D9;
-  --t:#06B6D4;--tl:#ECFEFF;--tm:#67E8F9;--td:#0E7490;
-  --a:#F59E0B;--al:#FFFBEB;--am:#FCD34D;--ad:#B45309;
-  --pk:#EC4899;--pkl:#FDF2F8;--pkm:#F9A8D4;--pkd:#9D174D;
-  --g:#10B981;--gl:#ECFDF5;--gm:#6EE7B7;--gd:#047857;
-  --b:#3B82F6;--bl:#EFF6FF;--bm:#93C5FD;--bd:#1D4ED8;
-  --o:#F97316;--ol:#FFF7ED;--om:#FED7AA;--od:#C2410C;
-  --r:#EF4444;--rl:#FEF2F2;--rm:#FCA5A5;--rd:#B91C1C;
-  --gold:#F59E0B;--ink:#1E1B4B;--muted:#6B7280;--border:#E5E7EB;
-  --white:#FFFFFF;--bg:#F0F4FF;--rad:14px;--rads:9px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--ink);font-size:13px;line-height:1.5;min-height:100vh}
-.page{max-width:1280px;margin:0 auto;padding:14px}
-.page-layout{display:grid;grid-template-columns:130px 1fr 130px;gap:12px;align-items:start}
-.side-panel{position:sticky;top:14px;display:flex;flex-direction:column;gap:10px;align-items:center}
-.main-content{min-width:0}
-@media(max-width:900px){
-  .page-layout{grid-template-columns:1fr}
-  .side-panel{display:none}
-}
-
-/* TOP BAR */
-.topbar{background:linear-gradient(135deg,#ECFDF5,#EFF6FF,#F0FDF4,#ECFEFF);background-size:300% 300%;animation:auroraShift 8s ease infinite;border-radius:var(--rad);
-  padding:14px 18px;margin-bottom:12px;color:#fff;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-  border:2px solid #6EE7B7;position:relative;overflow:hidden}
-.av{display:none}  /* replaced by photo avatar */
-.tb-info{flex:1;min-width:140px}
-.tb-title{font-size:18px;font-weight:900}
-.tb-sub{font-size:11px;opacity:.85;margin-top:1px}
-.tb-pts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.pts-chip{background:rgba(255,255,255,.2);border-radius:30px;padding:6px 14px;text-align:center;border:1px solid rgba(255,255,255,.3)}
-.pts-chip-num{font-size:20px;font-weight:900;line-height:1}
-.pts-chip-lbl{font-size:9px;opacity:.8;text-transform:uppercase;letter-spacing:.06em}
-.date-pill{background:rgba(255,255,255,.15);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.3)}
-.xp-wrap{background:rgba(255,255,255,.2);border-radius:10px;height:12px;overflow:hidden;margin-top:5px}
-.xp-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#FCD34D,#F59E0B);transition:width .5s}
-
-
-/* NAV TABS */
-.nav{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;padding:4px;
-  background:rgba(255,255,255,.7);border-radius:20px;border:1.5px solid var(--border)}
-.nb{padding:8px 14px;border-radius:16px;border:none;background:transparent;
-  font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;
-  transition:all .18s;color:var(--muted);display:flex;align-items:center;gap:5px}
-.nb:hover{background:var(--pl);color:var(--p)}
-.nb.active{color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15)}
-.nb.t0.active{background:linear-gradient(135deg,#8B5CF6,#6D28D9)}
-.nb.t1.active{background:linear-gradient(135deg,#F59E0B,#D97706)}
-.nb.t2.active{background:linear-gradient(135deg,#10B981,#047857)}
-.nb.t3.active{background:linear-gradient(135deg,#06B6D4,#0E7490)}
-.nb.t4.active{background:linear-gradient(135deg,#EC4899,#9D174D)}
-.nb.t5.active{background:linear-gradient(135deg,#F97316,#C2410C)}
-.nb.t6.active{background:linear-gradient(135deg,#3B82F6,#1D4ED8)}
-#nb-parent.active{color:#fff!important;background:linear-gradient(135deg,#7C3AED,#DB2777)!important;box-shadow:0 2px 8px rgba(0,0,0,.15)!important}
-.tab{display:none}.tab.active{display:block}
-
-/* SECTION */
-.sec{background:var(--white);border-radius:var(--rad);padding:15px 17px;margin-bottom:11px;
-  border:2px solid var(--border);transition:border-color .2s}
-.sec:hover{border-color:var(--pm)}
-.sh{font-size:14px;font-weight:900;display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.si{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.ptag{font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;background:var(--al);
-  color:var(--ad);border:1.5px solid var(--am);white-space:nowrap}
-.pts-earned-badge{font-size:11px;font-weight:900;padding:4px 10px;border-radius:20px;
-  background:var(--gl);color:var(--gd);border:1.5px solid var(--gm);margin-left:auto}
-.divlbl{font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
-  margin:14px 0 7px;display:flex;align-items:center;gap:8px}
-.divlbl::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--border),transparent)}
-.must-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;
-  background:#FEF2F2;color:#B91C1C;border:1.5px solid #FCA5A5}
-
-/* FORMS */
-input[type=text],input[type=date],input[type=number],textarea,select{
-  font-family:'Nunito',sans-serif;font-size:12px;color:var(--ink);
-  border:2px solid var(--border);border-radius:var(--rads);padding:7px 10px;width:100%;
-  background:#FAFBFF;transition:all .15s;outline:none}
-input:focus,textarea:focus,select:focus{border-color:var(--p);background:var(--white);box-shadow:0 0 0 3px var(--pl)}
-textarea{resize:vertical;min-height:52px;line-height:1.5}
-input[type=number]{-moz-appearance:textfield}
-.fl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
-
-/* STARS */
-.stars{display:flex;gap:3px}
-.star{width:24px;height:24px;border-radius:6px;border:2px solid var(--border);background:#F9FAFB;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;
-  transition:all .1s}
-.star.on{background:var(--am);border-color:var(--a);transform:scale(1.1)}
-
-/* PILLS */
-.pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
-.pill{padding:6px 13px;border-radius:20px;font-size:12px;font-weight:700;
-  border:2px solid var(--border);background:#F9FAFB;color:var(--muted);cursor:pointer;transition:all .15s}
-.pill:hover{transform:translateY(-1px)}
-.pp{background:var(--pl);border-color:var(--p);color:var(--pd)}
-.pt{background:var(--tl);border-color:var(--t);color:var(--td)}
-.pa{background:var(--al);border-color:var(--a);color:var(--ad)}
-.ppk{background:var(--pkl);border-color:var(--pk);color:var(--pkd)}
-.pg{background:var(--gl);border-color:var(--g);color:var(--gd)}
-.pr{background:var(--rl);border-color:var(--r);color:var(--rd)}
-.pb{background:var(--bl);border-color:var(--b);color:var(--bd)}
-
-/* TABLES */
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{padding:8px 10px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;
-  text-align:left;border-bottom:2px solid var(--border);color:var(--muted)}
-td{padding:7px 10px;vertical-align:middle;border-bottom:1.5px solid var(--border)}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#FAFBFF}
-
-/* REWARD CARDS */
-/* ── REWARDS CARDS ── */
-.rcard{border-radius:22px;padding:20px 16px 16px;border:3px solid rgba(255,255,255,.55);position:relative;
-  overflow:hidden;cursor:pointer;transition:transform .18s,box-shadow .18s;text-align:center}
-.rcard:hover{transform:translateY(-5px) scale(1.03)}
-.rcard.unlocked{animation:rcard-glow 1.8s ease-in-out infinite}
-@keyframes rcard-glow{
-  0%,100%{box-shadow:0 0 0 3px rgba(255,200,0,.55),0 6px 20px rgba(0,0,0,.18)}
-  50%{box-shadow:0 0 0 7px rgba(255,200,0,.85),0 12px 32px rgba(0,0,0,.22)}}
-.rcard.locked{opacity:.73}
-.rc-icon{font-size:46px;display:block;margin-bottom:8px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.22))}
-.rc-pts{font-family:'Fredoka One',cursive;font-size:24px;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.22);margin-bottom:4px}
-.rc-title{font-size:13px;font-weight:900;color:rgba(255,255,255,.97);margin-bottom:8px;line-height:1.3;text-shadow:1px 1px 0 rgba(0,0,0,.18)}
-.rc-items{font-size:11px;color:rgba(255,255,255,.87);line-height:1.7;margin-bottom:8px;text-align:left}
-.rc-lock{position:absolute;top:9px;right:11px;font-size:20px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
-.rc-prog{height:7px;border-radius:10px;background:rgba(0,0,0,.2);margin-top:8px;overflow:hidden}
-.rc-fill{height:100%;border-radius:10px;background:rgba(255,255,255,.88);transition:width .7s cubic-bezier(.34,1.56,.64,1)}
-.rc-claim{display:inline-block;background:#fff;border-radius:20px;padding:6px 16px;
-  font-family:'Fredoka One',cursive;font-size:14px;margin-top:8px;
-  box-shadow:0 3px 10px rgba(0,0,0,.18);animation:claim-bounce .75s ease-in-out infinite alternate}
-@keyframes claim-bounce{from{transform:scale(1)}to{transform:scale(1.07)}}
-@keyframes spin-slow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes wobble-icon{from{transform:translateX(0) rotate(-10deg)}to{transform:translateX(8px) rotate(10deg)}}
-
-/* ── SPEND CARDS ── */
-.scard{border-radius:22px;padding:18px 16px 16px;border:3px solid rgba(255,255,255,.5);
-  transition:transform .18s,box-shadow .18s;overflow:hidden}
-.scard:hover{transform:translateY(-4px) scale(1.03)}
-.sc-cost-badge{display:inline-block;border-radius:20px;padding:5px 14px;
-  font-family:'Fredoka One',cursive;font-size:17px;margin-bottom:10px;
-  background:rgba(255,255,255,.28);color:#fff;border:2px solid rgba(255,255,255,.5);
-  text-shadow:1px 1px 0 rgba(0,0,0,.18)}
-.sc-icon{font-size:40px;display:block;margin-bottom:7px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.18))}
-.sc-title{font-size:14px;font-weight:900;color:rgba(255,255,255,.97);margin-bottom:5px;line-height:1.3;text-shadow:1px 1px 0 rgba(0,0,0,.18)}
-.sc-desc{font-size:11.5px;color:rgba(255,255,255,.84);margin-bottom:11px;line-height:1.5}
-.sc-btn{width:100%;padding:10px;border-radius:14px;border:2px solid rgba(255,255,255,.6);
-  font-family:'Fredoka One',cursive;font-size:14px;cursor:pointer;transition:all .15s;
-  background:rgba(255,255,255,.22);color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.15)}
-.sc-btn:hover:not(:disabled){background:rgba(255,255,255,.38);transform:scale(.97)}
-.sc-btn:disabled{opacity:.4;cursor:not-allowed}
-
-/* PROGRESS */
-.prog{background:var(--border);border-radius:5px;height:10px;overflow:hidden;margin-top:6px}
-.prog-fill{height:100%;border-radius:5px;transition:width .4s}
-
-/* REFLECT */
-.rbox{border-radius:var(--rads);padding:10px 13px;margin-bottom:8px}
-.rlbl{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-
-/* SUMMARY GRID */
-.sum-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px}
-.scard2{border-radius:var(--rads);padding:11px 8px;text-align:center;border:2px solid transparent}
-.snum{font-size:22px;font-weight:900}
-.slbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-top:3px}
-
-/* PUZZLE / BRAIN */
-.puzzle-card{background:linear-gradient(135deg,#1E1B4B,#312E81);border-radius:var(--rad);
-  padding:18px;margin-bottom:12px;color:#fff}
-.puz-title{font-size:15px;font-weight:900;margin-bottom:4px}
-.puz-sub{font-size:12px;opacity:.75;margin-bottom:14px}
-.sudoku-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:1px;background:#4338CA;
-  border:3px solid #818CF8;border-radius:8px;overflow:hidden;max-width:340px;margin:0 auto 14px}
-.sc-cell{background:var(--white);display:flex;align-items:center;justify-content:center;
-  aspect-ratio:1;font-size:14px;font-weight:800;color:var(--ink);cursor:pointer;transition:background .1s;min-width:0}
-.sc-cell.given{background:#EEF2FF;color:#3730A3;cursor:default}
-.sc-cell.entered{background:#FDFAF0;color:#92400E;}
-.sc-cell.selected{background:#FEF9C3!important;color:#92400E}
-.sc-cell.correct{background:#ECFDF5;color:#065F46}
-.sc-cell.wrong{background:#FEF2F2;color:#B91C1C}
-.sc-cell.bb{border-right:2px solid #6366F1}
-.sc-cell.bt{border-bottom:2px solid #6366F1}
-.numpad{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:10px}
-.npbtn{width:38px;height:38px;border-radius:8px;background:#312E81;border:2px solid #818CF8;
-  color:#fff;font-size:15px;font-weight:800;cursor:pointer;transition:all .15s;font-family:'Nunito',sans-serif}
-.npbtn:hover{background:#4338CA;transform:scale(1.08)}
-.npbtn.erase{background:#7F1D1D;border-color:#FCA5A5}
-.logic-card{background:#fff;border-radius:var(--rads);border:2px solid var(--border);padding:14px;margin-bottom:10px}
-.logic-q{font-size:14px;font-weight:800;color:var(--ink);margin-bottom:10px;line-height:1.6}
-.opt-btn{width:100%;padding:9px 14px;border-radius:var(--rads);border:2px solid var(--border);
-  background:#F9FAFB;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;
-  cursor:pointer;text-align:left;margin-bottom:6px;transition:all .15s;color:var(--ink)}
-.opt-btn:hover{border-color:var(--pm);background:var(--pl)}
-.opt-btn.correct{background:var(--gl);border-color:var(--g);color:var(--gd)}
-.opt-btn.wrong{background:var(--rl);border-color:var(--r);color:var(--rd)}
-
-/* SHLOKA */
-.shloka-card{background:linear-gradient(135deg,#7C2D12,#9A3412);border-radius:var(--rad);
-  padding:16px 18px;color:#fff;margin-bottom:12px}
-.shloka-text{font-size:16px;font-weight:900;line-height:1.8;margin-bottom:8px;font-style:italic;text-shadow:0 1px 3px rgba(0,0,0,.3)}
-.shloka-meaning{font-size:12px;opacity:.9;line-height:1.7;margin-bottom:8px;background:rgba(255,255,255,.1);border-radius:8px;padding:10px 12px}
-.shloka-src{font-size:10px;opacity:.7;font-weight:700}
-
-/* CREATIVE */
-.creative-option{border:2.5px solid var(--border);border-radius:var(--rad);padding:14px;cursor:pointer;transition:all .2s}
-.creative-option:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.08)}
-.creative-option.chosen{border-color:var(--pk);background:var(--pkl)}
-.co-icon{font-size:30px;margin-bottom:6px}
-.co-title{font-size:13px;font-weight:900;margin-bottom:3px}
-.co-desc{font-size:11px;color:var(--muted);line-height:1.5}
-
-/* HISTORY */
-.day-item{background:var(--white);border-radius:var(--rads);border:2px solid var(--border);
-  padding:11px 14px;display:flex;align-items:center;justify-content:space-between;
-  flex-wrap:wrap;gap:8px;cursor:pointer;transition:all .15s;margin-bottom:7px}
-.day-item:hover{border-color:var(--p);background:var(--pl)}
-.di-pts{font-size:20px;font-weight:900;color:var(--a)}
-.hist-detail{background:var(--pl);border-radius:var(--rad);border:2px solid var(--pm);padding:15px;margin-bottom:12px}
-
-/* CHART */
-.chart-wrap{background:var(--white);border-radius:var(--rad);border:2px solid var(--border);padding:15px;margin-bottom:11px}
-.ct{font-size:13px;font-weight:800;margin-bottom:10px;color:var(--ink)}
-
-/* TOAST / POPUP */
-.toast{position:fixed;top:18px;right:18px;background:#1E1B4B;color:#fff;border-radius:var(--rads);
-  padding:12px 18px;font-size:13px;font-weight:700;z-index:9999;opacity:0;
-  transition:opacity .3s;pointer-events:none;max-width:290px;border:2px solid var(--pm)}
-.toast.show{opacity:1}
-.pop{display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,.65);z-index:9998;align-items:center;justify-content:center}
-.pop.show{display:flex}
-.pop-box{background:#fff;border-radius:20px;padding:28px 24px;text-align:center;max-width:380px;
-  width:92%;border:4px solid var(--gold);animation:popIn .3s ease}
-@keyframes popIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
-.pop-icon{font-size:56px;margin-bottom:10px}
-.pop-title{font-size:20px;font-weight:900;margin-bottom:6px;color:var(--ink)}
-.pop-msg{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px}
-.pop-close{padding:10px 28px;background:linear-gradient(135deg,var(--a),var(--o));color:#fff;
-  border:none;border-radius:30px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
-
-/* PIN MODAL */
-.pin-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,.7);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
-.pin-overlay.show{display:flex}
-.pin-box{background:#fff;border-radius:24px;padding:32px 28px;max-width:340px;width:90%;
-  text-align:center;border:4px solid var(--gold);animation:popIn .3s ease}
-.pin-dots{display:flex;gap:12px;justify-content:center;margin:16px 0}
-.pin-dot{width:16px;height:16px;border-radius:50%;background:var(--border);transition:all .2s}
-.pin-dot.filled{background:var(--gold)}
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
-.pin-key{padding:16px;border-radius:12px;border:2px solid var(--border);background:#F9FAFB;
-  font-family:'Nunito',sans-serif;font-size:20px;font-weight:900;cursor:pointer;transition:all .15s;color:var(--ink)}
-.pin-key:hover{background:var(--al);border-color:var(--a);transform:scale(1.05)}
-.pin-key:active{transform:scale(.93)}
-.pin-key.clr{background:var(--rl);border-color:var(--r);color:var(--rd)}
-.pin-key.ok{background:linear-gradient(135deg,var(--g),var(--gd));border:none;color:#fff}
-.pin-err{color:var(--r);font-size:12px;font-weight:800;min-height:18px;margin-bottom:8px}
-.approved-banner{background:linear-gradient(135deg,#047857,#10B981);color:#fff;border-radius:var(--rad);
-  padding:16px 20px;display:flex;align-items:center;gap:14px;margin-top:12px}
-
-/* PARENT APPROVAL BOX */
-.parent-approval-box{background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border:2.5px dashed var(--a);
-  border-radius:var(--rad);padding:20px;text-align:center;margin-top:12px}
-.approval-btn{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;border:none;
-  border-radius:var(--rad);padding:14px 28px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:900;
-  cursor:pointer;width:100%;transition:all .2s;box-shadow:0 4px 14px rgba(245,158,11,.4)}
-.approval-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(245,158,11,.5)}
-
-/* ── PARENT TAB ACCORDION ── */
-.pr-acc-sec{background:var(--white);border:2px solid var(--border);border-radius:16px;margin-bottom:10px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
-.pr-acc-sec.pr-open{box-shadow:0 4px 18px rgba(0,0,0,.07)}
-.pr-acc-header{display:flex;align-items:center;gap:12px;padding:15px 18px;cursor:pointer;user-select:none;transition:background .15s}
-.pr-acc-header:hover{background:#FAFBFF}
-.pr-acc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.pr-acc-title{font-size:15px;font-weight:900;color:var(--ink);flex:1;min-width:0}
-.pr-acc-pts{font-size:13px;font-weight:900;padding:5px 13px;border-radius:20px;white-space:nowrap;margin-left:8px;flex-shrink:0}
-.pr-acc-chevron{font-size:12px;color:var(--muted);transition:transform .25s;flex-shrink:0;margin-left:4px}
-.pr-open .pr-acc-chevron{transform:rotate(180deg)}
-.pr-acc-body{display:none;padding:16px 18px 18px;border-top:1.5px solid var(--border)}
-.pr-open .pr-acc-body{display:block}
-.pr-section-bar-wrap{background:var(--border);border-radius:6px;height:12px;overflow:hidden;margin:8px 0 3px}
-.pr-section-bar{height:100%;border-radius:6px;transition:width .5s ease}
-.pr-area-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:9px;margin-bottom:4px;background:var(--bg)}
-.pr-area-lbl{font-size:12px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px}
-.pr-area-pts{font-size:13px;font-weight:900}
-.pr-brain-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.pr-brain-card{border:2px solid var(--border);border-radius:11px;padding:11px 13px;background:var(--white)}
-.pr-brain-sub-title{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px}
-.pr-brain-sub-pts{font-size:22px;font-weight:900;line-height:1;color:#2563EB}
-.pr-brain-mini-bar{background:var(--border);border-radius:4px;height:6px;overflow:hidden;margin-top:7px}
-.pr-brain-mini-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#3B82F6,#1D4ED8)}
-.pr-words-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.pr-word-pill{padding:6px 15px;border-radius:20px;font-size:13px;font-weight:800;background:#F5F3FF;border:2px solid #C4B5FD;color:#5B21B6}
-.pr-overall-bar-wrap{background:var(--border);border-radius:8px;height:18px;overflow:hidden;margin:10px 0 3px;position:relative}
-.pr-overall-bar{height:100%;border-radius:8px;background:linear-gradient(90deg,#7C3AED,#EC4899,#F59E0B);transition:width .6s ease}
-.pr-approve-btn{background:linear-gradient(135deg,#10B981,#047857);color:#fff;border:none;border-radius:var(--rad);padding:22px;font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;cursor:pointer;transition:all .2s;box-shadow:0 6px 20px rgba(16,185,129,.45);letter-spacing:.04em;width:100%}
-.pr-approve-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(16,185,129,.5)}
-.pr-reject-btn{background:linear-gradient(135deg,#EF4444,#B91C1C);color:#fff;border:none;border-radius:var(--rad);padding:22px;font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;cursor:pointer;transition:all .2s;box-shadow:0 6px 20px rgba(239,68,68,.45);letter-spacing:.04em;width:100%}
-.pr-reject-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(239,68,68,.5)}
-
-/* BUTTONS */
-.btn{padding:10px 22px;border-radius:var(--rads);font-family:'Nunito',sans-serif;font-size:13px;
-  font-weight:800;cursor:pointer;border:2px solid transparent;transition:all .15s}
-.btn-p{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff}
-.btn-g{background:linear-gradient(135deg,var(--g),var(--gd));color:#fff}
-.btn-a{background:linear-gradient(135deg,var(--a),var(--o));color:#fff}
-.btn-o{background:var(--white);color:var(--muted);border-color:var(--border)}
-.btn-o:hover{border-color:var(--p);color:var(--p)}
-.btn-row{display:flex;gap:9px;justify-content:center;margin-top:13px;flex-wrap:wrap}
-
-/* GRID HELPERS */
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.mt6{margin-top:6px}.mt10{margin-top:10px}.mt14{margin-top:14px}
-
-/* HW ROW */
-.hw-label{font-size:12px;font-weight:800;padding:4px 10px;border-radius:8px;white-space:nowrap;flex-shrink:0}
-.pts-inline{font-size:11px;font-weight:900;padding:2px 8px;border-radius:20px;flex-shrink:0}
-
-/* SECTION POINTS DISPLAY */
-.sec-pts-row{display:flex;align-items:center;justify-content:space-between;
-  background:var(--gl);border-radius:var(--rads);padding:8px 14px;margin-top:10px}
-.sec-pts-label{font-size:11px;font-weight:800;color:var(--gd)}
-.sec-pts-val{font-size:20px;font-weight:900;color:var(--gd)}
-
-/* WORDBOOK */
-.wb-fpill{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:2px solid #E5E7EB;background:#F9FAFB;color:#6B7280;font-family:'Nunito',sans-serif;transition:all .15s}
-.wb-fpill:hover{transform:translateY(-1px)}
-.wb-fpill.wb-active{background:linear-gradient(135deg,#7C3AED,#6D28D9);color:#fff;border-color:#7C3AED;box-shadow:0 2px 8px rgba(124,58,237,.3)}
-.wb-tbl{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;border:1.5px solid #E5E7EB;font-family:'Nunito',sans-serif;box-shadow:0 2px 12px rgba(109,40,217,.08)}
-.wb-tbl thead tr{background:linear-gradient(135deg,#7C3AED,#6D28D9)}
-.wb-tbl thead th{color:#fff;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;padding:12px 14px;text-align:left;border-bottom:2px solid #8B5CF6}
-.wb-tbl tbody tr{border-bottom:1px solid #F3F4F6;transition:background .15s}
-.wb-tbl tbody tr:hover{background:#F5F3FF}
-.wb-tbl tbody tr:last-child{border-bottom:none}
-.wb-tbl td{padding:10px 14px;vertical-align:top;font-size:12px;color:#1E1B4B}
-.wb-tbl .wb-word-cell{font-weight:900;color:#6D28D9;font-size:14px}
-.wb-tbl .wb-src{font-size:9px;color:#A78BFA;margin-top:2px}
-.wb-edit-btn{background:#F5F3FF;border:1.5px solid #C4B5FD;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:800;color:#6D28D9;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .15s}
-.wb-edit-btn:hover{background:#EDE9FE}
-.wb-del-btn{background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:800;color:#DC2626;cursor:pointer;font-family:'Nunito',sans-serif;margin-left:4px;transition:all .15s}
-.wb-del-btn:hover{background:#FEE2E2}
-.wb-alpha-hdr{font-size:11px;font-weight:900;color:#6D28D9;text-transform:uppercase;letter-spacing:.15em;padding:10px 14px 6px;background:#F5F3FF;border-bottom:1px solid #EDE9FE}
-.odda-assign-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
-
-@media(max-width:600px){
-  .g2,.g3,.g4{grid-template-columns:1fr}
-  .sum-grid{grid-template-columns:1fr 1fr}
-  .nav{gap:3px}.nb{padding:7px 10px;font-size:11px}
-}
-@media print{
-  .nav,.btn-row,.toast,.pop,.pin-overlay,.no-print{display:none!important}
-  body{background:#fff}
-  @page{margin:1.2cm}
-}
-
-@keyframes gradientShift{
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
-}
-@keyframes titlePulse{
-  0%,100%{text-shadow:0 0 10px rgba(255,255,255,.6),0 0 30px rgba(255,255,255,.3)}
-  50%{text-shadow:0 0 20px rgba(255,255,255,1),0 0 60px rgba(255,200,0,.8)}
-}
-.tb-title{font-size:18px;font-weight:900;animation:titlePulse 2.5s ease-in-out infinite;letter-spacing:.03em}
-
-/* SIDE PANELS */
-
-.sp-mood.bounce{animation:moodBounce .4s ease}
-@keyframes ptsPop{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
-.sp-pts-num.pop{animation:ptsPop .35s ease}
-
-/* ═══════════════════════════════════════
-   AURORA THEME
-═══════════════════════════════════════ */
-@keyframes auroraShift{
-  0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}
-}
-.aurora-bg{
-  background:linear-gradient(135deg,#ECFDF5,#EFF6FF,#F0FDF4,#ECFEFF);
-  background-size:300% 300%;animation:auroraShift 8s ease infinite;
-}
-/* PHOTO AVATAR */
-.av-photo-wrap{position:relative;width:82px;height:82px;flex-shrink:0}
-.av-photo-spinner{position:absolute;inset:-3px;border-radius:50%;
-  background:conic-gradient(#10B981,#3B82F6,#8B5CF6,#EC4899,#10B981);
-  animation:avSpin 3s linear infinite;z-index:0}
-@keyframes avSpin{to{transform:rotate(360deg)}}
-.av-photo-inner{position:absolute;inset:3px;border-radius:50%;background:#ECFDF5;z-index:1}
-.av-photo-img{position:absolute;inset:5px;border-radius:50%;overflow:hidden;z-index:2}
-.av-photo-img img{width:100%;height:100%;object-fit:cover;object-position:center 8%}
-.av-photo-badge{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
-  white-space:nowrap;font-size:8px;font-weight:900;
-  background:linear-gradient(135deg,#10B981,#3B82F6);
-  color:#fff;padding:2px 8px;border-radius:8px;z-index:5;letter-spacing:.04em;
-  box-shadow:0 2px 8px rgba(16,185,129,.4)}
-/* Light beams canvas */
-.beam-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
-/* Aurora banner text colours */
-.aurora-title{font-size:18px;font-weight:900;color:#064E3B;
-  text-shadow:0 1px 0 rgba(255,255,255,.9);letter-spacing:.02em}
-.aurora-sub{font-size:11px;color:#0F766E;margin-top:1px;font-weight:700;opacity:.9}
-.aurora-xp-wrap{background:rgba(16,185,129,.18);border-radius:10px;height:12px;overflow:hidden;margin-top:6px;border:1.5px solid rgba(16,185,129,.35)}
-.aurora-xp-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#10B981,#3B82F6,#8B5CF6);transition:width .5s;animation:xpGlowA 2s ease-in-out infinite}
-@keyframes xpGlowA{0%,100%{filter:brightness(1)}50%{filter:brightness(1.4)}}
-.aurora-chip{background:rgba(16,185,129,.12);border:1.5px solid rgba(16,185,129,.35);border-radius:14px;padding:6px 14px;text-align:center}
-.aurora-chip .pts-chip-num{color:#065F46}
-.aurora-chip .pts-chip-lbl{color:#047857}
-
-/* ═══════════════════════════════════════
-   PAGE LAYOUT — 3 column with side panels
-═══════════════════════════════════════ */
-.page-layout{display:grid;grid-template-columns:190px 1fr 180px;gap:14px;align-items:start}
-.main-content{min-width:0}
-.side-panel{position:sticky;top:12px;display:flex;flex-direction:column;gap:14px;height:calc(100vh - 24px);max-height:900px}
-.side-panel .quote-card{flex:1}
-@media(max-width:1060px){
-  .page-layout{grid-template-columns:1fr}
-  .side-panel{display:none}
-}
-
-/* ── QUOTE CARD — big, bold, airy ── */
-.quote-card{
-  background:linear-gradient(160deg,#ECFDF5 0%,#EFF6FF 100%);
-  border:2px solid #6EE7B7;border-radius:18px;
-  padding:28px 18px 22px;text-align:center;
-  position:relative;overflow:hidden}
-.quote-card::after{content:'"';position:absolute;bottom:-10px;right:10px;
-  font-size:72px;color:rgba(16,185,129,.1);font-family:Georgia,serif;line-height:1;pointer-events:none}
-.quote-icon{font-size:32px;display:block;margin-bottom:12px;
-  animation:qFloat 3s ease-in-out infinite}
-@keyframes qFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-.quote-text{font-size:14px;font-weight:800;color:#064E3B;
-  line-height:1.75;font-style:italic;margin:8px 0 12px;letter-spacing:.01em}
-.quote-author{font-size:11px;font-weight:900;color:#0F766E;
-  text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px}
-.q-nav{display:flex;gap:6px;justify-content:center}
-.q-nav-btn{padding:4px 14px;border-radius:10px;border:1.5px solid #6EE7B7;
-  background:rgba(16,185,129,.12);color:#047857;
-  font-size:14px;font-weight:900;cursor:pointer;transition:all .2s;
-  font-family:'Nunito',sans-serif}
-.q-nav-btn:hover{background:linear-gradient(135deg,#10B981,#3B82F6);color:#fff;border-color:transparent}
-
-/* ── POINTS CARD — single big number ── */
-.sp-pts-card{
-  background:linear-gradient(160deg,#F0FDF4,#EFF6FF);
-  border:2px solid #A7F3D0;border-radius:18px;
-  padding:18px 14px;text-align:center}
-.sp-pts-big{font-size:52px;font-weight:900;line-height:1;
-  background:linear-gradient(135deg,#10B981,#3B82F6,#8B5CF6);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  transition:all .3s}
-.sp-pts-lbl{font-size:11px;font-weight:800;color:#065F46;margin-top:4px;letter-spacing:.04em}
-.sp-pts-bar{width:100%;background:#D1FAE5;border-radius:8px;height:10px;
-  overflow:hidden;margin-top:10px;border:1px solid #6EE7B7}
-.sp-pts-bar-fill{height:100%;border-radius:8px;
-  background:linear-gradient(90deg,#10B981,#3B82F6,#8B5CF6);
-  transition:width .6s;position:relative;overflow:hidden}
-.sp-pts-bar-fill::after{content:'';position:absolute;top:0;left:-40%;width:25%;height:100%;
-  background:rgba(255,255,255,.4);animation:barShine 2s linear infinite}
-@keyframes barShine{to{left:130%}}
-.sp-pts-sub{font-size:10px;color:#0F766E;font-weight:700;margin-top:5px}
-
-/* ── MOOD CARD — big emoji, clear ── */
-.sp-mood-card{
-  background:linear-gradient(160deg,#F0FDF4,#EFF6FF);
-  border:2px solid #A7F3D0;border-radius:18px;
-  padding:18px 14px;text-align:center}
-.sp-mood-big{font-size:54px;line-height:1;display:block;
-  animation:moodBob 2s ease-in-out infinite;margin-bottom:8px}
-@keyframes moodBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-.sp-mood-lbl{font-size:14px;font-weight:900;color:#065F46;
-  transition:all .4s;letter-spacing:.02em}
-.sp-mood-sub{font-size:10px;color:#0F766E;margin-top:4px;font-weight:700}
-
-/* ── STREAK CARD ── */
-.sp-streak-card{
-  background:linear-gradient(135deg,#FFF7ED,#FFEDD5);
-  border:2px solid #FDBA74;border-radius:18px;
-  padding:16px 14px;text-align:center}
-.sp-streak-big{font-size:42px;font-weight:900;color:#EA580C;line-height:1}
-.sp-streak-lbl{font-size:11px;font-weight:800;color:#C2410C;
-  text-transform:uppercase;letter-spacing:.06em;margin-top:5px}
-
-/* legacy compat — kept for JS refs but not shown */
-.a-mis,.a-mis-hdr,.a-mis-ttl,.a-mis-cnt,.a-mis-icon,.a-mis-name,.a-mis-st{font-size:8px}
-.a-mis.done .a-mis-name{color:#10B981}
-.a-boss-fill{transition:width .6s}
-
-
-/* FORM LOCK — approved report */
-.form-locked{pointer-events:none;opacity:.6;user-select:none}
-.form-locked input,.form-locked select,.form-locked textarea,.form-locked button{
-  pointer-events:none;cursor:not-allowed}
-/* Date input always stays interactive even when form is locked */
-.form-locked #rpt-date{pointer-events:auto!important;opacity:1!important;cursor:pointer!important}
-/* Brain Lab must always stay interactive even when daily report is locked */
-#tab-brain{pointer-events:auto!important;opacity:1!important;user-select:auto!important}
-#tab-brain button,#tab-brain input{pointer-events:auto!important;cursor:pointer!important}
-.locked-banner{display:none;background:linear-gradient(135deg,#ECFDF5,#D1FAE5);
-  border:2px solid #6EE7B7;border-radius:12px;padding:12px 16px;
-  margin-bottom:12px;align-items:center;gap:12px;font-size:13px;font-weight:800;color:#065F46}
-.locked-banner.show{display:flex}
-
-/* ── HISTORY TAB ── */
-.hist-card{background:#fff;border-radius:16px;border:2px solid var(--border);
-  padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;
-  justify-content:space-between;gap:12px;cursor:pointer;transition:all .2s}
-.hist-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08)}
-.hist-card.approved{border-color:#6EE7B7;background:linear-gradient(135deg,#F0FDF4,#fff)}
-.hist-card.draft{border-color:#FCD34D;background:linear-gradient(135deg,#FFFBEB,#fff)}
-.hist-card-left{display:flex;align-items:center;gap:14px;flex:1;min-width:0}
-.hist-status-icon{font-size:36px;flex-shrink:0;line-height:1}
-.hist-date{font-size:14px;font-weight:900;color:var(--ink)}
-.hist-status-lbl{font-size:11px;font-weight:800;margin-top:3px}
-.hist-pts-box{text-align:center;flex-shrink:0}
-.hist-pts-num{font-size:28px;font-weight:900;line-height:1}
-.hist-pts-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:2px}
-
-/* DETAIL CARD */
-.hist-detail-v2{background:#fff;border-radius:18px;border:2px solid #6EE7B7;
-  padding:20px;margin-bottom:14px;animation:slideDown .25s ease}
-@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-.hd-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
-.hd-title{font-size:16px;font-weight:900;color:#065F46}
-.hd-close{background:#065F46;color:#fff;border:none;border-radius:8px;
-  padding:6px 14px;cursor:pointer;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif}
-.hd-pts-hero{text-align:center;background:linear-gradient(135deg,#ECFDF5,#EFF6FF);
-  border-radius:14px;padding:18px;margin-bottom:14px;border:1.5px solid #A7F3D0}
-.hd-pts-big{font-size:56px;font-weight:900;line-height:1;
-  background:linear-gradient(135deg,#10B981,#3B82F6);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hd-pts-sub{font-size:12px;font-weight:800;color:#0F766E;margin-top:4px}
-.hd-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.hd-stat{background:#F0FDF4;border-radius:12px;padding:12px;text-align:center;border:1px solid #D1FAE5}
-.hd-stat-num{font-size:22px;font-weight:900;color:#10B981;line-height:1}
-.hd-stat-lbl{font-size:10px;font-weight:800;color:#065F46;margin-top:4px;text-transform:uppercase;letter-spacing:.05em}
-.hd-tasks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
-.hd-task{background:#F0FDF4;border-radius:10px;padding:10px 6px;text-align:center;border:1px solid #D1FAE5}
-.hd-task.missed{background:#FEF2F2;border-color:#FCA5A5}
-.hd-task-icon{font-size:18px;display:block;margin-bottom:4px}
-.hd-task-name{font-size:9px;font-weight:800;color:#065F46;text-transform:uppercase;letter-spacing:.04em}
-.hd-task.missed .hd-task-name{color:#B91C1C}
-.hd-section{background:#F0FDF4;border-radius:12px;padding:12px 14px;margin-bottom:8px;border:1px solid #D1FAE5}
-.hd-section-lbl{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
-.hd-section-val{font-size:13px;font-weight:700;color:var(--ink);line-height:1.6}
-.hd-parent-box{background:linear-gradient(135deg,#EFF6FF,#EDE9FE);border-radius:12px;
-  padding:12px 14px;border:1px solid #93C5FD}
-.hd-parent-lbl{font-size:10px;font-weight:900;color:#1D4ED8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
-.hd-parent-val{font-size:13px;font-weight:700;color:#1E3A8A;line-height:1.6}
-
-/* ── PROGRESS TAB ── */
-@keyframes rankBlast{
-  0%{transform:scale(0) rotate(-20deg);opacity:0}
-  40%{transform:scale(1.3) rotate(5deg);opacity:1}
-  60%{transform:scale(.95) rotate(-2deg)}
-  80%{transform:scale(1.1) rotate(1deg)}
-  100%{transform:scale(1) rotate(0deg);opacity:1}
-}
-@keyframes rankPulse{
-  0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.7)}
-  50%{box-shadow:0 0 60px 30px rgba(245,158,11,.3)}
-}
-@keyframes cupGlow{
-  0%,100%{filter:drop-shadow(0 0 8px rgba(245,158,11,.6))}
-  50%{filter:drop-shadow(0 0 20px rgba(245,158,11,1))}
-}
-@keyframes cupShake{
-  0%,100%{transform:rotate(0)}
-  20%{transform:rotate(-8deg) scale(1.1)}
-  40%{transform:rotate(8deg) scale(1.1)}
-  60%{transform:rotate(-5deg)}
-  80%{transform:rotate(5deg)}
-}
-.rank-overlay{
-  position:fixed;inset:0;z-index:99999;
-  display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
-  pointer-events:none;opacity:0;transition:opacity .3s
-}
-.rank-overlay.show{opacity:1;pointer-events:auto}
-.rank-overlay-box{
-  text-align:center;animation:rankBlast .6s cubic-bezier(.34,1.56,.64,1) both
-}
-.cup-card{border-radius:20px;padding:16px 12px;text-align:center;
-  position:relative;overflow:hidden;transition:all .3s;cursor:default;border:3px solid transparent}
-.cup-card.achieved{animation:rankPulse 2s ease-in-out infinite}
-.cup-card.achieved .cup-icon{animation:cupGlow 2s ease-in-out infinite}
-.cup-card:not(.achieved){opacity:.45;filter:grayscale(.6)}
-.cup-card.next-target{opacity:.75;border-style:dashed!important}
-.cup-icon{font-size:44px;display:block;margin-bottom:8px;line-height:1}
-.cup-name{font-size:13px;font-weight:900;letter-spacing:.04em;margin-bottom:4px}
-.cup-pts{font-size:11px;font-weight:800;margin-bottom:6px}
-.cup-desc{font-size:10px;line-height:1.5;font-weight:700}
-.cup-achieved-tag{display:inline-block;font-size:10px;font-weight:900;
-  padding:3px 10px;border-radius:10px;margin-top:6px;
-  background:rgba(255,255,255,.25);letter-spacing:.04em}
-.prog-cumulative-wrap{background:#fff;border-radius:18px;border:2px solid #A7F3D0;padding:16px;margin-bottom:14px}
-</style>
+<link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 <div class="page">
@@ -710,7 +106,6 @@ tr:hover td{background:#FAFBFF}
 
 <!-- PENALTY BAR -->
 
-
 <!-- TABS -->
 <div class="nav">
   <button class="nb t0 active" onclick="showTab('report',this)">📝 Daily Report</button>
@@ -720,8 +115,7 @@ tr:hover td{background:#FAFBFF}
   <button class="nb t3" onclick="showTab('wordbook',this)">📖 My WordBook</button>
   <button class="nb t4" id="btn-parent-tab" onclick="showParentTabWithPin(this)">👨‍👩‍👧 Parents Review</button>
   <button class="nb t1" onclick="showTab('rewards',this);renderRewards();">🏆 Rewards</button>
-  <button class="nb t5" onclick="showTab('history',this)">📅 History</button>
-  <button class="nb t6" onclick="showTab('graphs',this)">📈 Progress</button>
+  <button class="nb t5" onclick="showTab('graphs',this)">📈 Progress</button>
   <button class="nb t7" onclick="showTab('gallery',this);loadCreativeGallery()">🖼️ My Gallery</button>
 </div>
 
@@ -729,77 +123,6 @@ tr:hover td{background:#FAFBFF}
      TAB: DAILY REPORT — TIMETABLE VIEW
 ═══════════════════════════════════════ -->
 <div class="tab active" id="tab-report">
-
-<style>
-/* ── TIMETABLE BLOCK STYLES ── */
-.tt-day-banner{border-radius:16px;padding:14px 18px;margin-bottom:12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.tt-mode-toggle{font-size:11px;font-weight:900;padding:6px 14px;border-radius:20px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .18s}
-.tt-holiday-banner{background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border:2px solid #FCD34D;border-radius:12px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.tt-blocks{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
-.tt-block{border-radius:16px;border:2px solid #E5E7EB;background:#fff;overflow:hidden;transition:all .25s}
-.tt-block.state-current{border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
-.tt-block.state-done{border-color:#10B981;background:#F0FDF4}
-
-/* LOCKED (upcoming) — header clickable to expand/view, but activities not interactive */
-.tt-block.state-locked{opacity:.75}
-.tt-block.state-locked .tt-block-hdr{cursor:pointer}
-.tt-block.state-locked .tt-act{opacity:.6;pointer-events:none;cursor:default}
-.tt-block.state-locked .tt-mark-done-btn{display:none!important}
-.tt-block.state-locked .tt-act-cb{display:none}
-.tt-block.state-locked .tt-act-name{color:#6B7280}
-.tt-block.state-locked .tt-act-pts{color:#9CA3AF}
-
-/* PAST (completed window, not marked done) — viewable, not editable */
-.tt-block.state-past .tt-block-hdr{cursor:pointer}
-.tt-block.state-past .tt-act{opacity:.65;pointer-events:none;cursor:default}
-.tt-block.state-past .tt-mark-done-btn{display:none!important}
-.tt-block.state-past .tt-act-cb{display:none}
-
-/* DONE — viewable summary only */
-.tt-block.state-done .tt-act{pointer-events:none;cursor:default}
-.tt-block.state-done .tt-mark-done-btn{display:none!important}
-.tt-block.state-break{border-color:#E5E7EB;background:#FAFAFA}
-.tt-block-hdr{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;user-select:none}
-.tt-block-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.tt-block-meta{flex:1;min-width:0}
-.tt-block-time{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#6B7280;margin-bottom:1px}
-.tt-block-name{font-size:14px;font-weight:900;color:#1E1B4B}
-.tt-block-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.tt-pts-badge{font-size:12px;font-weight:900;padding:4px 12px;border-radius:20px;background:#F3F4F6;color:#6B7280;white-space:nowrap}
-.tt-status-badge{font-size:10px;font-weight:900;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em}
-.tt-chevron{font-size:12px;color:#9CA3AF;transition:transform .2s}
-.tt-block.open .tt-chevron{transform:rotate(180deg)}
-.tt-block-body{display:none;padding:4px 16px 16px;border-top:1.5px solid #F3F4F6}
-.tt-block.open .tt-block-body{display:block}
-/* Activity checkboxes inside blocks */
-.tt-activities{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-.tt-act{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:10px;border:1.5px solid #E5E7EB;background:#FAFAFA;cursor:pointer;transition:all .15s;user-select:none}
-.tt-act:hover{border-color:#93C5FD;background:#EFF6FF}
-.tt-act.checked{border-color:#10B981;background:#ECFDF5}
-.tt-act.parent-pending{border-color:#FCD34D;background:#FFFBEB;cursor:default}
-.tt-act.linked{border-color:#C4B5FD;background:#F5F3FF;cursor:pointer}
-.tt-act-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
-.tt-act-cb{width:20px;height:20px;border-radius:6px;border:2px solid #D1D5DB;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s}
-.tt-act.checked .tt-act-cb{background:#10B981;border-color:#10B981;color:#fff}
-.tt-act.parent-pending .tt-act-cb{background:#FCD34D;border-color:#F59E0B;color:#fff}
-.tt-act-name{font-size:12px;font-weight:800;color:#1E1B4B}
-.tt-act-sub{font-size:10px;color:#6B7280;margin-top:1px}
-.tt-act-pts{font-size:12px;font-weight:900;white-space:nowrap;flex-shrink:0}
-.tt-block-pts-row{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding:9px 12px;border-radius:10px;background:#F9FAFB;border:1.5px solid #E5E7EB}
-.tt-mark-done-btn{width:100%;margin-top:10px;padding:11px;border-radius:12px;border:none;font-family:'Nunito',sans-serif;font-size:14px;font-weight:900;cursor:pointer;transition:all .18s}
-.tt-mark-done-btn.primary{background:linear-gradient(135deg,#3B82F6,#1D4ED8);color:#fff;box-shadow:0 4px 14px rgba(59,130,246,.35)}
-.tt-mark-done-btn.done{background:linear-gradient(135deg,#10B981,#047857);color:#fff}
-.tt-current-indicator{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#3B82F6;margin-bottom:10px}
-.tt-current-dot{width:8px;height:8px;border-radius:50%;background:#3B82F6;animation:ttPulse 1.5s ease-in-out infinite}
-@keyframes ttPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
-/* Self-study checkboxes */
-.tt-ss-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.tt-ss-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;border:1.5px solid #E5E7EB;cursor:pointer;background:#FAFAFA;transition:all .15s}
-.tt-ss-item:hover{border-color:#86EFAC;background:#ECFDF5}
-.tt-ss-item.checked{border-color:#10B981;background:#ECFDF5}
-.tt-ss-cb{width:18px;height:18px;border-radius:5px;border:2px solid #D1D5DB;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px}
-.tt-ss-item.checked .tt-ss-cb{background:#10B981;border-color:#10B981;color:#fff}
-</style>
 
 <div class="locked-banner" id="locked-banner">
   <span style="font-size:24px">🔒</span>
@@ -1023,30 +346,6 @@ tr:hover td{background:#FAFBFF}
 <div id="tab-spend" style="display:none"></div><!-- compat: old spend tab id kept for JS refs -->
 
 <!-- REWARDS PAGE CSS -->
-<style>
-@keyframes confetti-fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(60px) rotate(720deg);opacity:0}}
-@keyframes pop-in{0%{transform:scale(.8);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
-.rw-strip-row{display:flex;align-items:stretch;border-radius:16px;border:1.5px solid #F3F4F6;background:#fff;margin-bottom:8px;overflow:hidden;transition:all .2s;cursor:pointer}
-.rw-strip-row:hover{border-color:#E5E7EB;box-shadow:0 4px 16px rgba(0,0,0,.07);transform:translateY(-1px)}
-.rw-strip-row.used{opacity:.55}
-.rw-accent{width:5px;flex-shrink:0;align-self:stretch;border-radius:16px 0 0 16px}
-.rw-body{display:flex;align-items:center;gap:12px;padding:12px 14px;flex:1;min-width:0}
-.rw-icon{font-size:26px;width:34px;text-align:center;flex-shrink:0}
-.rw-info{flex:1;min-width:0}
-.rw-name{font-size:13px;font-weight:900;color:#1E1B4B;font-family:'Nunito',sans-serif}
-.rw-sub{font-size:10px;color:#6B7280;margin-top:2px;font-family:'Nunito',sans-serif}
-.rw-prog{height:4px;background:#F3F4F6;border-radius:2px;margin-top:5px;overflow:hidden}
-.rw-prog-fill{height:100%;border-radius:2px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
-.rw-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;padding:12px 14px 12px 0;flex-shrink:0}
-.rw-pts{font-size:11px;font-weight:900;color:#6B7280;font-family:'Nunito',sans-serif}
-.rw-btn{font-size:11px;font-weight:900;padding:5px 14px;border-radius:20px;border:2px solid currentColor;background:transparent;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .15s;white-space:nowrap}
-.rw-btn:hover:not(:disabled){filter:brightness(.9)}
-.rw-btn:disabled{opacity:.4;cursor:not-allowed}
-.rw-trophy{font-size:9px;background:#EFF6FF;color:#1D4ED8;border-radius:6px;padding:1px 6px;margin-left:5px;font-family:'Nunito',sans-serif;font-weight:900;vertical-align:middle}
-.rw-section-hdr{display:flex;align-items:center;gap:10px;margin:0 0 10px}
-.rw-section-line{flex:1;height:2px;border-radius:2px}
-.confetti-dot{position:absolute;width:8px;height:8px;border-radius:50%;pointer-events:none;animation:confetti-fall .8s ease-out forwards}
-</style>
 
 <!-- CELEBRATION BANNER -->
 <div style="position:relative;border-radius:20px;overflow:hidden;margin-bottom:16px;padding:20px 20px 16px">
@@ -1427,7 +726,7 @@ tr:hover td{background:#FAFBFF}
 <div id="shloka-done" style="display:none"></div>
 <div id="shloka-understood" style="display:none"></div>
 <textarea id="shloka-write" style="display:none"></textarea>
-<style>@media(max-width:640px){#geeta-main-grid{grid-template-columns:1fr!important}}</style>
+
 </div><!-- end tab-geeta -->
 
 <!-- ═══════════════════════════════════════
@@ -2064,7 +1363,6 @@ tr:hover td{background:#FAFBFF}
 </div><!-- end parent-content -->
 </div><!-- end tab-parent -->
 
-
 <!-- ═══════ WORDBOOK TAB ═══════ -->
 <div class="tab" id="tab-wordbook">
 <div id="wb-wrap" style="background:#F0F4FF;border-radius:16px;padding:10px 14px 20px;font-family:'Nunito',sans-serif;border:2px solid #E5E7EB;">
@@ -2158,14 +1456,7 @@ tr:hover td{background:#FAFBFF}
 </div>
 </div><!-- end wordbook tab -->
 
-
-<div class="tab" id="tab-history">
-<div style="font-size:20px;font-weight:900;margin-bottom:5px">📅 My Daily History</div>
-<div style="font-size:12px;color:var(--muted);margin-bottom:12px">✅ Approved entries are added to your bank · ⏳ Pending entries are waiting for parent approval</div>
-<div id="hist-detail-box"></div>
-<div id="day-list"></div>
-<div id="no-hist" style="text-align:center;padding:40px;color:var(--muted);font-size:14px">No approved reports yet — fill your report and get it approved by Parents Review!</div>
-</div>
+<div class="tab" id="tab-history" style="display:none"><!-- merged into Progress --></div>
 
 <!-- ═══════════════════════════════════════
      TAB: PROGRESS / GRAPHS
@@ -2177,43 +1468,40 @@ tr:hover td{background:#FAFBFF}
 
 <div class="tab" id="tab-graphs">
 <!-- HEADER -->
-<div style="background:linear-gradient(135deg,#065F46,#0F766E,#1D4ED8);border-radius:18px;
-  padding:18px 20px;margin-bottom:14px;color:#fff;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-  <div style="font-size:40px">📈</div>
+<div style="background:linear-gradient(135deg,#065F46,#0F766E,#1D4ED8);border-radius:14px;
+  padding:10px 16px;margin-bottom:12px;color:#fff;display:flex;align-items:center;gap:10px">
+  <div style="font-size:24px">📈</div>
   <div style="flex:1">
-    <div style="font-size:20px;font-weight:900">Vaanya's Progress Dashboard</div>
-    <div style="font-size:12px;color:#A7F3D0;margin-top:2px">Last 30 approved days · Keep the streak alive! 🔥</div>
+    <div style="font-size:15px;font-weight:900">Vaanya's Progress</div>
+    <div style="font-size:10px;color:#A7F3D0">Last 30 approved days · Keep going! 🔥</div>
   </div>
-  <div style="font-size:11px;color:#A7F3D0;font-weight:700;background:rgba(255,255,255,.12);padding:6px 12px;border-radius:10px">Tap rank to replay 🎬</div>
+  <div style="font-size:10px;color:#A7F3D0;font-weight:700;background:rgba(255,255,255,.12);padding:4px 10px;border-radius:8px">Tap rank 🎬</div>
 </div>
 
 <!-- RANK CARD (stays here after overlay closes) -->
-<div id="perf-card" style="margin-bottom:14px"></div>
+<div id="perf-card" style="margin-bottom:8px"></div>
 
 <!-- VICTORY CUPS -->
 <!-- NO CUP BANNER -->
-<div id="no-cup-banner" style="display:none;background:linear-gradient(135deg,#7C3AED,#9D4FD4,#DB2777);
-  border-radius:16px;padding:16px 18px;color:#fff;margin-bottom:12px;
-  cursor:pointer;align-items:center;gap:14px"
+<div id="no-cup-banner" style="display:none;background:linear-gradient(135deg,#7C3AED,#DB2777);
+  border-radius:12px;padding:10px 14px;color:#fff;margin-bottom:10px;
+  cursor:pointer;align-items:center;gap:10px"
   onclick="cupSoundAndOverlay('none')">
-  <div style="font-size:36px;line-height:1">😤</div>
-  <div style="flex:1">
-    <div style="font-size:16px;font-weight:900;margin-bottom:4px">No cup today — but tomorrow can change everything!</div>
-    <div style="font-size:12px;color:rgba(255,255,255,.88);line-height:1.6">
-      You need <b id="no-cup-pts-needed">80</b> more pts to reach 🥉 Bronze. Come on Vaanya — you have got this in you!
-    </div>
+  <div style="font-size:22px">😤</div>
+  <div style="flex:1;font-size:11px;color:rgba(255,255,255,.9)">
+    Need <b id="no-cup-pts-needed">80</b> more pts for 🥉 Bronze — come on!
   </div>
-  <div style="text-align:center;min-width:60px">
-    <div style="font-size:26px;font-weight:900;color:#FCD34D;line-height:1" id="no-cup-pts-today">0</div>
-    <div style="font-size:9px;color:rgba(255,255,255,.7);font-weight:800;text-transform:uppercase;margin-top:3px">pts today</div>
+  <div style="text-align:center;flex-shrink:0">
+    <div style="font-size:18px;font-weight:900;color:#FCD34D" id="no-cup-pts-today">0</div>
+    <div style="font-size:8px;color:rgba(255,255,255,.6)">pts today</div>
   </div>
 </div>
 
-<div style="font-size:14px;font-weight:900;color:#065F46;margin-bottom:10px;display:flex;align-items:center;gap:8px">
-  🏆 Victory Cups — Today's Achievement
-  <span style="font-size:10px;font-weight:700;color:#0F766E;background:#ECFDF5;padding:3px 10px;border-radius:10px;border:1px solid #6EE7B7">tap a cup to hear its sound</span>
+<div style="font-size:12px;font-weight:900;color:#065F46;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+  🏆 Today's Achievement
+  <span style="font-size:9px;color:#0F766E;opacity:.8">· tap cup for sound</span>
 </div>
-<div id="cups-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px"></div>
+<div id="cups-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px"></div>
 
 <!-- CUMULATIVE PERFORMANCE CHART -->
 <div class="prog-cumulative-wrap">
@@ -2244,55 +1532,23 @@ tr:hover td{background:#FAFBFF}
   <div id="parent-comments-list"></div>
 </div>
 
+<!-- HISTORY SECTION — merged into Progress -->
+<div style="margin-top:20px;padding-top:16px;border-top:2px solid #E5E7EB">
+  <div style="font-size:15px;font-weight:900;color:#065F46;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+    📅 My Daily History
+  </div>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:12px">✅ Approved entries are added to your bank · ⏳ Pending entries are waiting for parent approval</div>
+  <div id="hist-detail-box"></div>
+  <div id="day-list"></div>
+  <div id="no-hist" style="text-align:center;padding:30px;color:var(--muted);font-size:13px">No approved reports yet!</div>
 </div>
 
+</div>
 
 <!-- ═══════════════════════════════════════
      TAB: CREATIVE GALLERY
 ═══════════════════════════════════════ -->
 <div class="tab" id="tab-gallery">
-
-<style>
-/* ── Gallery pink theme ── */
-:root{
-  --pk1:#FFF0F7;--pk2:#FFD6EC;--pk3:#FFB3D9;--pk4:#FF69B4;
-  --pk5:#E91E8C;--pk6:#C2185B;--pk-ink:#6B0F3A;
-}
-.cg-header{background:linear-gradient(135deg,#E91E8C,#FF69B4,#FFB347);border-radius:20px;padding:20px 22px;margin-bottom:16px;color:#fff;overflow:hidden;position:relative}
-.cg-header-sparkles{position:absolute;top:0;right:0;bottom:0;width:40%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Ccircle cx='20' cy='20' r='2' fill='rgba(255,255,255,.25)'/%3E%3Ccircle cx='60' cy='10' r='1.5' fill='rgba(255,255,255,.2)'/%3E%3Ccircle cx='100' cy='30' r='2.5' fill='rgba(255,255,255,.18)'/%3E%3Ccircle cx='40' cy='70' r='1.5' fill='rgba(255,255,255,.22)'/%3E%3Ccircle cx='90' cy='80' r='2' fill='rgba(255,255,255,.2)'/%3E%3Ccircle cx='15' cy='95' r='1' fill='rgba(255,255,255,.15)'/%3E%3Ccircle cx='75' cy='50' r='1.5' fill='rgba(255,255,255,.18)'/%3E%3C/svg%3E") repeat;pointer-events:none}
-.cg-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:12px;background:#fff;border-radius:16px;border:1.5px solid var(--pk2)}
-.cg-filter{padding:8px 16px;border-radius:20px;border:1.5px solid var(--pk2);background:var(--pk1);color:var(--pk6);font-size:12px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .18s;display:flex;align-items:center;gap:5px}
-.cg-filter:hover{background:var(--pk2);border-color:var(--pk4)}
-.cg-filter.on{background:linear-gradient(135deg,#E91E8C,#FF69B4);color:#fff;border-color:#E91E8C;box-shadow:0 4px 14px rgba(233,30,140,.3)}
-.cg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-.cg-card{background:#fff;border:2px solid var(--pk2);border-radius:18px;overflow:hidden;cursor:pointer;transition:all .22s}
-.cg-card:hover{border-color:var(--pk4);transform:translateY(-3px);box-shadow:0 10px 28px rgba(233,30,140,.15)}
-.cg-thumb{height:130px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.cg-thumb img{width:100%;height:100%;object-fit:cover}
-.cg-thumb-text{padding:12px;height:100%;width:100%;overflow:hidden}
-.cg-preview{font-size:11px;line-height:1.7;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical}
-.cg-ribbon{position:absolute;top:0;left:0;background:linear-gradient(135deg,#E91E8C,#FF69B4);color:#fff;font-size:9px;font-weight:900;padding:4px 10px 4px 8px;border-radius:0 0 12px 0;letter-spacing:.06em;text-transform:uppercase}
-.cg-card-body{padding:10px 13px 12px;border-top:2px solid var(--pk2);background:var(--pk1)}
-.cg-card-type{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:var(--pk5);margin-bottom:2px}
-.cg-card-date{font-size:11px;color:var(--pk6);font-weight:700;opacity:.75}
-.cg-detail{background:#fff;border:2px solid var(--pk3);border-radius:18px;margin-bottom:14px;overflow:hidden}
-.cg-detail-hdr{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--pk2);background:var(--pk1)}
-.cg-detail-body{padding:18px}
-.cg-poem-display{background:linear-gradient(160deg,#FFF0F7,#FFF8FC);border:2px solid var(--pk3);border-radius:16px;padding:22px 24px;font-family:Georgia,serif;font-size:14.5px;color:#6B0F3A;line-height:2.1;text-align:center;white-space:pre-wrap}
-.cg-story-display{background:#FFF8FC;border:2px solid var(--pk2);border-radius:16px;padding:18px 20px;font-size:13px;color:#3B0A2A;line-height:1.95;white-space:pre-wrap}
-.cg-journal-grid{display:grid;grid-template-columns:1fr;gap:10px}
-.cg-journal-field{background:linear-gradient(135deg,#FFF0F7,#FFF8FC);border:1.5px solid var(--pk2);border-radius:13px;padding:12px 15px}
-.cg-journal-lbl{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--pk5);margin-bottom:5px;display:flex;align-items:center;gap:5px}
-.cg-journal-val{font-size:13px;color:var(--pk-ink);line-height:1.7}
-.cg-nav-btns{display:flex;gap:10px;margin-top:16px}
-.cg-nav-btn{flex:1;padding:11px;border-radius:13px;border:2px solid var(--pk2);background:var(--pk1);color:var(--pk6);font-size:13px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
-.cg-nav-btn:hover{border-color:var(--pk4);background:var(--pk2);color:var(--pk-ink)}
-.cg-nav-btn:disabled{opacity:.3;cursor:not-allowed}
-.cg-empty{text-align:center;padding:48px 20px;color:var(--muted);background:var(--pk1);border:2px dashed var(--pk3);border-radius:18px}
-.cg-load-more{width:100%;margin-top:14px;padding:13px;border-radius:16px;border:2px dashed var(--pk3);background:var(--pk1);color:var(--pk5);font-size:13px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .15s}
-.cg-load-more:hover{background:var(--pk2);border-color:var(--pk4)}
-.cg-loading{text-align:center;padding:36px;font-size:14px;font-weight:800;color:var(--pk5)}
-</style>
 
 <!-- HEADER BANNER -->
 <div class="cg-header">
@@ -2483,7 +1739,6 @@ const CREATIVE_OPTIONS=[
   {id:'journal',icon:'📔',title:'Diary / Gratitude Journal',desc:'Write 3 things you are grateful for today and one happy memory from this week.',pts:20},
 ];
 
-
 const RIDDLES=[
   {q:'I have cities but no houses, mountains but no trees, water but no fish. What am I?',a:'A map',hint:'You use me to find your way.'},
   {q:'The more you take, the more you leave behind. What am I?',a:'Footsteps',hint:'Think about walking.'},
@@ -2511,6 +1766,7 @@ const _supabase = (typeof supabase !== 'undefined')
 
 // Local state — loaded from Supabase on startup
 let savedDays     = [];
+let charts        = {};  // Chart.js instances keyed by name
 let spendHist     = [];
 let totalSpent    = 0;
 let dbReady       = false;
@@ -2525,11 +1781,14 @@ async function loadFromSupabase() {
       .select('*')
       .order('date', { ascending: false });
     if (!e1 && days) {
-      savedDays = days.map(d => {
+      const mapped = days.map(d => {
         const fullData = d.full_data ? (() => { try{ return JSON.parse(d.full_data); }catch(e){ return {}; } })() : {};
-        // Remove 'approved' from fullData before spreading —
-        // the database column must always win over stale full_data value
-        const { approved: _ignored, ...safeFullData } = fullData;
+        // Remove 'approved' AND 'pts' from fullData before spreading — the
+        // dedicated database columns are always the source of truth and must
+        // win over any stale value sitting inside the full_data JSON blob.
+        const { approved: _ig1, pts: _ig2, ...safeFullData } = fullData;
+        const ap = d.approved === true || d.approved === 'true';
+        if(ap){ try{ sessionStorage.removeItem(_sessionKey(d.date)); }catch(e){} }
         return {
           date: d.date,
           pts: d.pts || 0,
@@ -2539,11 +1798,59 @@ async function loadFromSupabase() {
           odda: d.odda_done === true || d.odda_done === 'true',
           parentComment: d.notes || '',
           parentRating: d.parent_rating || 0,
-          approved: (()=>{ const ap=d.approved===true||d.approved==='true'; if(ap){ try{sessionStorage.removeItem('vaanya_session_'+d.date);}catch(e){} } return ap; })(),
+          approved: ap,
           savedAt: d.saved_at,
-          ...safeFullData  // spread full_data EXCEPT approved
+          ...safeFullData  // spread full_data EXCEPT approved & pts
         };
       });
+
+      // ── Collapse any duplicate rows that share the same date ──────────────
+      // Older saves could leave more than one row per date. Keep a SINGLE
+      // record per date, preferring an APPROVED row, then the most recently
+      // saved one. This is what keeps an approved report approved (and its
+      // points banked) after a page refresh.
+      const byDate = {};
+      mapped.forEach(r => {
+        const prev = byDate[r.date];
+        if(!prev){ byDate[r.date] = r; return; }
+        if(r.approved && !prev.approved){ byDate[r.date] = r; return; }
+        if(!r.approved && prev.approved){ return; }
+        const tNew = r.savedAt ? new Date(r.savedAt).getTime() : 0;
+        const tOld = prev.savedAt ? new Date(prev.savedAt).getTime() : 0;
+        if(tNew >= tOld) byDate[r.date] = r;
+      });
+      savedDays = Object.values(byDate);
+
+      // ── Merge the local backup as a safety net ────────────────────────────
+      // If a day was approved/saved locally but never reached the cloud (a
+      // network hiccup, RLS error, etc.), keep showing it so points are never lost on
+      // refresh — and quietly push the corrected state back up to the cloud.
+      try{
+        const localBackup = JSON.parse(localStorage.getItem('vaanya_days')||'[]');
+        if(Array.isArray(localBackup)){
+          localBackup.forEach(ld => {
+            if(!ld || !ld.date) return;
+            const cloud = byDate[ld.date];
+            // Only treat a local-only day as a failed-sync within a short recent
+            // window (3 days). This protects a just-approved today/yesterday whose
+            // cloud write failed, without ever resurrecting an old day that was
+            // deliberately rejected/deleted elsewhere.
+            const ageDays = (Date.now() - new Date(ld.date+'T12:00:00').getTime()) / 86400000;
+            if(!cloud){
+              if(ageDays <= 3) savedDays.push(ld);      // cloud has nothing — restore local
+            } else if(ld.approved && !cloud.approved){
+              const idx = savedDays.findIndex(x=>x.date===ld.date);
+              const fixed = {...cloud, ...ld, approved:true};
+              if(idx>=0) savedDays[idx] = fixed;
+              try{ saveToSupabase(fixed); }catch(e){} // re-push the approval to cloud
+            }
+          });
+        }
+      }catch(e){ console.warn('Local backup merge skipped', e); }
+
+      savedDays.sort((a,b)=>new Date(b.date)-new Date(a.date));
+      // Refresh the local backup with the reconciled truth
+      try{ localStorage.setItem('vaanya_days', JSON.stringify(savedDays)); }catch(e){}
     }
     // Load spend history
     const { data: spend, error: e2 } = await _supabase
@@ -2557,11 +1864,19 @@ async function loadFromSupabase() {
     dbReady = true;
     showSyncStatus('ok');
     updateTopBar();
-    // Force recalc after brief delay to ensure all data parsed
+    // Force recalc + render after brief delay to ensure all data parsed
     setTimeout(()=>{
       updateTopBar();
-      populateResetDatePicker(); // populate after data is loaded
-    }, 500);
+      populateResetDatePicker();
+      // Always render history — it lives on the Progress page now
+      renderHistory();
+      // Render graphs if Progress tab is currently active
+      const graphsTab = document.getElementById('tab-graphs');
+      if(graphsTab && graphsTab.classList.contains('active')){
+        renderGraphs();
+        setTimeout(()=>{ Object.values(charts||{}).forEach(ch=>{ try{ ch.resize(); }catch(e){} }); },200);
+      }
+    }, 600);
     return true;
   } catch(err) {
     showSyncStatus('error');
@@ -2605,9 +1920,18 @@ async function saveToSupabase(data) {
       full_data: JSON.stringify(safeData).substring(0, 30000)
     };
 
+    // Guarantee EXACTLY ONE row per date, regardless of how the table's
+    // primary key / unique constraints are configured. A plain upsert() with
+    // no conflict target was inserting a brand-new row on every save (including
+    // the 60-second auto-save), so after approval the old "pending" copy still
+    // lived in the table — which is what made approved reports re-appear as
+    // pending and made banked points seem to vanish on refresh.
+    try{ await _supabase.from('daily_reports').delete().eq('date', row.date); }
+    catch(delErr){ console.warn('Pre-save cleanup failed (continuing):', delErr); }
+
     const { error } = await _supabase
       .from('daily_reports')
-      .upsert(row);
+      .insert(row);
 
     if (error) {
       console.error('Supabase error:', error);
@@ -2690,8 +2014,8 @@ function genLogicPuzzles(){
   if(checkBtn){checkBtn.disabled=true;checkBtn.style.opacity='.4';checkBtn.style.cursor='not-allowed';}
   var questions=_lrQuestions();
   var setIdx=_lrDaySet();
-  var istNow=new Date(Date.now()+5.5*60*60*1000);
-  var dayLabel=istNow.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  var istDateStr=new Date(Date.now()+5.5*60*60*1000).toISOString().split('T')[0];
+  var dayLabel=new Date(istDateStr+'T12:00:00').toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
   if(badge&&questions.length)badge.textContent='Set '+(setIdx+1)+'/30 · '+dayLabel+' · '+questions[0].cat;
   var container=document.getElementById('logic-puzzles');
   if(!container)return;
@@ -2787,7 +2111,6 @@ function freezeLogic(){
   }
 }
 
-
 function showTab(id,btn){
   // Show live score right panel only on daily report tab
   const rp=document.getElementById('right-panel');
@@ -2799,9 +2122,19 @@ function showTab(id,btn){
   if(btn)btn.classList.add('active');
   if(id==='brain'){} // worksheets load when Worksheets tab clicked
   if(id==='wordbook'){ wbWords=[]; wbLoad(); }
+  if(id==='history') id='graphs'; // history merged into progress
   if(id==='rewards'){renderRewards();setTimeout(showVaanyaMotivation,600);}
-  if(id==='history')renderHistory();
-  if(id==='graphs')renderGraphs();
+  if(id==='graphs'){
+    renderHistory();
+    // Two-stage: render immediately for data, then resize chart after tab is visible
+    setTimeout(()=>{
+      renderGraphs();
+      // Force Chart.js to recalculate dimensions after tab is fully painted
+      setTimeout(()=>{
+        Object.values(charts||{}).forEach(ch=>{ try{ ch.resize(); }catch(e){} });
+      }, 150);
+    }, 80);
+  }
   if(id==='parent'){
     const wall=document.getElementById('parent-locked-wall');
     const content=document.getElementById('parent-content');
@@ -2925,7 +2258,6 @@ function fmtDate(d){
   return new Date(d+'T12:00:00').toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 }
 
-
 function getStreak(){
   // Only count APPROVED days in consecutive streak
   const approved = savedDays
@@ -2956,7 +2288,6 @@ function getStreak(){
   return streak;
 }
 
-
 function toggleP(el,cls){el.classList.toggle(cls);}
 function toggleEx(el,gid,cls){
   const g=document.getElementById(gid);
@@ -2974,7 +2305,6 @@ function toggleExDeselect(el,gid,cls){
   // If not already selected → select it; if already selected → leave cleared (deselect)
   if(!alreadySelected) el.classList.add(cls);
 }
-
 
 function totalEarned(){
   return savedDays
@@ -3054,11 +2384,13 @@ function setTodayDate(){
   const todayIST=istNow.toISOString().split('T')[0];
   const el=document.getElementById('rpt-date');
   el.min=todayIST; el.max=todayIST; el.value=todayIST; el.dataset.prev=todayIST;
-  document.getElementById('today-pill').textContent=new Date(istNow).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  // Format the header pill from the already-correct IST date string. Using a
+  // noon anchor avoids the double timezone shift that previously pushed the
+  // displayed date one day ahead (e.g. showing 5 Jun while it was 4 Jun).
+  document.getElementById('today-pill').textContent=new Date(todayIST+'T12:00:00').toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
 }
 
 // ── Homework list — fix #5: subject + checkbox + pts badge + study notes textbox
-
 
 function buildStars(id,n){
   const el=document.getElementById(id);if(!el)return;
@@ -3504,9 +2836,7 @@ async function saveCreativeDraft(){
   if(!date){toast('Please set a date on the Daily Report tab first!');return;}
   const ex=savedDays.find(d=>d.date===date);
   if(ex&&ex.approved===true){toast('\u2705 Report already approved — creative work is locked in!');return;}
-  const pendingReportDate = _pendingReviewDate;
-  const pendingReport = pendingReportDate ? savedDays.find(d => d.date === pendingReportDate) : null;
-  const pts = (pendingReport && pendingReport.approved) ? pendingReport.pts : calcDayPts();
+  const pts=calcDayPts();
   const data=collectFormData(date,pts);
   const idx=savedDays.findIndex(d=>d.date===date);
   if(idx>=0){savedDays[idx]={...savedDays[idx],...data};}else{savedDays.unshift(data);}
@@ -4145,7 +3475,6 @@ async function _parentApproveShloka(shlokaId){
   }
 }
 
-
 function buildEarnGuide(){
   const tb=document.getElementById('earn-guide');if(!tb)return;
   tb.innerHTML=EARN_GUIDE.map(([act,pts,note])=>`
@@ -4183,7 +3512,6 @@ function calcScore(){
 }
 
 // ════════════════════════════════════════════
-
 
 // ════════════════════════════════════════════
 // ODDA ASSIGNMENT — fix #6
@@ -4242,7 +3570,6 @@ function calcDayPts(){
     if(pct>=90)testPts=50;else if(pct>=75)testPts=40;else if(pct>=60)testPts=25;else testPts=10;
   }
   pts+=testPts;breakdown.test=testPts;
-
 
   // Odda — attendance (+10 yes / -15 missed) + timing (+5 on time / -10 late) + assignment (% based max +10 / incomplete 0)
   let oddaPts=0;
@@ -4746,8 +4073,7 @@ function collectFormData(date, pts){
     // This prevents auto-save from overwriting an approved report back to pending
     approved: (()=>{
       const existing = savedDays.find(d => d.date === date);
-      const isApprovedDb = existing ? (existing.approved === true) : false;
-      return (todayApproved === true) ? true : isApprovedDb;
+      return existing ? (existing.approved === true) : false;
     })(),
 
     parentComment:document.getElementById('parent-comment')?.value||'',
@@ -4830,9 +4156,7 @@ async function saveDraftAndGoBrainLab(){
       if(cAwd && existing.creativePtsAwarded!==undefined) cAwd.value=String(existing.creativePtsAwarded);
     }
   }
-  const pendingReportDate = _pendingReviewDate;
-  const pendingReport = pendingReportDate ? savedDays.find(d => d.date === pendingReportDate) : null;
-  const pts = (pendingReport && pendingReport.approved) ? pendingReport.pts : calcDayPts();
+  const pts=calcDayPts();
   const data = collectFormData(date, pts);
 
   // Save into savedDays array (upsert by date)
@@ -4843,6 +4167,9 @@ async function saveDraftAndGoBrainLab(){
 
   // Save to Supabase as draft (approved=false — no bank credit)
   const ok = await saveToSupabase(data);
+  // Always keep a local backup so the child's work survives a refresh even if
+  // the cloud write fails for any reason.
+  try{ localStorage.setItem('vaanya_days', JSON.stringify(savedDays)); }catch(e){}
   updateTopBar();
   if(ok){
     toast('💾 Draft saved! Appears in History as Pending. Going to Brain Lab...');
@@ -4856,15 +4183,15 @@ async function saveDraftAndGoBrainLab(){
 async function saveDraftOnly(){
   const date=document.getElementById('rpt-date')?.value;
   if(!date){toast('Please set today\'s date first!');return;}
-  const pendingReportDate = _pendingReviewDate;
-  const pendingReport = pendingReportDate ? savedDays.find(d => d.date === pendingReportDate) : null;
-  const pts = (pendingReport && pendingReport.approved) ? pendingReport.pts : calcDayPts();
+  const pts=calcDayPts();
   const data = collectFormData(date, pts);
   const idx = savedDays.findIndex(d=>d.date===date);
   if(idx>=0){ savedDays[idx]={...savedDays[idx],...data}; }
   else { savedDays.unshift(data); }
   savedDays.sort((a,b)=>new Date(b.date)-new Date(a.date));
   const ok = await saveToSupabase(data);
+  // Local backup — guarantees the in-progress report survives a refresh.
+  try{ localStorage.setItem('vaanya_days', JSON.stringify(savedDays)); }catch(e){}
   updateTopBar();
   if(ok){
     toast('💾 Draft saved for '+fmtDate(date)+'! ('+pts+' pts · Pending approval)');
@@ -4886,7 +4213,7 @@ function updateTopBar(){
   const dbg=document.getElementById('bank-debug');
   if(dbg){
     const approvedCount=savedDays.filter(d=>d.approved).length;
-    dbg.textContent=`✅ ${approvedCount} approved day(s) · ${earned} pts earned · ${totalSpent} pts spent · ${avail} pts available`;
+    dbg.textContent=`✅ ${approvedCount} approved day(s) · ${earned} earned − ${totalSpent} spent = ${avail} in bank`;
   }
 }
 
@@ -4959,32 +4286,16 @@ function unlockParentActions(){
 }
 
 async function approveReport(){
-  // Use _pendingReviewDate (set by Parent Review tab when a date is selected)
-  // NEVER use rpt-date — that shows the Daily Report tab's date, which may differ
-  const date = (typeof _pendingReviewDate!=='undefined' && _pendingReviewDate)
-    ? _pendingReviewDate
-    : document.getElementById('rpt-date').value;
-  if(!date){ toast('Please select a pending report to approve first!'); return; }
+  const date = (typeof _pendingReviewDate!=='undefined'&&_pendingReviewDate) ? _pendingReviewDate : document.getElementById('rpt-date').value;
+  if(!date){toast("Please set today\'s date first!");return;}
+  todayApproved=true;
 
-  // Get the EXISTING saved data for this date — do NOT re-collect from the form
-  // The form fields belong to the Daily Report tab (different date context)
-  const existingIdx = savedDays.findIndex(d => d.date === date);
-  const existing = existingIdx >= 0 ? savedDays[existingIdx] : null;
-  if(!existing){
-    toast('Could not find report for '+date+'. Please reload and try again.');
-    return;
-  }
-
-  todayApproved = true;
-
-  // Read parent-awarded values from Parent Review dropdowns
-  const parentRating      = parseInt(document.getElementById('parent-rating')?.value||0);
-  const parentComment     = (document.getElementById('parent-comment')?.value||'').substring(0,2000);
-  const shlokaPtsAwarded  = parseInt(document.getElementById('shloka-pts-award')?.value||0)||0;
-  const creativePtsAwarded= parseInt(document.getElementById('creative-pts-award')?.value||0)||0;
-
-  // Auto-promote shloka if parent awarded 25 pts
-  if(shlokaPtsAwarded >= 25){
+  // ── Auto-promote shloka: if parent awarded 25 pts via dropdown,
+  //    mark the in-progress shloka as mastered in geetaProgress now,
+  //    BEFORE collectFormData snapshots it. This keeps the two systems in sync.
+  const shlokaPtsEl = document.getElementById('shloka-pts-award');
+  const shlokaPtsVal = parseInt(shlokaPtsEl?.value||0)||0;
+  if(shlokaPtsVal >= 25){
     const inProgId = _geetaInProgressId();
     if(inProgId){
       geetaProgress[inProgId] = {status:'mastered', date:date, pts:25};
@@ -4992,30 +4303,37 @@ async function approveReport(){
     }
   }
 
-  // Build approved data from EXISTING report — only override approval fields
-  const data = {
-    ...existing,
-    approved:           true,
-    parentRating:       parentRating,
-    parentComment:      parentComment,
-    shlokaPtsAwarded:   shlokaPtsAwarded,
-    creativePtsAwarded: creativePtsAwarded,
-    savedAt:            new Date().toISOString(),
-  };
+  const pts=calcDayPts();
 
-  // Final pts = original timetable pts + parent additions
-  data.pts = (existing.pts||0) + parentRating + shlokaPtsAwarded + creativePtsAwarded;
-  const pts = data.pts;
+  const shD=!!document.getElementById('shloka-done')?.querySelector('.pg');
+  const crD=!!(document.getElementById('creative-done')?.querySelector('.pg')||document.getElementById('creative-done')?.querySelector('.pa'));
+  const brD=!!(document.getElementById('brain-done')?.querySelector('.pg')||document.getElementById('brain-done')?.querySelector('.pa'));
+  const odD=!!document.getElementById('odda-att')?.querySelector('.pg');
 
-  // Update in-memory savedDays
-  savedDays[existingIdx] = data;
+  // Use FULL collectFormData so all form fields are preserved in full_data
+  // Override approved:true explicitly after collectFormData runs
+  const data = collectFormData(date, pts);
+  data.approved    = true;
+  data.shlokaD     = shD;
+  data.creativeD   = crD;
+  data.brainD      = brD;
+  data.odda        = odD;
+  data.parentComment = (document.getElementById('parent-comment')?.value||'').substring(0,2000);
+  data.parentRating  = parseInt(document.getElementById('parent-rating')?.value||0);
+  data.savedAt       = new Date().toISOString();
+
+  const idx=savedDays.findIndex(d=>d.date===date);
+  if(idx>=0)savedDays[idx]={...savedDays[idx],...data};
+  else savedDays.unshift(data);
   savedDays.sort((a,b)=>new Date(b.date)-new Date(a.date));
-  localStorage.setItem('vaanya_days', JSON.stringify(savedDays));
+  localStorage.setItem('vaanya_days',JSON.stringify(savedDays));
+  const _approveOk = await saveToSupabase(data);
+  // Re-write the local backup AFTER the save so the approved state is always
+  // captured locally — if the cloud write failed, the load-time merge will
+  // automatically re-push this approval on the next refresh.
+  try{ localStorage.setItem('vaanya_days', JSON.stringify(savedDays)); }catch(e){}
 
-  // Save to Supabase — single source of truth for approval state
-  await saveToSupabase(data);
-
-  // UI updates
+  // Show approved banner
   const actions=document.getElementById('parent-action-section');
   if(actions)actions.style.display='none';
   const appSec=document.getElementById('approved-section');
@@ -5027,12 +4345,16 @@ async function approveReport(){
 
   updateTopBar();
   lockForm(date, pts);
-  _sessionClearDate(date);
+  _sessionClearDate(date); // approved — session must never override Supabase
   const _rptEl=document.getElementById('rpt-date');
   if(_rptEl && _rptEl.value!==date) _rptEl.value=date;
   populateResetDatePicker();
-  showPop('✅','Report Approved! 🎉','Vaanya your report has been approved! You earned '+pts+' points! ⭐ Keep it up!');
+  showPop('✅','Report Approved! 🎉','Vaanya your report has been approved! You earned '+pts+' points today! ⭐ Keep it up!');
   toast('Report approved! +'+pts+' points saved! Report is now locked.');
+  if(!_approveOk){
+    toast('⚠️ Cloud sync is slow right now — your approval is saved on this device and will sync automatically.');
+  }
+  // Note: saveToSupabase already called above — no second call needed
 
   // Streak celebration
   const streak=getStreak();
@@ -5054,6 +4376,11 @@ async function rejectReport(){
     }catch(e){ console.error('Delete error:', e); }
     // Remove from local savedDays array too
     savedDays = savedDays.filter(d => d.date !== date);
+    // Keep the local backup in sync so the rejected day is not resurrected by
+    // the load-time merge.
+    try{ localStorage.setItem('vaanya_days', JSON.stringify(savedDays)); }catch(e){}
+    // Also drop any lingering session snapshot for this date.
+    try{ _sessionClearDate(date); }catch(e){}
   }
 
   // 2. Clear the form completely
@@ -5078,7 +4405,6 @@ async function rejectReport(){
   // 5. Go to Daily Report tab
   setTimeout(()=>showTab('report', document.querySelector('.nb.t0')), 800);
 }
-
 
 // ════════════════════════════════════════════
 // MOTIVATIONAL POP-UPS FOR VAANYA
@@ -5244,8 +4570,6 @@ function markUsedToday(id){
 
 // Spend tracking helpers (SPEND_USED_KEY already declared above)
 
-
-
 // ════════════════════════════════════════════
 // SPEND PAGE QUOTES
 // ════════════════════════════════════════════
@@ -5364,7 +4688,6 @@ function spendPts(id,cost,title,col){
   renderSpend();
 }
 
-
 async function clearAllSpendHistory(){
   if(!confirm('Clear ALL spending history and reset spent points to 0?\n\nThis cannot be undone.')) return;
   try {
@@ -5437,9 +4760,7 @@ function renderParentTab(){
     if(noImg) noImg.style.display='block';
   }
 
-  const pendingReportDate = _pendingReviewDate;
-  const pendingReport = pendingReportDate ? savedDays.find(d => d.date === pendingReportDate) : null;
-  const pts = (pendingReport && pendingReport.approved) ? pendingReport.pts : calcDayPts();
+  const pts=calcDayPts();
   // Compute section sub-totals for the parent view
   const ttVal=parseInt(document.getElementById('rpt-tt')?.value||0);
   let ssPtsP=0; SS_SUBJECTS.forEach((_,i)=>{ if(document.getElementById('ss-'+i)?.checked) ssPtsP+=10; });
@@ -5791,10 +5112,20 @@ function renderGraphs(){
   renderParentComments(days);
 }
 
+// Canonical "today's points" — the SAME number shown in the header's
+// TODAY'S PTS chip, so the Progress cups and the overlay can never disagree
+// with the top bar. Prefers today's saved/approved record, then the live form.
+function todaysPoints(){
+  const t = new Date(Date.now()+5.5*60*60*1000).toISOString().split('T')[0];
+  const rec = savedDays.find(d => d.date === t);
+  if(rec) return parseInt(rec.pts)||0;
+  const live = document.getElementById('day-pts-live');
+  return live ? (parseInt(live.textContent)||0) : 0;
+}
+
 function renderCups(days){
   const grid=document.getElementById('cups-grid');if(!grid)return;
-  const latestDay=days[days.length-1];
-  const todayPts=latestDay?(latestDay.pts||0):0;
+  const todayPts=todaysPoints();
   const todayCup=getDayCup(todayPts);
   const nextCup=CUPS.find(cu=>cu.threshold>todayPts);
 
@@ -5933,8 +5264,7 @@ function cupSoundAndOverlay(idOrCup){
 }
 
 function showCupOverlay(id){
-  const latestDay=[...savedDays].filter(d=>d.approved).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
-  const pts = latestDay?.pts||0;
+  const pts = todaysPoints();
   const cup = CUPS.find(c=>c.id===id);
   const overlay=document.getElementById('rank-overlay');
   const box=document.getElementById('rank-overlay-box');
@@ -5992,6 +5322,12 @@ function renderCumulativeChart(days){
   });
 
   const el=document.getElementById('ch-cumulative');if(!el)return;
+  el.style.width='100%';el.style.display='block';
+  // Force the canvas to have explicit pixel dimensions so Chart.js can render
+  // even if the parent was recently display:none
+  const parentW = el.parentElement ? el.parentElement.offsetWidth : 600;
+  if(parentW > 0){ el.width = parentW; el.height = 200; }
+  else { el.width = 600; el.height = 200; }
   if(charts['cumulative'])charts['cumulative'].destroy();
 
   // Add cup threshold lines
@@ -6412,8 +5748,6 @@ function exportBackup() {
   toast('✅ Backup downloaded to your PC!');
 }
 
-
-
 // ════════════════════════════════════════════
 // BRAIN LAB DISPLAY
 // ════════════════════════════════════════════
@@ -6759,7 +6093,6 @@ function _mathsShowScoreCard(){
   document.getElementById('maths-answered-chip').textContent   = answeredCount+'/5';
 }
 
-
 function updateBrainDisplay(){
   const pts = brainPtsToday;
   const disp = document.getElementById('brain-pts-disp');
@@ -6860,9 +6193,7 @@ async function saveBrainDraft(){
     toast('✅ Report already approved — brain pts are locked in!');
     return;
   }
-  const pendingReportDate = _pendingReviewDate;
-  const pendingReport = pendingReportDate ? savedDays.find(d => d.date === pendingReportDate) : null;
-  const pts = (pendingReport && pendingReport.approved) ? pendingReport.pts : calcDayPts();
+  const pts=calcDayPts();
   const data = collectFormData(date, pts);
   // Upsert into savedDays
   const idx = savedDays.findIndex(d=>d.date===date);
@@ -6876,7 +6207,6 @@ async function saveBrainDraft(){
     setTimeout(()=>{if(msgEl)msgEl.textContent='';},4000);}
   toast('💾 Brain Lab saved! '+brainPtsToday+' brain pts recorded.');
 }
-
 
 // showSoulTab removed — now two separate tabs
 
@@ -6909,7 +6239,6 @@ function clearCreativeImg(){
   if(preview) preview.style.display='none';
   if(input) input.value='';
 }
-
 
 // ════════════════════════════════════════════
 // GEETA IMAGE SLIDER — auto-only, no wallpaper
@@ -6964,7 +6293,6 @@ function geetaStartAuto(){
 function geetaStopAuto(){
   if(geetaAutoInterval){ clearInterval(geetaAutoInterval); geetaAutoInterval=null; }
 }
-
 
 // ════════════════════════════════════════════
 // GEETA & CREATIVE DRAFT SAVES
@@ -7378,7 +6706,6 @@ function updateSidePanels(pts){
   }
 }
 
-
 // ════════════════════════════════════════════
 // DATE CHANGE — clear form + check if approved
 // ════════════════════════════════════════════
@@ -7455,12 +6782,9 @@ function silentClearDay(){
     if(e.id!=='rpt-date') e.selectedIndex=0;
   });
   // These dropdowns live in #tab-parent (not #tab-report) so must be reset explicitly
-  // BUT: Do NOT reset if the form is locked (approved)
-  if (!todayApproved) {
-    const _shAwd=document.getElementById('shloka-pts-award'); if(_shAwd) _shAwd.selectedIndex=0;
-    const _crAwd=document.getElementById('creative-pts-award'); if(_crAwd) _crAwd.selectedIndex=0;
-    const _prRat=document.getElementById('parent-rating'); if(_prRat) _prRat.selectedIndex=0;
-  }
+  const _shAwd=document.getElementById('shloka-pts-award'); if(_shAwd) _shAwd.selectedIndex=0;
+  const _crAwd=document.getElementById('creative-pts-award'); if(_crAwd) _crAwd.selectedIndex=0;
+  const _prRat=document.getElementById('parent-rating'); if(_prRat) _prRat.selectedIndex=0;
   PCLS.forEach(cl=>document.querySelectorAll('#tab-report .'+cl).forEach(e=>e.classList.remove(cl)));
   document.querySelectorAll('#tab-report .star').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('#tab-report .creative-option').forEach(o=>o.classList.remove('chosen'));
@@ -7709,7 +7033,6 @@ function loadDraftDay(d){
   calcDayPts();
 }
 
-
 // ════════════════════════════════════════════
 // PARENT TAB — PIN GATE
 // ════════════════════════════════════════════
@@ -7748,7 +7071,6 @@ function openPinModalParent(){
   document.getElementById('pin-overlay').classList.add('show');
   setTimeout(focusPinInput, 200);
 }
-
 
 // ════════════════════════════════════════════
 // PENDING APPROVALS QUEUE
@@ -8135,7 +7457,6 @@ async function wbDeleteWord(id, wordText){
   }catch(e){ toast('⚠️ Delete error: ' + e.message); }
 }
 
-
 function wbToggleAdd(btn){
   const panel=document.getElementById('wb-add-panel');
   const arrow=document.getElementById('wb-add-arrow');
@@ -8355,7 +7676,6 @@ function wbUpdateGamification(){
   }
 }
 
-
 // ── Edit word ─────────────────────────────────────────────────
 function wbOpenEdit(id){
   const w=wbWords.find(x=>String(x.id)===String(id));
@@ -8482,8 +7802,6 @@ function renderParentComments(days){
     </div>`;
   }).join('');
 }
-
-
 
 // ════════════════════════════════════════════
 // PER-DATE SESSION SYSTEM (v2 — fixed)
@@ -8650,6 +7968,7 @@ function _sessionStartAutoSave(){
       const idx = savedDays.findIndex(d => d.date === date);
       if(idx >= 0) savedDays[idx] = {...savedDays[idx], ...data};
       else savedDays.unshift(data);
+      try{ localStorage.setItem('vaanya_days', JSON.stringify(savedDays)); }catch(e){}
       // Flash indicator
       const bar = document.getElementById('sync-status');
       if(bar){
@@ -8661,14 +7980,11 @@ function _sessionStartAutoSave(){
   }, 60000);
 }
 
-
-
 // ════════════════════════════════════════════════════════════════
 // WORKSHEET ENGINE — reads worksheets.json, renders MCQ worksheets
 // You control everything by editing worksheets.json on GitHub.
 // NEVER need to touch this code to add new worksheets.
 // ════════════════════════════════════════════════════════════════
-
 
 // Points awarded based on percentage score
 
@@ -9338,7 +8654,7 @@ function ttGetSchedule(){
 }
 
 // ── Get current hour (0-23) ────────────────────────────────────
-const TT_TEST_MODE = true; // ⚠️ TEST MODE ON — set to false for live production
+const TT_TEST_MODE = false; // LIVE — time-based locking active (set true to unlock all blocks for testing)
 function ttNowHour(){
   return new Date().getHours() + new Date().getMinutes()/60;
 }
@@ -9772,7 +9088,6 @@ function ttSyncRptTT(){
   if(sel) sel.value='15';
 }
 
-
 // ── LIVE CLOCK ────────────────────────────────────────────────
 function ttUpdateClock(){
   const now = new Date();
@@ -10014,7 +9329,6 @@ function ttCalcPct(actId, maxPts, color){
   }
 }
 
-
 // ── Dropdown points selector ───────────────────────────────────
 function ttSelectDropdownPts(blockId, actId, selectedPts){
   if(!ttBlockStates[blockId]) ttBlockStates[blockId]={pts:0,checkedActs:{},markedDone:false};
@@ -10114,7 +9428,6 @@ async function ttSaveTextEntryToGallery(blockId, actId, galleryKey, actName){
     toast('Could not save. Check connection.');
   }
 }
-
 
 // ── Brain Lab → Timetable point sync ──────────────────────────
 let _ttSyncing = false;
