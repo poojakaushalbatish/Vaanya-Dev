@@ -1890,7 +1890,17 @@ async function loadFromSupabase() {
   }
 }
 
-async function saveToSupabase(data) {
+let _saveChain = Promise.resolve();
+function saveToSupabase(data){
+  // Serialize saves: the 60-second auto-save and manual saves were overlapping,
+  // so two delete-then-insert sequences raced and the 2nd insert hit a 409
+  // duplicate-key conflict on daily_reports. Running saves one-at-a-time
+  // (chained) removes the race. No table or data-shape change.
+  const run = () => _saveToSupabaseInner(data);
+  _saveChain = _saveChain.then(run, run);
+  return _saveChain;
+}
+async function _saveToSupabaseInner(data) {
   if(!_supabase){ console.warn('Supabase not available — save skipped'); return false; }
   try {
     showSyncStatus('saving');
