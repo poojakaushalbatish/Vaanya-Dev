@@ -440,7 +440,14 @@ function ttGetTotalPts(){
   const activeIds = new Set(activeSchedule.map(b=>b.id));
   let total = 0;
   Object.keys(ttBlockStates).forEach(id=>{
-    if(activeIds.has(id)) total += (ttBlockStates[id].pts||0);
+    if(!activeIds.has(id)) return;
+    const bst = ttBlockStates[id];
+    let blockPts = bst.pts||0;
+    // Brain-lab activity points are counted once via brainPtsToday in calcDayPts().
+    // They are synced into timetable blocks for DISPLAY only, so subtract them here
+    // to avoid double-counting them in the day total.
+    if(bst.linkPts) Object.values(bst.linkPts).forEach(v => blockPts -= (v||0));
+    total += blockPts;
   });
   return total;
 }
@@ -1166,4 +1173,3 @@ function cgNavigate(dir){
     cgOpenDetail(next);
   }
 }
-
