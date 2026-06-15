@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vaanya's Schedule & Scoreboard 🏆</title>
+<title>NIYAM — Small Habits, Big Destiny</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="css/styles.css">
@@ -14,6 +14,21 @@
 <script src="data/quotes.js"></script>
 <script src="data/badges.js"></script>
 <script src="data/timetable.js"></script>
+<!-- PWA: makes the app installable to the phone home screen -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#191a2f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="NIYAM">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function (e) { console.warn('SW registration failed', e); });
+    });
+  }
+</script>
 </head>
 <body>
 <div class="page">
