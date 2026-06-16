@@ -32,6 +32,14 @@
   #niyam-shell .ns-consent input{width:auto;margin-top:3px}
   #niyam-shell .ns-pin{letter-spacing:.5em;text-align:center;font-size:22px}
   #ns-logout{position:fixed;top:7px;right:7px;z-index:99998;background:rgba(25,26,47,.08);color:#374151;border:0;border-radius:8px;padding:5px 9px;font-size:11px;font-weight:600;cursor:pointer;display:none}
+  #btn-parent-tab{display:none !important;}
+  #ns-parent-btn{position:fixed;top:7px;right:72px;z-index:99998;background:#191a2f;color:#fff;border:0;border-radius:8px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;display:none}
+  #ns-parent-zone{position:fixed;inset:0;background:#0f1020;z-index:99997;overflow:auto;display:none}
+  #ns-pz-bar{position:sticky;top:0;background:#191a2f;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  #ns-pz-bar h1{font-size:18px;margin:0;color:#fff}
+  #ns-pz-back{background:rgba(255,255,255,.16);color:#fff;border:0;border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer}
+  #ns-pz-body{padding:14px;max-width:900px;margin:0 auto}
+  #ns-pz-body .tab{display:block !important}
   `;
   var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
@@ -85,6 +93,25 @@
    </div>
   </div>
   <button id="ns-logout">Log out</button>
+  <button id="ns-parent-btn">&#128274; Parent</button>
+  <div id="ns-pinprompt" class="ns-screen">
+   <div class="ns-wrap" style="padding-top:70px">
+    <div class="ns-card">
+     <h2>Enter Parent PIN</h2>
+     <p class="ns-sub">Enter your 4-digit PIN to open the Parent Zone.</p>
+     <input id="ns-pinprompt-input" type="tel" inputmode="numeric" maxlength="4" class="ns-pin" placeholder="****">
+     <div style="display:flex;gap:10px;margin-top:14px">
+       <button id="ns-pinprompt-cancel" style="flex:1;background:#eef0f3;color:#111827">Cancel</button>
+       <button id="ns-pinprompt-ok" style="flex:1;background:#191a2f;color:#fff">Unlock</button>
+     </div>
+     <div id="ns-pinprompt-err" class="ns-err"></div>
+    </div>
+   </div>
+  </div>
+  <div id="ns-parent-zone">
+   <div id="ns-pz-bar"><h1>Parent Zone</h1><button id="ns-pz-back">&#8592; Back to <span id="ns-pz-name">child</span></button></div>
+   <div id="ns-pz-body"></div>
+  </div>
   `;
   var box=document.createElement('div'); box.id='niyam-shell'; box.innerHTML=html; document.body.appendChild(box);
 
@@ -113,6 +140,8 @@
     $('ns-login').style.display='none';
     $('ns-onboard').style.display='none';
     $('ns-logout').style.display='block';
+    $('ns-parent-btn').style.display='block';
+    if(profile && profile.child_name){ var nm=$('ns-pz-name'); if(nm) nm.textContent=profile.child_name; }
     var ar=document.getElementById('app-root'); if(ar) ar.style.display='';
     if(!booted){ booted=true; if(typeof window.bootApp==='function') window.bootApp(); }
   }
@@ -171,6 +200,43 @@
   };
 
   $('ns-logout').onclick=async function(){ try{ await window.sb.auth.signOut(); }catch(e){} location.reload(); };
+
+  // ---- Parent Zone (B2): per-family PIN gate + navy zone ----
+  function hidePinPrompt(){ $('ns-pinprompt').style.display='none'; }
+  $('ns-parent-btn').onclick=function(){ clearErr('ns-pinprompt-err'); $('ns-pinprompt-input').value=''; $('ns-pinprompt').style.display='block'; setTimeout(function(){ var i=$('ns-pinprompt-input'); if(i) i.focus(); },100); };
+  $('ns-pinprompt-cancel').onclick=hidePinPrompt;
+  $('ns-pinprompt-ok').onclick=function(){
+    clearErr('ns-pinprompt-err');
+    if($('ns-pinprompt-input').value.trim() === (profile && profile.parent_pin)){ hidePinPrompt(); enterParentZone(); }
+    else showErr('ns-pinprompt-err','Wrong PIN. Try again.');
+  };
+  var _tpOrigParent=null, _tpOrigNext=null;
+  function enterParentZone(){
+    var tp=document.getElementById('tab-parent'), body=$('ns-pz-body');
+    if(tp && body){
+      _tpOrigParent=tp.parentNode; _tpOrigNext=tp.nextSibling;
+      body.appendChild(tp);
+      tp.classList.add('active'); tp.style.display='block';
+      var w=document.getElementById('parent-locked-wall'); if(w) w.style.display='none';
+      var c=document.getElementById('parent-content');     if(c) c.style.display='block';
+    }
+    try{ parentUnlocked = true; }catch(e){}
+    if(typeof renderPendingQueue==='function')      try{ renderPendingQueue(); }catch(e){}
+    if(typeof renderParentTab==='function')         try{ renderParentTab(); }catch(e){}
+    if(typeof renderParentShlokaMgmt==='function')  try{ renderParentShlokaMgmt(); }catch(e){}
+    $('ns-parent-btn').style.display='none';
+    $('ns-logout').style.display='none';
+    $('ns-parent-zone').style.display='block';
+    window.scrollTo(0,0);
+  }
+  $('ns-pz-back').onclick=function(){
+    $('ns-parent-zone').style.display='none';
+    var tp=document.getElementById('tab-parent');
+    if(tp && _tpOrigParent){ tp.classList.remove('active'); tp.style.display=''; if(_tpOrigNext) _tpOrigParent.insertBefore(tp,_tpOrigNext); else _tpOrigParent.appendChild(tp); }
+    try{ parentUnlocked = false; }catch(e){}
+    $('ns-parent-btn').style.display='block';
+    $('ns-logout').style.display='block';
+  };
 
   route();
 })();
