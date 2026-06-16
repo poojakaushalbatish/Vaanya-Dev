@@ -31,9 +31,10 @@
   #niyam-shell .ns-consent{display:flex;gap:10px;align-items:flex-start;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px;font-size:14px;line-height:1.5;color:#374151}
   #niyam-shell .ns-consent input{width:auto;margin-top:3px}
   #niyam-shell .ns-pin{letter-spacing:.5em;text-align:center;font-size:22px}
-  #ns-logout{position:fixed;top:7px;right:7px;z-index:99998;background:rgba(25,26,47,.08);color:#374151;border:0;border-radius:8px;padding:5px 9px;font-size:11px;font-weight:600;cursor:pointer;display:none}
+  #ns-topbtns{position:fixed;top:8px;right:10px;z-index:99998;display:none;gap:8px;align-items:center}
+  #ns-logout{background:rgba(25,26,47,.10);color:#374151;border:0;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer}
   #btn-parent-tab{display:none !important;}
-  #ns-parent-btn{position:fixed;top:7px;right:72px;z-index:99998;background:#191a2f;color:#fff;border:0;border-radius:8px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;display:none}
+  #ns-parent-btn{background:#191a2f;color:#fff;border:0;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer}
   #ns-parent-zone{position:fixed;inset:0;background:#0f1020;z-index:99997;overflow:auto;display:none}
   #ns-pz-bar{position:sticky;top:0;background:#191a2f;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
   #ns-pz-bar h1{font-size:18px;margin:0;color:#fff}
@@ -92,8 +93,7 @@
     </div>
    </div>
   </div>
-  <button id="ns-logout">Log out</button>
-  <button id="ns-parent-btn">&#128274; Parent</button>
+  <div id="ns-topbtns"><button id="ns-parent-btn">&#128274; Parent</button><button id="ns-logout">Log out</button></div>
   <div id="ns-pinprompt" class="ns-screen">
    <div class="ns-wrap" style="padding-top:70px">
     <div class="ns-card">
@@ -139,8 +139,7 @@
   function enterApp(){
     $('ns-login').style.display='none';
     $('ns-onboard').style.display='none';
-    $('ns-logout').style.display='block';
-    $('ns-parent-btn').style.display='block';
+    $('ns-topbtns').style.display='flex';
     if(profile && profile.child_name){ var nm=$('ns-pz-name'); if(nm) nm.textContent=profile.child_name; }
     var ar=document.getElementById('app-root'); if(ar) ar.style.display='';
     if(!booted){ booted=true; if(typeof window.bootApp==='function') window.bootApp(); }
@@ -224,8 +223,7 @@
     if(typeof renderPendingQueue==='function')      try{ renderPendingQueue(); }catch(e){}
     if(typeof renderParentTab==='function')         try{ renderParentTab(); }catch(e){}
     if(typeof renderParentShlokaMgmt==='function')  try{ renderParentShlokaMgmt(); }catch(e){}
-    $('ns-parent-btn').style.display='none';
-    $('ns-logout').style.display='none';
+    $('ns-topbtns').style.display='none';
     $('ns-parent-zone').style.display='block';
     window.scrollTo(0,0);
   }
@@ -234,8 +232,7 @@
     var tp=document.getElementById('tab-parent');
     if(tp && _tpOrigParent){ tp.classList.remove('active'); tp.style.display=''; if(_tpOrigNext) _tpOrigParent.insertBefore(tp,_tpOrigNext); else _tpOrigParent.appendChild(tp); }
     try{ parentUnlocked = false; }catch(e){}
-    $('ns-parent-btn').style.display='block';
-    $('ns-logout').style.display='block';
+    $('ns-topbtns').style.display='flex';
   };
 
   route();
