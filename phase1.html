@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NIYAM — Phase 1</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{ --navy:#191a2f; --teal:#0d9488; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; }
+  *{box-sizing:border-box}
+  body{font-family:system-ui,Segoe UI,Roboto,sans-serif;margin:0;background:#f4f5f7;color:var(--ink)}
+  .screen{display:none;min-height:100vh}
+  .screen.active{display:block}
+  .wrap{max-width:480px;margin:0 auto;padding:24px 18px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:16px}
+  h1{font-size:22px;margin:0 0 4px}
+  h2{font-size:17px;margin:0 0 14px}
+  p.sub{color:var(--muted);font-size:14px;margin:0 0 18px;line-height:1.5}
+  label{display:block;font-size:13px;font-weight:600;margin:14px 0 4px}
+  input[type=text],input[type=email],input[type=password],input[type=tel]{
+    width:100%;padding:11px;border:1px solid #d1d5db;border-radius:9px;font-size:16px}
+  button{border:0;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;padding:12px 16px}
+  .btn-primary{background:var(--teal);color:#fff;width:100%}
+  .btn-navy{background:var(--navy);color:#fff;width:100%}
+  .btn-ghost{background:#eef0f3;color:#111827}
+  .btn-link{background:none;color:var(--teal);padding:6px;font-weight:600;font-size:14px}
+  .row{display:flex;gap:10px;margin-top:14px}
+  .row button{flex:1}
+  .err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:13px;padding:10px 12px;border-radius:9px;margin-top:12px;display:none}
+  .err.show{display:block}
+  .step{color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
+  .consent{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.5;background:#f9fafb;border:1px solid var(--line);border-radius:10px;padding:14px;margin:6px 0 4px}
+  .consent input{margin-top:3px}
+
+  /* CHILD ZONE — bright */
+  #screen-child .topbar{background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:16px 18px}
+  #screen-child .topbar h1{font-size:19px;margin:0;color:#fff}
+  .parent-btn{background:rgba(255,255,255,.22);color:#fff;font-size:14px;padding:9px 14px;border-radius:10px;display:flex;align-items:center;gap:7px}
+  .placeholder{background:#fff;border:1px dashed #cbd5e1;border-radius:14px;padding:28px 20px;text-align:center;color:var(--muted);font-size:14px;line-height:1.6}
+
+  /* PARENT ZONE — navy admin */
+  #screen-parent .topbar{background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:16px 18px}
+  #screen-parent .topbar h1{font-size:19px;margin:0;color:#fff}
+  .back-btn{background:rgba(255,255,255,.16);color:#fff;font-size:14px;padding:9px 14px;border-radius:10px}
+  .admin-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:14px}
+  .admin-card h2{font-size:16px;margin:0 0 10px}
+  .pill{display:inline-block;background:#eef2ff;color:#3730a3;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px}
+
+  /* PIN pad screen */
+  #screen-pin .wrap{max-width:360px}
+  .pin-input{letter-spacing:.5em;text-align:center;font-size:22px}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="screen-login" class="screen">
+  <div class="wrap" style="padding-top:60px">
+    <div style="text-align:center;margin-bottom:18px">
+      <h1>NIYAM</h1>
+      <p class="sub" style="margin-top:4px">Small Habits, Big Destiny.</p>
+    </div>
+    <div class="card">
+      <h2 id="login-title">Parent login</h2>
+      <label>Email</label>
+      <input id="email" type="email" autocomplete="off" placeholder="you@example.com" />
+      <label>Password</label>
+      <input id="password" type="password" autocomplete="off" placeholder="6+ characters" />
+      <button id="btn-login" class="btn-primary" style="margin-top:18px">Log in</button>
+      <div style="text-align:center;margin-top:10px">
+        <button id="to-signup" class="btn-link">New family? Create an account</button>
+        <button id="to-login" class="btn-link" style="display:none">Already have an account? Log in</button>
+      </div>
+      <button id="btn-signup" class="btn-primary" style="display:none;margin-top:4px">Create account</button>
+      <div id="login-err" class="err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ONBOARDING ============ -->
+<div id="screen-onboard" class="screen">
+  <div class="wrap" style="padding-top:48px">
+
+    <div id="ob-consent" class="card" style="display:none">
+      <div class="step">Step 1 of 3</div>
+      <h2>Welcome to NIYAM</h2>
+      <p class="sub">NIYAM helps your child build small daily habits. You're in control of everything.</p>
+      <div class="consent">
+        <input id="consent-check" type="checkbox" />
+        <span>I am the parent or legal guardian, and I consent to my child's information being used in NIYAM. <em>(Wording to be finalised with legal review.)</em></span>
+      </div>
+      <button id="ob-consent-next" class="btn-primary" style="margin-top:16px">Continue</button>
+      <div id="consent-err" class="err"></div>
+    </div>
+
+    <div id="ob-pin" class="card" style="display:none">
+      <div class="step">Step 2 of 3</div>
+      <h2>Create your Parent PIN</h2>
+      <p class="sub">A 4-digit PIN for the Parent Zone, so only you can review and change things. You can change it later.</p>
+      <label>4-digit PIN</label>
+      <input id="pin1" type="tel" inputmode="numeric" maxlength="4" class="pin-input" placeholder="****" />
+      <label>Confirm PIN</label>
+      <input id="pin2" type="tel" inputmode="numeric" maxlength="4" class="pin-input" placeholder="****" />
+      <button id="ob-pin-next" class="btn-primary" style="margin-top:18px">Save PIN</button>
+      <div id="pin-err" class="err"></div>
+    </div>
+
+    <div id="ob-child" class="card" style="display:none">
+      <div class="step">Step 3 of 3</div>
+      <h2>Set up your child</h2>
+      <p class="sub">Just the basics for now — we'll add more later.</p>
+      <label>Child's name</label>
+      <input id="child-name" type="text" autocomplete="off" placeholder="e.g. Vaanya" />
+      <label>Class</label>
+      <input id="child-class" type="text" autocomplete="off" placeholder="e.g. 6" />
+      <button id="ob-child-save" class="btn-primary" style="margin-top:18px">Save &amp; finish</button>
+      <div id="child-err" class="err"></div>
+    </div>
+
+    <div id="ob-done" class="card" style="display:none;text-align:center">
+      <h2 style="margin-bottom:6px">All set! ✨</h2>
+      <p class="sub" id="ob-done-msg">Opening the app…</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ CHILD ZONE ============ -->
+<div id="screen-child" class="screen">
+  <div class="topbar">
+    <h1 id="child-zone-title">Niyam</h1>
+    <button id="open-parent" class="parent-btn">🔒 Parent</button>
+  </div>
+  <div class="wrap">
+    <div class="placeholder">
+      This is <b id="child-zone-name">your child</b>'s daily app.<br><br>
+      In the next step, the real NIYAM — timetable, Brain Lab, WordBook, rewards and scoreboard — loads right here.
+    </div>
+  </div>
+</div>
+
+<!-- ============ PIN PROMPT ============ -->
+<div id="screen-pin" class="screen">
+  <div class="wrap" style="padding-top:70px">
+    <div class="card">
+      <h2>Enter Parent PIN</h2>
+      <p class="sub">Enter your 4-digit PIN to open the Parent Zone.</p>
+      <input id="pin-enter" type="tel" inputmode="numeric" maxlength="4" class="pin-input" placeholder="****" />
+      <div class="row">
+        <button id="pin-cancel" class="btn-ghost">Cancel</button>
+        <button id="pin-unlock" class="btn-navy">Unlock</button>
+      </div>
+      <div style="text-align:center"><button id="pin-forgot" class="btn-link" style="margin-top:10px">Forgot PIN?</button></div>
+      <div id="pinenter-err" class="err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PARENT ZONE ============ -->
+<div id="screen-parent" class="screen">
+  <div class="topbar">
+    <h1>Parent Zone</h1>
+    <button id="back-child" class="back-btn">← Back to <span id="back-name">child</span></button>
+  </div>
+  <div class="wrap">
+    <div class="admin-card">
+      <span class="pill">Coming in next step</span>
+      <h2 style="margin-top:10px">Review &amp; approve</h2>
+      <p class="sub" style="margin:0">Your child's daily report will appear here for review and approval — moved out of the child's view, visible only to you.</p>
+    </div>
+    <div class="admin-card">
+      <h2>Settings</h2>
+      <button id="change-pin" class="btn-ghost" style="width:100%;margin-bottom:10px">Change Parent PIN</button>
+      <button id="logout" class="btn-ghost" style="width:100%">Log out</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('error', e => showErr('login-err', '🛑 ' + (e.message || e)));
+
+  const $ = id => document.getElementById(id);
+  const esc = s => (s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); }
+  function showErr(id, msg){ const e=$(id); if(e){ e.textContent=msg; e.classList.add('show'); } }
+  function clearErr(id){ const e=$(id); if(e){ e.textContent=''; e.classList.remove('show'); } }
+
+  let sb, currentUser=null, profile=null;
+
+  try {
+    if (typeof supabase === 'undefined' || !supabase.createClient) { showErr('login-err','🛑 Library did not load — refresh.'); throw new Error('no lib'); }
+    const isFile = location.protocol === 'file:';   // local test = memory session; https = persistent
+    sb = supabase.createClient(
+      'https://zeengmnzstpfozupqjif.supabase.co',
+      'sb_publishable_IFQqrRiTHi45T4IvKHok6Q_X7EIPkEN',
+      { auth: { persistSession: !isFile, autoRefreshToken: !isFile } }
+    );
+
+    async function loadProfile(){
+      const { data, error } = await sb.from('profiles').select('*').maybeSingle();
+      if (error){ showErr('login-err','⚠️ '+error.message); return null; }
+      return data;
+    }
+    async function saveProfile(patch){
+      const row = Object.assign({ user_id: currentUser.id, updated_at: new Date().toISOString() }, patch);
+      const { error } = await sb.from('profiles').upsert(row);
+      if (error) throw new Error(error.message);
+      profile = Object.assign(profile||{}, row);
+    }
+
+    function applyName(){
+      const n = (profile && profile.child_name) ? profile.child_name : 'your child';
+      $('child-zone-title').textContent = n + "'s Niyam";
+      $('child-zone-name').textContent = n;
+      $('back-name').textContent = n;
+    }
+
+    // Central router: decides which screen to show based on auth + onboarding state
+    async function route(){
+      const { data } = await sb.auth.getSession();
+      currentUser = data.session ? data.session.user : null;
+      if (!currentUser){ showScreen('screen-login'); return; }
+      profile = await loadProfile();
+      const hasConsent = profile && profile.consent_at;
+      const hasPin     = profile && profile.parent_pin;
+      const hasChild   = profile && profile.child_name;
+      if (hasConsent && hasPin && hasChild){ applyName(); showScreen('screen-child'); return; }
+      // resume onboarding at first incomplete step
+      showScreen('screen-onboard');
+      ['ob-consent','ob-pin','ob-child','ob-done'].forEach(s=>$(s).style.display='none');
+      if (!hasConsent) $('ob-consent').style.display='block';
+      else if (!hasPin) $('ob-pin').style.display='block';
+      else $('ob-child').style.display='block';
+    }
+
+    // ---- Login / signup ----
+    let mode='login';
+    $('to-signup').onclick=()=>{ mode='signup'; $('login-title').textContent='Create parent account'; $('btn-login').style.display='none'; $('btn-signup').style.display='block'; $('to-signup').style.display='none'; $('to-login').style.display='inline'; clearErr('login-err'); };
+    $('to-login').onclick=()=>{ mode='login'; $('login-title').textContent='Parent login'; $('btn-login').style.display='block'; $('btn-signup').style.display='none'; $('to-signup').style.display='inline'; $('to-login').style.display='none'; clearErr('login-err'); };
+    $('btn-login').onclick=async()=>{ clearErr('login-err');
+      const { error } = await sb.auth.signInWithPassword({ email:$('email').value.trim(), password:$('password').value });
+      if (error) return showErr('login-err','❌ '+error.message);
+      route();
+    };
+    $('btn-signup').onclick=async()=>{ clearErr('login-err');
+      const { error } = await sb.auth.signUp({ email:$('email').value.trim(), password:$('password').value });
+      if (error) return showErr('login-err','❌ '+error.message);
+      route();
+    };
+
+    // ---- Onboarding ----
+    $('ob-consent-next').onclick=async()=>{ clearErr('consent-err');
+      if (!$('consent-check').checked) return showErr('consent-err','Please tick the consent box to continue.');
+      try { await saveProfile({ consent_at: new Date().toISOString() }); route(); }
+      catch(e){ showErr('consent-err','❌ '+e.message); }
+    };
+    $('ob-pin-next').onclick=async()=>{ clearErr('pin-err');
+      const a=$('pin1').value.trim(), b=$('pin2').value.trim();
+      if (!/^\d{4}$/.test(a)) return showErr('pin-err','PIN must be exactly 4 digits.');
+      if (a!==b) return showErr('pin-err','The two PINs do not match.');
+      try { await saveProfile({ parent_pin: a }); route(); }
+      catch(e){ showErr('pin-err','❌ '+e.message); }
+    };
+    $('ob-child-save').onclick=async()=>{ clearErr('child-err');
+      const name=$('child-name').value.trim();
+      if (!name) return showErr('child-err','Please enter your child\u2019s name.');
+      try {
+        await saveProfile({ child_name:name, child_class:$('child-class').value.trim() });
+        applyName();
+        ['ob-consent','ob-pin','ob-child'].forEach(s=>$(s).style.display='none');
+        $('ob-done').style.display='block';
+        $('ob-done-msg').textContent = 'Opening ' + name + "'s view\u2026";
+        setTimeout(()=>showScreen('screen-child'), 1400);
+      } catch(e){ showErr('child-err','❌ '+e.message); }
+    };
+
+    // ---- Child -> PIN -> Parent ----
+    $('open-parent').onclick=()=>{ clearErr('pinenter-err'); $('pin-enter').value=''; showScreen('screen-pin'); $('pin-enter').focus(); };
+    $('pin-cancel').onclick=()=>showScreen('screen-child');
+    $('pin-unlock').onclick=()=>{ clearErr('pinenter-err');
+      if ($('pin-enter').value.trim() === (profile && profile.parent_pin)) showScreen('screen-parent');
+      else showErr('pinenter-err','Wrong PIN. Try again.');
+    };
+    $('pin-forgot').onclick=async()=>{ clearErr('pinenter-err');
+      const pw = prompt('Forgot your PIN?\nEnter your account password to reset it:');
+      if (pw===null) return;
+      const { error } = await sb.auth.signInWithPassword({ email: currentUser.email, password: pw });
+      if (error) return showErr('pinenter-err','Password incorrect.');
+      const np = prompt('Set a new 4-digit PIN:');
+      if (!/^\d{4}$/.test(np||'')) return showErr('pinenter-err','PIN must be 4 digits.');
+      try { await saveProfile({ parent_pin: np }); showScreen('screen-parent'); }
+      catch(e){ showErr('pinenter-err','❌ '+e.message); }
+    };
+
+    // ---- Parent -> back / settings ----
+    $('back-child').onclick=()=>showScreen('screen-child');
+    $('change-pin').onclick=async()=>{
+      const np = prompt('Enter a new 4-digit PIN:');
+      if (np===null) return;
+      if (!/^\d{4}$/.test(np)) { alert('PIN must be exactly 4 digits.'); return; }
+      try { await saveProfile({ parent_pin: np }); alert('PIN updated.'); }
+      catch(e){ alert('Error: '+e.message); }
+    };
+    $('logout').onclick=async()=>{
+      await sb.auth.signOut();
+      currentUser=null; profile=null;
+      $('email').value=''; $('password').value='';
+      showScreen('screen-login');
+    };
+
+    sb.auth.onAuthStateChange(()=>{ /* route is called explicitly after actions */ });
+    route();
+  } catch(err){ showErr('login-err','🛑 '+err.message); showScreen('screen-login'); }
+</script>
+</body>
+</html>
