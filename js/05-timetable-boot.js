@@ -906,6 +906,7 @@ function cmFormatText(type){
   onCreativeTextInput();
 }
 
+function bootApp(){ // was top-level boot; now deferred until login+onboarding done
 buildAll();
 _sessionWireInputs(); // start per-date session tracking
 _sessionStartAutoSave(); // background Supabase auto-save every 60s
@@ -940,6 +941,8 @@ loadFromSupabase().then(ok => {
     }
   }
 });
+}
+window.bootApp = bootApp; // shell calls this once Child Zone opens
 
 // ════════════════════════════════════════════════════════════════
 // CREATIVE GALLERY — load, filter, display from Supabase
@@ -1173,3 +1176,4 @@ function cgNavigate(dir){
     cgOpenDetail(next);
   }
 }
+
