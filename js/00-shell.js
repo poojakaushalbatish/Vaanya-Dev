@@ -31,10 +31,11 @@
   #niyam-shell .ns-consent{display:flex;gap:10px;align-items:flex-start;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px;font-size:14px;line-height:1.5;color:#374151}
   #niyam-shell .ns-consent input{width:auto;margin-top:3px}
   #niyam-shell .ns-pin{letter-spacing:.5em;text-align:center;font-size:22px}
-  #ns-topbtns{position:fixed;top:8px;right:10px;z-index:99998;display:none;gap:8px;align-items:center}
-  #ns-logout{background:rgba(25,26,47,.10);color:#374151;border:0;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer}
+  #app-root{padding-top:40px}
+  #ns-topbtns{position:fixed;top:7px;right:12px;z-index:99998;display:none;gap:8px;align-items:center}
   #btn-parent-tab{display:none !important;}
-  #ns-parent-btn{background:#191a2f;color:#fff;border:0;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer}
+  #ns-parent-btn{background:#191a2f;color:#fff;border:0;border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(25,26,47,.25)}
+  #ns-pz-logout{background:rgba(255,255,255,.16);color:#fff;border:0;border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer}
   #ns-parent-zone{position:fixed;inset:0;background:#0f1020;z-index:99997;overflow:auto;display:none}
   #ns-pz-bar{position:sticky;top:0;background:#191a2f;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
   #ns-pz-bar h1{font-size:18px;margin:0;color:#fff}
@@ -93,7 +94,7 @@
     </div>
    </div>
   </div>
-  <div id="ns-topbtns"><button id="ns-parent-btn">&#128274; Parent</button><button id="ns-logout">Log out</button></div>
+  <div id="ns-topbtns"><button id="ns-parent-btn">&#128274; Parent</button></div>
   <div id="ns-pinprompt" class="ns-screen">
    <div class="ns-wrap" style="padding-top:70px">
     <div class="ns-card">
@@ -109,7 +110,7 @@
    </div>
   </div>
   <div id="ns-parent-zone">
-   <div id="ns-pz-bar"><h1>Parent Zone</h1><button id="ns-pz-back">&#8592; Back to <span id="ns-pz-name">child</span></button></div>
+   <div id="ns-pz-bar"><h1>Parent Zone</h1><div style="display:flex;gap:8px"><button id="ns-pz-logout">Log out</button><button id="ns-pz-back">&#8592; Back to <span id="ns-pz-name">child</span></button></div></div>
    <div id="ns-pz-body"></div>
   </div>
   `;
@@ -198,7 +199,7 @@
     }catch(e){ showErr('ns-child-err', e.message); }
   };
 
-  $('ns-logout').onclick=async function(){ try{ await window.sb.auth.signOut(); }catch(e){} location.reload(); };
+  $('ns-pz-logout').onclick=async function(){ try{ await window.sb.auth.signOut(); }catch(e){} location.reload(); };
 
   // ---- Parent Zone (B2): per-family PIN gate + navy zone ----
   function hidePinPrompt(){ $('ns-pinprompt').style.display='none'; }
