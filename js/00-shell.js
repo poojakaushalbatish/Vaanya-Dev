@@ -1,5 +1,5 @@
 // ============================================================
-// NIYAM SHELL (Phase 1 / B1)
+// NIYAM-SE SHELL (Phase 1 / B1)
 // Creates the authenticated Supabase client (shared with the app),
 // runs the login + onboarding gate, and boots the app on entry.
 // Loads BEFORE 01-core.js so window.sb exists when the app reads it.
@@ -14,63 +14,76 @@
     : null;
 
   var css = `
-  #niyam-shell{font-family:system-ui,Segoe UI,Roboto,sans-serif}
-  #niyam-shell .ns-screen{position:fixed;inset:0;background:#f4f5f7;z-index:99999;overflow:auto;display:none}
-  #niyam-shell .ns-wrap{max-width:460px;margin:0 auto;padding:48px 18px}
-  #niyam-shell .ns-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:22px;margin-bottom:16px}
-  #niyam-shell h1{font-size:22px;margin:0 0 4px;text-align:center;color:#191a2f}
-  #niyam-shell h2{font-size:17px;margin:0 0 12px;color:#1f2937}
-  #niyam-shell .ns-sub{color:#6b7280;font-size:14px;margin:0 0 16px;line-height:1.5}
-  #niyam-shell label{display:block;font-size:13px;font-weight:600;margin:14px 0 4px;color:#374151}
-  #niyam-shell input{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:9px;font-size:16px;box-sizing:border-box}
-  #niyam-shell button{border:0;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;padding:12px 16px}
-  #niyam-shell .ns-primary{background:#0d9488;color:#fff;width:100%;margin-top:16px}
-  #niyam-shell .ns-link{background:none;color:#0d9488;padding:6px;font-size:14px}
-  #niyam-shell .ns-err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:13px;padding:10px;border-radius:9px;margin-top:12px;display:none}
-  #niyam-shell .ns-step{color:#6b7280;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
-  #niyam-shell .ns-consent{display:flex;gap:10px;align-items:flex-start;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px;font-size:14px;line-height:1.5;color:#374151}
+  #niyam-shell{font-family:system-ui,Segoe UI,Roboto,sans-serif;
+    --navy:#191a2f;--navy2:#23244a;--ink:#1f2433;--muted:#6b7280;
+    --gold:#f4b740;--gold-deep:#cf962a;--gold-soft:#fff5dd;--gold-line:#f0d9a0;
+    --card:#ffffff;--cream:#fbfaf6;--line:#ece7df}
+  #niyam-shell .ns-screen{position:fixed;inset:0;z-index:99999;overflow:auto;display:none;
+    background:radial-gradient(130% 70% at 50% -12%, rgba(244,183,64,.20), rgba(244,183,64,0) 58%), linear-gradient(180deg,#191a2f 0%,#15162b 100%)}
+  #niyam-shell .ns-wrap{max-width:460px;margin:0 auto;padding:44px 18px 56px}
+  #niyam-shell .ns-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 20px;margin-bottom:16px;box-shadow:0 14px 34px rgba(8,10,28,.32)}
+  #niyam-shell .ns-brand{text-align:center;margin-bottom:20px}
+  #niyam-shell .ns-mark{width:66px;height:66px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border-radius:20px;
+    background:radial-gradient(circle at 50% 38%, rgba(244,183,64,.32), rgba(244,183,64,.04) 72%)}
+  #niyam-shell h1{font-size:30px;margin:0;text-align:center;color:var(--gold);letter-spacing:.16em;font-weight:800;text-shadow:0 2px 18px rgba(244,183,64,.35)}
+  #niyam-shell .ns-tag{color:#cdd0e6;font-size:13px;text-align:center;margin:7px 0 0;letter-spacing:.03em}
+  #niyam-shell h2{font-size:19px;margin:0 0 10px;color:var(--ink);font-weight:800;letter-spacing:-.01em}
+  #niyam-shell .ns-sub{color:var(--muted);font-size:14px;margin:0 0 16px;line-height:1.55}
+  #niyam-shell label{display:block;font-size:13px;font-weight:700;margin:14px 0 5px;color:#3a4150}
+  #niyam-shell input{width:100%;padding:12px;border:1.5px solid var(--line);border-radius:12px;font-size:16px;box-sizing:border-box;background:var(--cream);color:var(--ink)}
+  #niyam-shell input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(244,183,64,.18);background:#fff}
+  #niyam-shell button{border:0;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;padding:12px 16px}
+  #niyam-shell .ns-primary{background:linear-gradient(180deg,#f6c453,#e8a838);color:#191a2f;width:100%;margin-top:18px;font-weight:800;letter-spacing:.01em;box-shadow:0 8px 20px rgba(232,168,56,.34)}
+  #niyam-shell .ns-primary:hover{filter:brightness(1.04)}
+  #niyam-shell .ns-link{background:none;color:var(--gold-deep);padding:6px;font-size:14px;font-weight:700}
+  #niyam-shell .ns-err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:13px;padding:10px;border-radius:10px;margin-top:12px;display:none}
+  #niyam-shell .ns-step{display:inline-block;color:var(--gold-deep);background:var(--gold-soft);border:1px solid var(--gold-line);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:4px 11px;border-radius:99px;margin-bottom:12px}
+  #niyam-shell .ns-consent{display:flex;gap:10px;align-items:flex-start;background:var(--gold-soft);border:1px solid var(--gold-line);border-radius:12px;padding:14px;font-size:14px;line-height:1.5;color:#4a4434}
   #niyam-shell .ns-consent input{width:auto;margin-top:3px}
   #niyam-shell .ns-pin{letter-spacing:.5em;text-align:center;font-size:22px}
   #app-root{padding-top:40px}
   #ns-topbtns{position:fixed;top:7px;right:12px;z-index:99998;display:none;gap:8px;align-items:center}
   #btn-parent-tab{display:none !important;}
-  #ns-parent-btn{background:#191a2f;color:#fff;border:0;border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(25,26,47,.25)}
+  #ns-parent-btn{background:#191a2f;color:var(--gold);border:1px solid rgba(244,183,64,.4);border-radius:10px;padding:7px 14px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(25,26,47,.3)}
   #ns-pz-logout{background:rgba(255,255,255,.16);color:#fff;border:0;border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer}
   #ns-parent-zone{position:fixed;inset:0;background:#0f1020;z-index:99997;overflow:auto;display:none}
   #ns-pz-bar{position:sticky;top:0;background:#191a2f;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
-  #ns-pz-bar h1{font-size:18px;margin:0;color:#fff}
+  #ns-pz-bar h1{font-size:18px;margin:0;color:#fff;letter-spacing:normal;text-shadow:none}
   #ns-pz-back{background:rgba(255,255,255,.16);color:#fff;border:0;border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer}
   #ns-pz-body{padding:14px;max-width:900px;margin:0 auto}
   #ns-pz-body .tab{display:block !important}
   /* ---- profile-setup questionnaire ---- */
-  #niyam-shell .ns-progress{height:6px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin:0 0 16px}
-  #niyam-shell .ns-progress-fill{height:100%;background:#0d9488;border-radius:99px;transition:width .25s ease}
+  #niyam-shell .ns-progress{height:7px;background:#eee5d4;border-radius:99px;overflow:hidden;margin:0 0 16px}
+  #niyam-shell .ns-progress-fill{height:100%;background:linear-gradient(90deg,#f6c453,#e8a838);border-radius:99px;transition:width .25s ease}
   #niyam-shell .ns-q{margin-top:16px}
   #niyam-shell .ns-q:first-child{margin-top:0}
-  #niyam-shell .ns-qlabel{font-size:14px;font-weight:700;color:#1f2937;margin:0 0 8px}
-  #niyam-shell .ns-qhint{font-size:12px;color:#6b7280;font-weight:500;margin:-4px 0 8px}
+  #niyam-shell .ns-qlabel{font-size:14px;font-weight:800;color:var(--ink);margin:0 0 8px}
+  #niyam-shell .ns-qhint{font-size:12px;color:var(--muted);font-weight:500;margin:-4px 0 8px}
   #niyam-shell .ns-opts{display:flex;flex-wrap:wrap;gap:8px}
-  #niyam-shell .ns-opt{background:#f3f4f6;border:1.5px solid #e5e7eb;color:#374151;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer;flex:0 0 auto}
-  #niyam-shell .ns-opt:hover{border-color:#99f6e4}
-  #niyam-shell .ns-opt.sel{background:#0d9488;border-color:#0d9488;color:#fff}
-  #niyam-shell .ns-skip{background:none;color:#6b7280;font-size:13px;font-weight:600;text-decoration:underline;padding:6px 0;margin-top:2px}
-  #niyam-shell .ns-optional-tag{display:inline-block;font-size:11px;font-weight:700;color:#0d9488;background:#ccfbf1;border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:middle}
+  #niyam-shell .ns-opt{background:#fff;border:1.5px solid var(--line);color:#3a4150;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer;flex:0 0 auto;transition:.12s}
+  #niyam-shell .ns-opt:hover{border-color:var(--gold)}
+  #niyam-shell .ns-opt.sel{background:#191a2f;border-color:#191a2f;color:var(--gold);box-shadow:0 5px 14px rgba(25,26,47,.28)}
+  #niyam-shell .ns-skip{background:none;color:var(--muted);font-size:13px;font-weight:700;text-decoration:underline;padding:6px 0;margin-top:2px}
+  #niyam-shell .ns-optional-tag{display:inline-block;font-size:11px;font-weight:800;color:var(--gold-deep);background:var(--gold-soft);border:1px solid var(--gold-line);border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:middle}
   #niyam-shell .ns-handoff{text-align:center;padding:8px 0}
-  #niyam-shell .ns-handoff .ns-flame{font-size:46px;margin-bottom:6px}
-  #niyam-shell .ns-childcard{border:2px solid #99f6e4;background:#f0fdfa}
-  #niyam-shell .ns-childcard h2{color:#0f766e}
+  #niyam-shell .ns-handoff .ns-flame{font-size:52px;margin-bottom:6px}
+  #niyam-shell .ns-childcard{border:2px solid var(--gold);background:linear-gradient(180deg,#fffdf7,#fff6e6)}
+  #niyam-shell .ns-childcard h2{color:var(--gold-deep)}
   #niyam-shell .ns-photo-row{display:flex;align-items:center;gap:14px;margin-top:6px}
-  #niyam-shell .ns-photo-prev{width:62px;height:62px;border-radius:14px;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;flex:0 0 auto}
+  #niyam-shell .ns-photo-prev{width:62px;height:62px;border-radius:14px;background:var(--gold-soft);border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;flex:0 0 auto}
   #niyam-shell .ns-photo-prev img{width:100%;height:100%;object-fit:cover}
-  #niyam-shell .ns-photo-btn{background:#eef0f3;color:#111827;font-size:13px;padding:9px 14px;border-radius:9px}
+  #niyam-shell .ns-photo-btn{background:#191a2f;color:#fff;font-size:13px;padding:9px 14px;border-radius:10px}
   `;
   var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
   var html = `
   <div id="ns-login" class="ns-screen">
    <div class="ns-wrap">
-    <h1>NIYAM</h1>
-    <p class="ns-sub" style="text-align:center">Small Habits, Big Destiny.</p>
+    <div class="ns-brand">
+     <div class="ns-mark"><svg width="42" height="42" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="nsg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd36b"/><stop offset="1" stop-color="#e8a838"/></linearGradient></defs><path d="M12 2.2l2.55 6.06 6.55.52-4.99 4.27 1.55 6.39L12 16.6l-5.21 3.84 1.55-6.39-4.99-4.27 6.55-.52z" fill="url(#nsg)"/></svg></div>
+     <h1>NIYAM-SE</h1>
+     <p class="ns-tag">Small Habits, Big Destiny.</p>
+    </div>
     <div class="ns-card">
      <h2 id="ns-login-title">Parent login</h2>
      <label>Email</label><input id="ns-email" type="email" autocomplete="off" placeholder="you@example.com">
@@ -88,9 +101,9 @@
   <div id="ns-onboard" class="ns-screen">
    <div class="ns-wrap">
     <div id="ns-ob-consent" class="ns-card" style="display:none">
-     <div class="ns-step">Step 1 of 3</div><h2>Welcome to NIYAM</h2>
-     <p class="ns-sub">NIYAM helps your child build small daily habits. You're in control of everything.</p>
-     <div class="ns-consent"><input id="ns-consent-check" type="checkbox"><span>I am the parent or legal guardian, and I consent to my child's information being used in NIYAM. <em>(Wording to be finalised with legal review.)</em></span></div>
+     <div class="ns-step">Step 1 of 3</div><h2>Welcome to NIYAM-SE</h2>
+     <p class="ns-sub">NIYAM-SE helps your child build small daily habits. You're in control of everything.</p>
+     <div class="ns-consent"><input id="ns-consent-check" type="checkbox"><span>I am the parent or legal guardian, and I consent to my child's information being used in NIYAM-SE. <em>(Wording to be finalised with legal review.)</em></span></div>
      <button id="ns-consent-next" class="ns-primary">Continue</button>
      <div id="ns-consent-err" class="ns-err"></div>
     </div>
