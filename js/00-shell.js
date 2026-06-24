@@ -42,6 +42,27 @@
   #ns-pz-back{background:rgba(255,255,255,.16);color:#fff;border:0;border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer}
   #ns-pz-body{padding:14px;max-width:900px;margin:0 auto}
   #ns-pz-body .tab{display:block !important}
+  /* ---- profile-setup questionnaire ---- */
+  #niyam-shell .ns-progress{height:6px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin:0 0 16px}
+  #niyam-shell .ns-progress-fill{height:100%;background:#0d9488;border-radius:99px;transition:width .25s ease}
+  #niyam-shell .ns-q{margin-top:16px}
+  #niyam-shell .ns-q:first-child{margin-top:0}
+  #niyam-shell .ns-qlabel{font-size:14px;font-weight:700;color:#1f2937;margin:0 0 8px}
+  #niyam-shell .ns-qhint{font-size:12px;color:#6b7280;font-weight:500;margin:-4px 0 8px}
+  #niyam-shell .ns-opts{display:flex;flex-wrap:wrap;gap:8px}
+  #niyam-shell .ns-opt{background:#f3f4f6;border:1.5px solid #e5e7eb;color:#374151;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer;flex:0 0 auto}
+  #niyam-shell .ns-opt:hover{border-color:#99f6e4}
+  #niyam-shell .ns-opt.sel{background:#0d9488;border-color:#0d9488;color:#fff}
+  #niyam-shell .ns-skip{background:none;color:#6b7280;font-size:13px;font-weight:600;text-decoration:underline;padding:6px 0;margin-top:2px}
+  #niyam-shell .ns-optional-tag{display:inline-block;font-size:11px;font-weight:700;color:#0d9488;background:#ccfbf1;border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:middle}
+  #niyam-shell .ns-handoff{text-align:center;padding:8px 0}
+  #niyam-shell .ns-handoff .ns-flame{font-size:46px;margin-bottom:6px}
+  #niyam-shell .ns-childcard{border:2px solid #99f6e4;background:#f0fdfa}
+  #niyam-shell .ns-childcard h2{color:#0f766e}
+  #niyam-shell .ns-photo-row{display:flex;align-items:center;gap:14px;margin-top:6px}
+  #niyam-shell .ns-photo-prev{width:62px;height:62px;border-radius:14px;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;flex:0 0 auto}
+  #niyam-shell .ns-photo-prev img{width:100%;height:100%;object-fit:cover}
+  #niyam-shell .ns-photo-btn{background:#eef0f3;color:#111827;font-size:13px;padding:9px 14px;border-radius:9px}
   `;
   var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
@@ -81,13 +102,93 @@
      <button id="ns-pin-next" class="ns-primary">Save PIN</button>
      <div id="ns-pin-err" class="ns-err"></div>
     </div>
-    <div id="ns-ob-child" class="ns-card" style="display:none">
-     <div class="ns-step">Step 3 of 3</div><h2>Set up your child</h2>
-     <p class="ns-sub">Just the basics for now.</p>
-     <label>Child's name</label><input id="ns-child-name" type="text" autocomplete="off" placeholder="e.g. Vaanya">
-     <label>Class</label><input id="ns-child-class" type="text" autocomplete="off" placeholder="e.g. 6">
-     <button id="ns-child-save" class="ns-primary">Save &amp; finish</button>
-     <div id="ns-child-err" class="ns-err"></div>
+    <div id="ns-q1" class="ns-card" style="display:none">
+     <div class="ns-step">Step 3 of 3 · Profile</div>
+     <div class="ns-progress"><div class="ns-progress-fill" id="ns-bar1" style="width:16%"></div></div>
+     <h2>About your child</h2>
+     <div class="ns-q"><div class="ns-qlabel">Your child's full name</div>
+       <input id="ns-full-name" type="text" autocomplete="off" placeholder="e.g. Vaanya Sharma"></div>
+     <div class="ns-q"><div class="ns-qlabel">Which class?</div><div class="ns-opts" id="ns-opts-grade"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">Which board?</div><div class="ns-opts" id="ns-opts-board"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">School name <span class="ns-optional-tag">optional</span></div>
+       <input id="ns-school" type="text" autocomplete="off" placeholder="e.g. DPS Noida"></div>
+     <button class="ns-primary" data-next="ns-q2" data-val="q1">Continue</button>
+     <div id="ns-q1-err" class="ns-err"></div>
+    </div>
+
+    <div id="ns-q2" class="ns-card" style="display:none">
+     <div class="ns-step">Step 3 of 3 · Profile</div>
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:33%"></div></div>
+     <h2>Learning</h2>
+     <div class="ns-q"><div class="ns-qlabel">Favourite subject</div><div class="ns-opts" id="ns-opts-fav"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">Subject that needs attention</div><div class="ns-opts" id="ns-opts-focus"></div></div>
+     <button class="ns-primary" data-next="ns-q3" data-val="q2">Continue</button>
+     <div id="ns-q2-err" class="ns-err"></div>
+    </div>
+
+    <div id="ns-q3" class="ns-card" style="display:none">
+     <div class="ns-step">Step 3 of 3 · Profile</div>
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:50%"></div></div>
+     <h2>Character</h2>
+     <div class="ns-q"><div class="ns-qlabel">Character content should draw from…</div><div class="ns-opts" id="ns-opts-source"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">Core values to nurture</div>
+       <div class="ns-qhint">Pick 2 or 3.</div><div class="ns-opts" id="ns-opts-values"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">The one that matters most</div>
+       <div class="ns-qhint">Choose your single top value from the ones above.</div><div class="ns-opts" id="ns-opts-top"></div></div>
+     <button class="ns-primary" data-next="ns-q4" data-val="q3">Continue</button>
+     <div id="ns-q3-err" class="ns-err"></div>
+    </div>
+
+    <div id="ns-q4" class="ns-card" style="display:none">
+     <div class="ns-step">Step 3 of 3 · Profile</div>
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:66%"></div></div>
+     <h2>A few extras <span class="ns-optional-tag">optional</span></h2>
+     <div class="ns-q"><div class="ns-qlabel">Child's photo</div>
+       <div class="ns-qhint">Used as their avatar. You can skip this.</div>
+       <div class="ns-photo-row">
+         <div class="ns-photo-prev" id="ns-photo-prev">🔥</div>
+         <button type="button" class="ns-photo-btn" id="ns-photo-pick">Choose photo</button>
+         <button type="button" class="ns-skip" id="ns-photo-clear" style="display:none">Remove</button>
+         <input id="ns-photo-input" type="file" accept="image/*" style="display:none">
+       </div></div>
+     <div class="ns-q"><div class="ns-qlabel">Your goal for the year</div><div class="ns-opts" id="ns-opts-goal"></div></div>
+     <button class="ns-primary" data-next="ns-q5" data-val="q4">Continue</button>
+     <div id="ns-q4-err" class="ns-err"></div>
+    </div>
+
+    <div id="ns-q5" class="ns-card" style="display:none">
+     <div class="ns-handoff">
+       <div class="ns-flame">🌟</div>
+       <h2 id="ns-handoff-title">Now hand the phone to your child</h2>
+       <p class="ns-sub">The next few questions are for them to answer.</p>
+     </div>
+     <button class="ns-primary" data-next="ns-q6" data-val="q5">I'm ready!</button>
+    </div>
+
+    <div id="ns-q6" class="ns-card ns-childcard" style="display:none">
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:88%"></div></div>
+     <h2>Your turn! ✨</h2>
+     <div class="ns-q"><div class="ns-qlabel">Pick your Star Name</div>
+       <div class="ns-qhint">This goes on your Aurora Star badge.</div>
+       <input id="ns-star-name" type="text" autocomplete="off" placeholder="e.g. Star Explorer"></div>
+     <div class="ns-q"><div class="ns-qlabel">What do you love doing?</div>
+       <div class="ns-qhint">Pick up to 3.</div><div class="ns-opts" id="ns-opts-interests"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">Favourite kind of reward</div><div class="ns-opts" id="ns-opts-reward"></div></div>
+     <button class="ns-primary" data-next="ns-q7" data-val="q6">Continue</button>
+     <div id="ns-q6-err" class="ns-err"></div>
+    </div>
+
+    <div id="ns-q7" class="ns-card" style="display:none">
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:100%"></div></div>
+     <h2>Help us personalize <span class="ns-optional-tag">optional</span></h2>
+     <p class="ns-sub">These tailor features coming soon. Skip anytime.</p>
+     <div class="ns-q"><div class="ns-qlabel">Does your child take tuitions / coaching?</div><div class="ns-opts" id="ns-opts-tuition"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">Family type</div><div class="ns-opts" id="ns-opts-family"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">Daily screen time</div><div class="ns-opts" id="ns-opts-screen"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">Daily outdoor play</div><div class="ns-opts" id="ns-opts-outdoor"></div></div>
+     <button class="ns-primary" data-finish="1" data-val="q7">Save &amp; finish</button>
+     <button class="ns-skip" data-finish="1" data-val="q7">Skip &amp; finish</button>
+     <div id="ns-q7-err" class="ns-err"></div>
     </div>
     <div id="ns-ob-done" class="ns-card" style="display:none;text-align:center">
      <h2>All set! &#10024;</h2><p class="ns-sub" id="ns-done-msg">Opening the app&#8230;</p>
@@ -155,10 +256,10 @@
     var c = profile && profile.consent_at, p = profile && profile.parent_pin, ch = profile && profile.child_name;
     if(c && p && ch){ enterApp(); return; }
     screen('ns-onboard');
-    ['ns-ob-consent','ns-ob-pin','ns-ob-child','ns-ob-done'].forEach(function(x){ $(x).style.display='none'; });
+    ['ns-ob-consent','ns-ob-pin','ns-q1','ns-q2','ns-q3','ns-q4','ns-q5','ns-q6','ns-q7','ns-ob-done'].forEach(function(x){ if($(x)) $(x).style.display='none'; });
     if(!c) $('ns-ob-consent').style.display='block';
     else if(!p) $('ns-ob-pin').style.display='block';
-    else $('ns-ob-child').style.display='block';
+    else $('ns-q1').style.display='block';
   }
 
   // login / signup
@@ -187,17 +288,159 @@
     if(a!==b) return showErr('ns-pin-err','The two PINs do not match.');
     try{ await saveProfile({ parent_pin:a }); route(); }catch(e){ showErr('ns-pin-err', e.message); }
   };
-  $('ns-child-save').onclick=async function(){ clearErr('ns-child-err');
-    var name=$('ns-child-name').value.trim();
-    if(!name) return showErr('ns-child-err','Please enter your child\u2019s name.');
-    try{
-      await saveProfile({ child_name:name, child_class:$('ns-child-class').value.trim() });
-      ['ns-ob-consent','ns-ob-pin','ns-ob-child'].forEach(function(x){ $(x).style.display='none'; });
+  // ---- Step 3: profile-setup questionnaire ----
+  (function(){
+    var GRADES=['Class 4','Class 5','Class 6','Class 7','Class 8'];
+    var BOARDS=['CBSE','ICSE','State Board','IB / Cambridge','Other'];
+    var SUBJECTS=['Maths','Science','English','Hindi','Social Studies','Computers / IT','Arts & Craft','Music','Sports / PE','Other'];
+    var VALUES=['Honesty','Discipline','Respect','Kindness','Courage','Gratitude','Responsibility','Patience','Focus'];
+    var SOURCES=['Bhagavad Geeta & Indian wisdom','Universal / secular values','A mix of both'];
+    var GOALS=['Build daily discipline & routine','Improve academics','Strengthen character & values','More independence & responsibility','Better focus & less screen time','Balanced all-round growth'];
+    var INTERESTS=['Drawing / Art','Reading','Sports','Dancing','Music / Singing','Building / Lego','Video games','Animals','Cooking / Baking','Science experiments','Outdoor play','Coding'];
+    var REWARDS=['Extra screen time','A treat / outing','A small toy / gift','Pocket money / savings','Special time with parent','A fun privilege'];
+    var YESNO=['Yes','No'];
+    var FAMILY=['Nuclear','Joint'];
+    var SCREEN=['Under 1 hour','1-2 hours','2-3 hours','3+ hours'];
+    var OUTDOOR=['Under 30 min','30-60 min','1-2 hours','2+ hours'];
+
+    var Q={ interests:[], values:[] };
+
+    function singleSelect(id,list,key){
+      var box=$(id); if(!box) return; box.innerHTML='';
+      list.forEach(function(label){
+        var b=document.createElement('button'); b.type='button'; b.className='ns-opt'; b.textContent=label;
+        b.onclick=function(){
+          Q[key]=label;
+          Array.prototype.forEach.call(box.children,function(c){ c.classList.remove('sel'); });
+          b.classList.add('sel');
+        };
+        box.appendChild(b);
+      });
+    }
+    function multiSelect(id,list,key,max){
+      var box=$(id); if(!box) return; box.innerHTML='';
+      list.forEach(function(label){
+        var b=document.createElement('button'); b.type='button'; b.className='ns-opt'; b.textContent=label;
+        b.onclick=function(){
+          var arr=Q[key], i=arr.indexOf(label);
+          if(i>-1){ arr.splice(i,1); b.classList.remove('sel'); }
+          else { if(arr.length>=max) return; arr.push(label); b.classList.add('sel'); }
+          if(key==='values') renderTopValue();
+        };
+        box.appendChild(b);
+      });
+    }
+    function renderTopValue(){
+      var box=$('ns-opts-top'); if(!box) return; box.innerHTML='';
+      if(Q.top_value && Q.values.indexOf(Q.top_value)===-1) Q.top_value=null;
+      Q.values.forEach(function(label){
+        var b=document.createElement('button'); b.type='button'; b.className='ns-opt'+(Q.top_value===label?' sel':''); b.textContent=label;
+        b.onclick=function(){
+          Q.top_value=label;
+          Array.prototype.forEach.call(box.children,function(c){ c.classList.remove('sel'); });
+          b.classList.add('sel');
+        };
+        box.appendChild(b);
+      });
+    }
+
+    singleSelect('ns-opts-grade',GRADES,'grade');
+    singleSelect('ns-opts-board',BOARDS,'board');
+    singleSelect('ns-opts-fav',SUBJECTS,'fav_subject');
+    singleSelect('ns-opts-focus',SUBJECTS,'focus_subject');
+    singleSelect('ns-opts-source',SOURCES,'values_source');
+    multiSelect('ns-opts-values',VALUES,'values',3);
+    singleSelect('ns-opts-goal',GOALS,'parent_goal');
+    multiSelect('ns-opts-interests',INTERESTS,'interests',3);
+    singleSelect('ns-opts-reward',REWARDS,'fav_reward');
+    singleSelect('ns-opts-tuition',YESNO,'takes_tuitions');
+    singleSelect('ns-opts-family',FAMILY,'family_type');
+    singleSelect('ns-opts-screen',SCREEN,'screen_time');
+    singleSelect('ns-opts-outdoor',OUTDOOR,'outdoor_time');
+    renderTopValue();
+
+    var photoInput=$('ns-photo-input'), photoPrev=$('ns-photo-prev'), photoClear=$('ns-photo-clear'), photoPick=$('ns-photo-pick');
+    if(photoPick) photoPick.onclick=function(){ photoInput.click(); };
+    if(photoClear) photoClear.onclick=function(){ Q.child_photo=null; photoPrev.textContent='\ud83d\udd25'; photoClear.style.display='none'; photoInput.value=''; };
+    if(photoInput) photoInput.onchange=function(){
+      var f=photoInput.files && photoInput.files[0]; if(!f) return;
+      var rd=new FileReader();
+      rd.onload=function(){
+        var img=new Image();
+        img.onload=function(){
+          var max=256, s=Math.min(max/img.width,max/img.height,1);
+          var cv=document.createElement('canvas'); cv.width=Math.round(img.width*s); cv.height=Math.round(img.height*s);
+          cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+          Q.child_photo=cv.toDataURL('image/jpeg',0.82);
+          photoPrev.innerHTML='<img src="'+Q.child_photo+'" alt="">';
+          photoClear.style.display='inline';
+        };
+        img.src=rd.result;
+      };
+      rd.readAsDataURL(f);
+    };
+
+    function go(id){
+      ['ns-q1','ns-q2','ns-q3','ns-q4','ns-q5','ns-q6','ns-q7'].forEach(function(x){ if($(x)) $(x).style.display='none'; });
+      var el=$(id); if(el) el.style.display='block';
+      window.scrollTo(0,0);
+    }
+    function validate(step){
+      if(step==='q1'){
+        Q.full_name=$('ns-full-name').value.trim(); Q.school=$('ns-school').value.trim();
+        if(!Q.full_name) return 'Please enter your child\u2019s name.';
+        if(!Q.grade) return 'Please pick a class.';
+        if(!Q.board) return 'Please pick a board.';
+      }
+      if(step==='q2'){
+        if(!Q.fav_subject) return 'Please pick a favourite subject.';
+        if(!Q.focus_subject) return 'Please pick a subject that needs attention.';
+      }
+      if(step==='q3'){
+        if(Q.values.length<2) return 'Please pick at least 2 values.';
+        if(!Q.top_value) return 'Please pick the one value that matters most.';
+      }
+      if(step==='q6'){
+        Q.star_name=$('ns-star-name').value.trim();
+        if(!Q.star_name) return 'Please pick a star name.';
+        if(Q.interests.length<1) return 'Please pick at least one thing you love.';
+        if(!Q.fav_reward) return 'Please pick a favourite reward.';
+      }
+      return null;
+    }
+    async function finish(){
+      var first=(Q.full_name||'').split(/\s+/)[0]||Q.full_name;
+      var pd={
+        full_name:Q.full_name, grade:Q.grade, board:Q.board, school:Q.school||null,
+        fav_subject:Q.fav_subject, focus_subject:Q.focus_subject,
+        values_source:Q.values_source, values:Q.values, top_value:Q.top_value,
+        parent_goal:Q.parent_goal||null, child_photo:Q.child_photo||null,
+        star_name:Q.star_name, interests:Q.interests, fav_reward:Q.fav_reward,
+        takes_tuitions:Q.takes_tuitions||null, family_type:Q.family_type||null,
+        screen_time:Q.screen_time||null, outdoor_time:Q.outdoor_time||null
+      };
+      await saveProfile({ child_name:first, child_class:Q.grade, profile_data:pd });
+      ['ns-ob-consent','ns-ob-pin','ns-q1','ns-q2','ns-q3','ns-q4','ns-q5','ns-q6','ns-q7'].forEach(function(x){ if($(x)) $(x).style.display='none'; });
       $('ns-ob-done').style.display='block';
-      $('ns-done-msg').textContent='Opening '+name+"'s view\u2026";
-      setTimeout(enterApp, 1300);
-    }catch(e){ showErr('ns-child-err', e.message); }
-  };
+      $('ns-done-msg').textContent='Opening '+first+"'s view\u2026";
+      setTimeout(enterApp,1300);
+    }
+
+    var ob=$('ns-onboard');
+    if(ob) ob.addEventListener('click', async function(e){
+      var t=e.target;
+      if(!t || t.tagName!=='BUTTON') return;
+      var step=t.getAttribute('data-val');
+      if(!step) return;
+      clearErr(step+'-err');
+      var msg=validate(step);
+      if(msg){ showErr(step+'-err', msg); return; }
+      if(step==='q1'){ var fn=(Q.full_name||'').split(/\s+/)[0]; var ht=$('ns-handoff-title'); if(fn && ht) ht.textContent='Now hand the phone to '+fn+' \ud83c\udf1f'; }
+      if(t.getAttribute('data-finish')){ try{ await finish(); }catch(err){ showErr('ns-q7-err', err.message); } return; }
+      var next=t.getAttribute('data-next');
+      if(next) go(next);
+    });
+  })();
 
   $('ns-pz-logout').onclick=async function(){ try{ await window.sb.auth.signOut(); }catch(e){} location.reload(); };
 
