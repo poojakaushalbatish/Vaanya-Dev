@@ -19,14 +19,14 @@
     --gold:#f4b740;--gold-deep:#cf962a;--gold-soft:#fff5dd;--gold-line:#f0d9a0;
     --card:#ffffff;--cream:#fbfaf6;--line:#ece7df}
   #niyam-shell .ns-screen{position:fixed;inset:0;z-index:99999;overflow:auto;display:none;
-    background:radial-gradient(130% 70% at 50% -12%, rgba(244,183,64,.20), rgba(244,183,64,0) 58%), linear-gradient(180deg,#191a2f 0%,#15162b 100%)}
+    background:radial-gradient(60% 40% at 12% 8%, rgba(255,214,170,.55), transparent 60%),radial-gradient(55% 45% at 92% 12%, rgba(201,224,255,.55), transparent 60%),radial-gradient(70% 55% at 50% 108%, rgba(214,245,224,.5), transparent 60%),linear-gradient(180deg,#fffaf3 0%,#faf6ff 100%)}
   #niyam-shell .ns-wrap{max-width:460px;margin:0 auto;padding:44px 18px 56px}
-  #niyam-shell .ns-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 20px;margin-bottom:16px;box-shadow:0 14px 34px rgba(8,10,28,.32)}
+  #niyam-shell .ns-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 20px;margin-bottom:16px;box-shadow:0 10px 28px rgba(90,80,130,.12)}
   #niyam-shell .ns-brand{text-align:center;margin-bottom:20px}
   #niyam-shell .ns-mark{width:66px;height:66px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border-radius:20px;
     background:radial-gradient(circle at 50% 38%, rgba(244,183,64,.32), rgba(244,183,64,.04) 72%)}
-  #niyam-shell h1{font-size:30px;margin:0;text-align:center;color:var(--gold);letter-spacing:.16em;font-weight:800;text-shadow:0 2px 18px rgba(244,183,64,.35)}
-  #niyam-shell .ns-tag{color:#cdd0e6;font-size:13px;text-align:center;margin:7px 0 0;letter-spacing:.03em}
+  #niyam-shell h1{font-size:30px;margin:0;text-align:center;color:#191a2f;letter-spacing:.16em;font-weight:800}
+  #niyam-shell .ns-tag{color:#6b6e86;font-size:13px;text-align:center;margin:7px 0 0;letter-spacing:.03em}
   #niyam-shell h2{font-size:19px;margin:0 0 10px;color:var(--ink);font-weight:800;letter-spacing:-.01em}
   #niyam-shell .ns-sub{color:var(--muted);font-size:14px;margin:0 0 16px;line-height:1.55}
   #niyam-shell label{display:block;font-size:13px;font-weight:700;margin:14px 0 5px;color:#3a4150}
@@ -59,7 +59,7 @@
   #niyam-shell .ns-q:first-child{margin-top:0}
   #niyam-shell .ns-qlabel{font-size:14px;font-weight:800;color:var(--ink);margin:0 0 8px}
   #niyam-shell .ns-qhint{font-size:12px;color:var(--muted);font-weight:500;margin:-4px 0 8px}
-  #niyam-shell .ns-opts{display:flex;flex-wrap:wrap;gap:8px}
+  #niyam-shell .ns-opts{display:flex;flex-direction:column;gap:9px}
   #niyam-shell .ns-opt{background:#fff;border:1.5px solid var(--line);color:#3a4150;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer;flex:0 0 auto;transition:.12s}
   #niyam-shell .ns-opt:hover{border-color:var(--gold)}
   #niyam-shell .ns-opt.sel{background:#191a2f;border-color:#191a2f;color:var(--gold);box-shadow:0 5px 14px rgba(25,26,47,.28)}
@@ -73,6 +73,25 @@
   #niyam-shell .ns-photo-prev{width:62px;height:62px;border-radius:14px;background:var(--gold-soft);border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;flex:0 0 auto}
   #niyam-shell .ns-photo-prev img{width:100%;height:100%;object-fit:cover}
   #niyam-shell .ns-photo-btn{background:#191a2f;color:#fff;font-size:13px;padding:9px 14px;border-radius:10px}
+  #niyam-shell .ns-cardhead{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  #niyam-shell .ns-back{width:auto;margin:0;background:#fff;border:1.5px solid var(--line);color:#3a4150;border-radius:10px;padding:6px 12px;font-size:16px;font-weight:800;cursor:pointer;line-height:1}
+  #niyam-shell .ns-back:hover{border-color:var(--gold);color:var(--gold-deep)}
+  #niyam-shell .ns-in{animation:nsIn .32s cubic-bezier(.22,1,.36,1)}
+  @keyframes nsIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  #niyam-shell .ns-choice{display:flex;align-items:center;gap:12px;padding:13px 14px;border:1.6px solid var(--line);border-radius:13px;background:#fff;cursor:pointer;transition:.15s;position:relative}
+  #niyam-shell .ns-choice:hover{border-color:var(--gold);transform:translateY(-1px)}
+  #niyam-shell .ns-choice.sel{border-color:var(--gold);background:var(--gold-soft);box-shadow:0 5px 16px rgba(244,183,64,.25)}
+  #niyam-shell .ns-choice input{position:absolute;opacity:0;width:0;height:0;margin:0}
+  #niyam-shell .ns-box{flex:0 0 auto;width:22px;height:22px;border:2px solid #cdc6b6;display:flex;align-items:center;justify-content:center;transition:.15s;background:#fff}
+  #niyam-shell .ns-radio .ns-box{border-radius:50%}
+  #niyam-shell .ns-check .ns-box{border-radius:7px}
+  #niyam-shell .ns-choice.sel .ns-box{border-color:var(--gold-deep);background:var(--gold)}
+  #niyam-shell .ns-radio .ns-box:after{content:'';width:8px;height:8px;border-radius:50%;background:#fff;opacity:0;transform:scale(.3);transition:.15s}
+  #niyam-shell .ns-radio.sel .ns-box:after{opacity:1;transform:scale(1)}
+  #niyam-shell .ns-check .ns-box:after{content:'';width:6px;height:11px;border:solid #191a2f;border-width:0 3px 3px 0;transform:rotate(45deg) scale(.3);opacity:0;transition:.15s;margin-top:-2px}
+  #niyam-shell .ns-check.sel .ns-box:after{opacity:1;transform:rotate(45deg) scale(1)}
+  #niyam-shell .ns-choice-txt{font-size:14.5px;font-weight:600;color:#2c3242}
+  #niyam-shell .ns-primary:active{transform:translateY(1px)}
   `;
   var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
@@ -108,100 +127,117 @@
      <div id="ns-consent-err" class="ns-err"></div>
     </div>
     <div id="ns-ob-pin" class="ns-card" style="display:none">
-     <div class="ns-step">Step 2 of 3</div><h2>Create your Parent PIN</h2>
+     <div class="ns-cardhead"><button class="ns-back" data-back="consent">&#8592;</button><div class="ns-step" style="margin-bottom:0">Step 2 of 3</div></div><h2>Create your Parent PIN</h2>
      <p class="ns-sub">A 4-digit PIN for the Parent Zone. You can change it later.</p>
      <label>4-digit PIN</label><input id="ns-pin1" type="tel" inputmode="numeric" maxlength="4" class="ns-pin" placeholder="****">
      <label>Confirm PIN</label><input id="ns-pin2" type="tel" inputmode="numeric" maxlength="4" class="ns-pin" placeholder="****">
      <button id="ns-pin-next" class="ns-primary">Save PIN</button>
      <div id="ns-pin-err" class="ns-err"></div>
     </div>
-    <div id="ns-q1" class="ns-card" style="display:none">
-     <div class="ns-step">Step 3 of 3 · Profile</div>
-     <div class="ns-progress"><div class="ns-progress-fill" id="ns-bar1" style="width:16%"></div></div>
-     <h2>About your child</h2>
+    <div id="ns-p1" class="ns-card" style="display:none">
+     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">About your child</div></div>
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:9%"></div></div>
      <div class="ns-q"><div class="ns-qlabel">Your child's full name</div>
        <input id="ns-full-name" type="text" autocomplete="off" placeholder="e.g. Vaanya Sharma"></div>
      <div class="ns-q"><div class="ns-qlabel">Which class?</div><div class="ns-opts" id="ns-opts-grade"></div></div>
+     <button class="ns-primary" data-page="p1" data-next="ns-p2">Continue</button>
+     <div id="ns-p1-err" class="ns-err"></div>
+    </div>
+
+    <div id="ns-p2" class="ns-card" style="display:none">
+     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">About your child</div></div>
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:18%"></div></div>
      <div class="ns-q"><div class="ns-qlabel">Which board?</div><div class="ns-opts" id="ns-opts-board"></div></div>
      <div class="ns-q"><div class="ns-qlabel">School name <span class="ns-optional-tag">optional</span></div>
        <input id="ns-school" type="text" autocomplete="off" placeholder="e.g. DPS Noida"></div>
-     <button class="ns-primary" data-next="ns-q2" data-val="q1">Continue</button>
-     <div id="ns-q1-err" class="ns-err"></div>
+     <button class="ns-primary" data-page="p2" data-next="ns-p3">Continue</button>
+     <div id="ns-p2-err" class="ns-err"></div>
     </div>
 
-    <div id="ns-q2" class="ns-card" style="display:none">
-     <div class="ns-step">Step 3 of 3 · Profile</div>
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:33%"></div></div>
-     <h2>Learning</h2>
+    <div id="ns-p3" class="ns-card" style="display:none">
+     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Learning</div></div>
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:27%"></div></div>
      <div class="ns-q"><div class="ns-qlabel">Favourite subject</div><div class="ns-opts" id="ns-opts-fav"></div></div>
      <div class="ns-q"><div class="ns-qlabel">Subject that needs attention</div><div class="ns-opts" id="ns-opts-focus"></div></div>
-     <button class="ns-primary" data-next="ns-q3" data-val="q2">Continue</button>
-     <div id="ns-q2-err" class="ns-err"></div>
+     <button class="ns-primary" data-page="p3" data-next="ns-p4">Continue</button>
+     <div id="ns-p3-err" class="ns-err"></div>
     </div>
 
-    <div id="ns-q3" class="ns-card" style="display:none">
-     <div class="ns-step">Step 3 of 3 · Profile</div>
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:50%"></div></div>
-     <h2>Character</h2>
-     <div class="ns-q"><div class="ns-qlabel">Character content should draw from…</div><div class="ns-opts" id="ns-opts-source"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Core values to nurture</div>
-       <div class="ns-qhint">Pick 2 or 3.</div><div class="ns-opts" id="ns-opts-values"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">The one that matters most</div>
-       <div class="ns-qhint">Choose your single top value from the ones above.</div><div class="ns-opts" id="ns-opts-top"></div></div>
-     <button class="ns-primary" data-next="ns-q4" data-val="q3">Continue</button>
-     <div id="ns-q3-err" class="ns-err"></div>
+    <div id="ns-p4" class="ns-card" style="display:none">
+     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Character</div></div>
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:36%"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">Character content should draw from&#8230;</div><div class="ns-opts" id="ns-opts-source"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">Core values to nurture</div><div class="ns-qhint">Pick 2 or 3.</div><div class="ns-opts" id="ns-opts-values"></div></div>
+     <button class="ns-primary" data-page="p4" data-next="ns-p5">Continue</button>
+     <div id="ns-p4-err" class="ns-err"></div>
     </div>
 
-    <div id="ns-q4" class="ns-card" style="display:none">
-     <div class="ns-step">Step 3 of 3 · Profile</div>
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:66%"></div></div>
-     <h2>A few extras <span class="ns-optional-tag">optional</span></h2>
-     <div class="ns-q"><div class="ns-qlabel">Child's photo</div>
-       <div class="ns-qhint">Used as their avatar. You can skip this.</div>
+    <div id="ns-p5" class="ns-card" style="display:none">
+     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Character</div></div>
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:45%"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">The one value that matters most</div><div class="ns-qhint">Choose from the values you picked.</div><div class="ns-opts" id="ns-opts-top"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">Your goal for the year <span class="ns-optional-tag">optional</span></div><div class="ns-opts" id="ns-opts-goal"></div></div>
+     <button class="ns-primary" data-page="p5" data-next="ns-p6">Continue</button>
+     <div id="ns-p5-err" class="ns-err"></div>
+    </div>
+
+    <div id="ns-p6" class="ns-card" style="display:none">
+     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">A photo <span class="ns-optional-tag">optional</span></div></div>
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:55%"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">Child's photo</div><div class="ns-qhint">Used as their avatar. You can skip this.</div>
        <div class="ns-photo-row">
-         <div class="ns-photo-prev" id="ns-photo-prev">🔥</div>
+         <div class="ns-photo-prev" id="ns-photo-prev">&#11088;</div>
          <button type="button" class="ns-photo-btn" id="ns-photo-pick">Choose photo</button>
          <button type="button" class="ns-skip" id="ns-photo-clear" style="display:none">Remove</button>
          <input id="ns-photo-input" type="file" accept="image/*" style="display:none">
        </div></div>
-     <div class="ns-q"><div class="ns-qlabel">Your goal for the year</div><div class="ns-opts" id="ns-opts-goal"></div></div>
-     <button class="ns-primary" data-next="ns-q5" data-val="q4">Continue</button>
-     <div id="ns-q4-err" class="ns-err"></div>
+     <button class="ns-primary" data-next="ns-hp">Continue</button>
     </div>
 
-    <div id="ns-q5" class="ns-card" style="display:none">
+    <div id="ns-hp" class="ns-card ns-childcard" style="display:none">
+     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button></div>
      <div class="ns-handoff">
-       <div class="ns-flame">🌟</div>
+       <div class="ns-flame">&#127775;</div>
        <h2 id="ns-handoff-title">Now hand the phone to your child</h2>
        <p class="ns-sub">The next few questions are for them to answer.</p>
      </div>
-     <button class="ns-primary" data-next="ns-q6" data-val="q5">I'm ready!</button>
+     <button class="ns-primary" data-next="ns-c1">I'm ready!</button>
     </div>
 
-    <div id="ns-q6" class="ns-card ns-childcard" style="display:none">
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:88%"></div></div>
-     <h2>Your turn! ✨</h2>
-     <div class="ns-q"><div class="ns-qlabel">Pick your Star Name</div>
-       <div class="ns-qhint">This goes on your Aurora Star badge.</div>
+    <div id="ns-c1" class="ns-card ns-childcard" style="display:none">
+     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Your turn &#10024;</div></div>
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:73%"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">Pick your Star Name</div><div class="ns-qhint">This goes on your Aurora Star badge.</div>
        <input id="ns-star-name" type="text" autocomplete="off" placeholder="e.g. Star Explorer"></div>
-     <div class="ns-q"><div class="ns-qlabel">What do you love doing?</div>
-       <div class="ns-qhint">Pick up to 3.</div><div class="ns-opts" id="ns-opts-interests"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Favourite kind of reward</div><div class="ns-opts" id="ns-opts-reward"></div></div>
-     <button class="ns-primary" data-next="ns-q7" data-val="q6">Continue</button>
-     <div id="ns-q6-err" class="ns-err"></div>
+     <div class="ns-q"><div class="ns-qlabel">What do you love doing?</div><div class="ns-qhint">Pick up to 3.</div><div class="ns-opts" id="ns-opts-interests"></div></div>
+     <button class="ns-primary" data-page="c1" data-next="ns-c2">Continue</button>
+     <div id="ns-c1-err" class="ns-err"></div>
     </div>
 
-    <div id="ns-q7" class="ns-card" style="display:none">
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:100%"></div></div>
-     <h2>Help us personalize <span class="ns-optional-tag">optional</span></h2>
-     <p class="ns-sub">These tailor features coming soon. Skip anytime.</p>
+    <div id="ns-c2" class="ns-card ns-childcard" style="display:none">
+     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Your turn &#10024;</div></div>
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:82%"></div></div>
+     <div class="ns-q"><div class="ns-qlabel">Favourite kind of reward</div><div class="ns-opts" id="ns-opts-reward"></div></div>
+     <button class="ns-primary" data-page="c2" data-next="ns-t1">Continue</button>
+     <div id="ns-c2-err" class="ns-err"></div>
+    </div>
+
+    <div id="ns-t1" class="ns-card" style="display:none">
+     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Personalize <span class="ns-optional-tag">optional</span></div></div>
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:91%"></div></div>
      <div class="ns-q"><div class="ns-qlabel">Does your child take tuitions / coaching?</div><div class="ns-opts" id="ns-opts-tuition"></div></div>
      <div class="ns-q"><div class="ns-qlabel">Family type</div><div class="ns-opts" id="ns-opts-family"></div></div>
+     <button class="ns-primary" data-next="ns-t2">Continue</button>
+    </div>
+
+    <div id="ns-t2" class="ns-card" style="display:none">
+     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Personalize <span class="ns-optional-tag">optional</span></div></div>
+     <div class="ns-progress"><div class="ns-progress-fill" style="width:100%"></div></div>
      <div class="ns-q"><div class="ns-qlabel">Daily screen time</div><div class="ns-opts" id="ns-opts-screen"></div></div>
      <div class="ns-q"><div class="ns-qlabel">Daily outdoor play</div><div class="ns-opts" id="ns-opts-outdoor"></div></div>
-     <button class="ns-primary" data-finish="1" data-val="q7">Save &amp; finish</button>
-     <button class="ns-skip" data-finish="1" data-val="q7">Skip &amp; finish</button>
-     <div id="ns-q7-err" class="ns-err"></div>
+     <button class="ns-primary" data-finish="1">Save &amp; finish</button>
+     <button class="ns-skip" data-finish="1">Skip &amp; finish</button>
+     <div id="ns-t2-err" class="ns-err"></div>
     </div>
     <div id="ns-ob-done" class="ns-card" style="display:none;text-align:center">
      <h2>All set! &#10024;</h2><p class="ns-sub" id="ns-done-msg">Opening the app&#8230;</p>
@@ -269,10 +305,10 @@
     var c = profile && profile.consent_at, p = profile && profile.parent_pin, ch = profile && profile.child_name;
     if(c && p && ch){ enterApp(); return; }
     screen('ns-onboard');
-    ['ns-ob-consent','ns-ob-pin','ns-q1','ns-q2','ns-q3','ns-q4','ns-q5','ns-q6','ns-q7','ns-ob-done'].forEach(function(x){ if($(x)) $(x).style.display='none'; });
+    ['ns-ob-consent','ns-ob-pin','ns-p1','ns-p2','ns-p3','ns-p4','ns-p5','ns-p6','ns-hp','ns-c1','ns-c2','ns-t1','ns-t2','ns-ob-done'].forEach(function(x){ if($(x)) $(x).style.display='none'; });
     if(!c) $('ns-ob-consent').style.display='block';
     else if(!p) $('ns-ob-pin').style.display='block';
-    else $('ns-q1').style.display='block';
+    else { var _p=$('ns-p1'); _p.style.display='block'; _p.classList.add('ns-in'); }
   }
 
   // login / signup
@@ -301,7 +337,7 @@
     if(a!==b) return showErr('ns-pin-err','The two PINs do not match.');
     try{ await saveProfile({ parent_pin:a }); route(); }catch(e){ showErr('ns-pin-err', e.message); }
   };
-  // ---- Step 3: profile-setup questionnaire ----
+  // ---- Step 3: profile-setup questionnaire (paged) ----
   (function(){
     var GRADES=['Class 4','Class 5','Class 6','Class 7','Class 8'];
     var BOARDS=['CBSE','ICSE','State Board','IB / Cambridge','Other'];
@@ -318,63 +354,79 @@
 
     var Q={ interests:[], values:[] };
 
-    function singleSelect(id,list,key){
+    function choiceLabel(type,key,label){
+      var lab=document.createElement('label'); lab.className='ns-choice '+(type==='radio'?'ns-radio':'ns-check');
+      var inp=document.createElement('input'); inp.type=type; inp.value=label; if(type==='radio') inp.name='ns_'+key;
+      var bx=document.createElement('span'); bx.className='ns-box';
+      var tx=document.createElement('span'); tx.className='ns-choice-txt'; tx.textContent=label;
+      lab.appendChild(inp); lab.appendChild(bx); lab.appendChild(tx);
+      return { lab:lab, inp:inp };
+    }
+    function renderRadios(id,list,key){
       var box=$(id); if(!box) return; box.innerHTML='';
       list.forEach(function(label){
-        var b=document.createElement('button'); b.type='button'; b.className='ns-opt'; b.textContent=label;
-        b.onclick=function(){
+        var c=choiceLabel('radio',key,label);
+        if(Q[key]===label){ c.inp.checked=true; c.lab.classList.add('sel'); }
+        c.inp.addEventListener('change',function(){
           Q[key]=label;
-          Array.prototype.forEach.call(box.children,function(c){ c.classList.remove('sel'); });
-          b.classList.add('sel');
-        };
-        box.appendChild(b);
+          Array.prototype.forEach.call(box.querySelectorAll('.ns-choice'),function(x){ x.classList.remove('sel'); });
+          c.lab.classList.add('sel');
+        });
+        box.appendChild(c.lab);
       });
     }
-    function multiSelect(id,list,key,max){
+    function renderChecks(id,list,key,max){
       var box=$(id); if(!box) return; box.innerHTML='';
       list.forEach(function(label){
-        var b=document.createElement('button'); b.type='button'; b.className='ns-opt'; b.textContent=label;
-        b.onclick=function(){
+        var c=choiceLabel('check',key,label);
+        if(Q[key].indexOf(label)>-1){ c.inp.checked=true; c.lab.classList.add('sel'); }
+        c.inp.addEventListener('change',function(){
           var arr=Q[key], i=arr.indexOf(label);
-          if(i>-1){ arr.splice(i,1); b.classList.remove('sel'); }
-          else { if(arr.length>=max) return; arr.push(label); b.classList.add('sel'); }
+          if(c.inp.checked){
+            if(arr.length>=max){ c.inp.checked=false; return; }
+            if(i<0) arr.push(label); c.lab.classList.add('sel');
+          } else {
+            if(i>-1) arr.splice(i,1); c.lab.classList.remove('sel');
+          }
           if(key==='values') renderTopValue();
-        };
-        box.appendChild(b);
+        });
+        box.appendChild(c.lab);
       });
     }
     function renderTopValue(){
       var box=$('ns-opts-top'); if(!box) return; box.innerHTML='';
       if(Q.top_value && Q.values.indexOf(Q.top_value)===-1) Q.top_value=null;
+      if(!Q.values.length){ box.innerHTML='<div class="ns-qhint">Choose 2\u20133 values on the previous step first.</div>'; return; }
       Q.values.forEach(function(label){
-        var b=document.createElement('button'); b.type='button'; b.className='ns-opt'+(Q.top_value===label?' sel':''); b.textContent=label;
-        b.onclick=function(){
+        var c=choiceLabel('radio','top',label);
+        if(Q.top_value===label){ c.inp.checked=true; c.lab.classList.add('sel'); }
+        c.inp.addEventListener('change',function(){
           Q.top_value=label;
-          Array.prototype.forEach.call(box.children,function(c){ c.classList.remove('sel'); });
-          b.classList.add('sel');
-        };
-        box.appendChild(b);
+          Array.prototype.forEach.call(box.querySelectorAll('.ns-choice'),function(x){ x.classList.remove('sel'); });
+          c.lab.classList.add('sel');
+        });
+        box.appendChild(c.lab);
       });
     }
 
-    singleSelect('ns-opts-grade',GRADES,'grade');
-    singleSelect('ns-opts-board',BOARDS,'board');
-    singleSelect('ns-opts-fav',SUBJECTS,'fav_subject');
-    singleSelect('ns-opts-focus',SUBJECTS,'focus_subject');
-    singleSelect('ns-opts-source',SOURCES,'values_source');
-    multiSelect('ns-opts-values',VALUES,'values',3);
-    singleSelect('ns-opts-goal',GOALS,'parent_goal');
-    multiSelect('ns-opts-interests',INTERESTS,'interests',3);
-    singleSelect('ns-opts-reward',REWARDS,'fav_reward');
-    singleSelect('ns-opts-tuition',YESNO,'takes_tuitions');
-    singleSelect('ns-opts-family',FAMILY,'family_type');
-    singleSelect('ns-opts-screen',SCREEN,'screen_time');
-    singleSelect('ns-opts-outdoor',OUTDOOR,'outdoor_time');
+    renderRadios('ns-opts-grade',GRADES,'grade');
+    renderRadios('ns-opts-board',BOARDS,'board');
+    renderRadios('ns-opts-fav',SUBJECTS,'fav_subject');
+    renderRadios('ns-opts-focus',SUBJECTS,'focus_subject');
+    renderRadios('ns-opts-source',SOURCES,'values_source');
+    renderChecks('ns-opts-values',VALUES,'values',3);
+    renderRadios('ns-opts-goal',GOALS,'parent_goal');
+    renderChecks('ns-opts-interests',INTERESTS,'interests',3);
+    renderRadios('ns-opts-reward',REWARDS,'fav_reward');
+    renderRadios('ns-opts-tuition',YESNO,'takes_tuitions');
+    renderRadios('ns-opts-family',FAMILY,'family_type');
+    renderRadios('ns-opts-screen',SCREEN,'screen_time');
+    renderRadios('ns-opts-outdoor',OUTDOOR,'outdoor_time');
     renderTopValue();
 
     var photoInput=$('ns-photo-input'), photoPrev=$('ns-photo-prev'), photoClear=$('ns-photo-clear'), photoPick=$('ns-photo-pick');
     if(photoPick) photoPick.onclick=function(){ photoInput.click(); };
-    if(photoClear) photoClear.onclick=function(){ Q.child_photo=null; photoPrev.textContent='\ud83d\udd25'; photoClear.style.display='none'; photoInput.value=''; };
+    if(photoClear) photoClear.onclick=function(){ Q.child_photo=null; photoPrev.textContent='\u2b50'; photoClear.style.display='none'; photoInput.value=''; };
     if(photoInput) photoInput.onchange=function(){
       var f=photoInput.files && photoInput.files[0]; if(!f) return;
       var rd=new FileReader();
@@ -393,32 +445,39 @@
       rd.readAsDataURL(f);
     };
 
-    function go(id){
-      ['ns-q1','ns-q2','ns-q3','ns-q4','ns-q5','ns-q6','ns-q7'].forEach(function(x){ if($(x)) $(x).style.display='none'; });
-      var el=$(id); if(el) el.style.display='block';
+    var PAGES=['ns-p1','ns-p2','ns-p3','ns-p4','ns-p5','ns-p6','ns-hp','ns-c1','ns-c2','ns-t1','ns-t2'];
+    function hideAll(){ ['ns-ob-consent','ns-ob-pin','ns-ob-done'].concat(PAGES).forEach(function(x){ var e=$(x); if(e) e.style.display='none'; }); }
+    function visiblePage(){ for(var i=0;i<PAGES.length;i++){ var e=$(PAGES[i]); if(e && e.style.display!=='none') return PAGES[i]; } return null; }
+    function showCard(id){
+      hideAll();
+      var el=$(id); if(!el) return;
+      if(id==='ns-p5') renderTopValue();
+      if(id==='ns-hp'){ var fn=(Q.full_name||'').split(/\s+/)[0]; var ht=$('ns-handoff-title'); if(fn && ht) ht.textContent='Now hand the phone to '+fn+' \ud83c\udf1f'; }
+      el.style.display='block';
+      var idx=PAGES.indexOf(id), fill=el.querySelector('.ns-progress-fill');
+      if(fill && idx>=0) fill.style.width=Math.round((idx+1)/PAGES.length*100)+'%';
+      el.classList.remove('ns-in'); void el.offsetWidth; el.classList.add('ns-in');
       window.scrollTo(0,0);
     }
-    function validate(step){
-      if(step==='q1'){
-        Q.full_name=$('ns-full-name').value.trim(); Q.school=$('ns-school').value.trim();
+    function back(){
+      var cur=visiblePage(), idx=PAGES.indexOf(cur);
+      if(idx>0) showCard(PAGES[idx-1]); else showCard('ns-ob-pin');
+    }
+    function validate(page){
+      if(page==='p1'){ Q.full_name=$('ns-full-name').value.trim();
         if(!Q.full_name) return 'Please enter your child\u2019s name.';
-        if(!Q.grade) return 'Please pick a class.';
-        if(!Q.board) return 'Please pick a board.';
-      }
-      if(step==='q2'){
-        if(!Q.fav_subject) return 'Please pick a favourite subject.';
-        if(!Q.focus_subject) return 'Please pick a subject that needs attention.';
-      }
-      if(step==='q3'){
-        if(Q.values.length<2) return 'Please pick at least 2 values.';
-        if(!Q.top_value) return 'Please pick the one value that matters most.';
-      }
-      if(step==='q6'){
-        Q.star_name=$('ns-star-name').value.trim();
+        if(!Q.grade) return 'Please pick a class.'; }
+      if(page==='p2'){ Q.school=$('ns-school').value.trim();
+        if(!Q.board) return 'Please pick a board.'; }
+      if(page==='p3'){ if(!Q.fav_subject) return 'Please pick a favourite subject.';
+        if(!Q.focus_subject) return 'Please pick a subject that needs attention.'; }
+      if(page==='p4'){ if(!Q.values_source) return 'Please choose where character content draws from.';
+        if(Q.values.length<2) return 'Please pick at least 2 values.'; }
+      if(page==='p5'){ if(!Q.top_value) return 'Please pick the one value that matters most.'; }
+      if(page==='c1'){ Q.star_name=$('ns-star-name').value.trim();
         if(!Q.star_name) return 'Please pick a star name.';
-        if(Q.interests.length<1) return 'Please pick at least one thing you love.';
-        if(!Q.fav_reward) return 'Please pick a favourite reward.';
-      }
+        if(Q.interests.length<1) return 'Please pick at least one thing you love.'; }
+      if(page==='c2'){ if(!Q.fav_reward) return 'Please pick a favourite reward.'; }
       return null;
     }
     async function finish(){
@@ -433,7 +492,7 @@
         screen_time:Q.screen_time||null, outdoor_time:Q.outdoor_time||null
       };
       await saveProfile({ child_name:first, child_class:Q.grade, profile_data:pd });
-      ['ns-ob-consent','ns-ob-pin','ns-q1','ns-q2','ns-q3','ns-q4','ns-q5','ns-q6','ns-q7'].forEach(function(x){ if($(x)) $(x).style.display='none'; });
+      hideAll();
       $('ns-ob-done').style.display='block';
       $('ns-done-msg').textContent='Opening '+first+"'s view\u2026";
       setTimeout(enterApp,1300);
@@ -441,17 +500,14 @@
 
     var ob=$('ns-onboard');
     if(ob) ob.addEventListener('click', async function(e){
-      var t=e.target;
-      if(!t || t.tagName!=='BUTTON') return;
-      var step=t.getAttribute('data-val');
-      if(!step) return;
-      clearErr(step+'-err');
-      var msg=validate(step);
-      if(msg){ showErr(step+'-err', msg); return; }
-      if(step==='q1'){ var fn=(Q.full_name||'').split(/\s+/)[0]; var ht=$('ns-handoff-title'); if(fn && ht) ht.textContent='Now hand the phone to '+fn+' \ud83c\udf1f'; }
-      if(t.getAttribute('data-finish')){ try{ await finish(); }catch(err){ showErr('ns-q7-err', err.message); } return; }
-      var next=t.getAttribute('data-next');
-      if(next) go(next);
+      var t=e.target; if(!t || t.tagName!=='BUTTON') return;
+      var backTo=t.getAttribute('data-back');
+      if(backTo!==null){ if(backTo==='consent') showCard('ns-ob-consent'); else back(); return; }
+      var page=t.getAttribute('data-page'), next=t.getAttribute('data-next'), fin=t.getAttribute('data-finish');
+      if(page===null && next===null && fin===null) return;
+      if(page!==null){ clearErr('ns-'+page+'-err'); var msg=validate(page); if(msg){ showErr('ns-'+page+'-err', msg); return; } }
+      if(fin!==null){ try{ await finish(); }catch(err){ showErr('ns-t2-err', err.message); } return; }
+      if(next!==null) showCard(next);
     });
   })();
 
