@@ -14,18 +14,19 @@
     : null;
 
   var css = `
-  #niyam-shell{font-family:system-ui,Segoe UI,Roboto,sans-serif;
+  @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+  #niyam-shell{font-family:'Comic Neue','Comic Sans MS',system-ui,Segoe UI,Roboto,cursive;
     --navy:#191a2f;--navy2:#23244a;--ink:#1f2433;--muted:#6b7280;
     --gold:#f4b740;--gold-deep:#cf962a;--gold-soft:#fff5dd;--gold-line:#f0d9a0;
     --card:#ffffff;--cream:#fbfaf6;--line:#ece7df}
   #niyam-shell .ns-screen{position:fixed;inset:0;z-index:99999;overflow:auto;display:none;
     background:radial-gradient(60% 40% at 12% 8%, rgba(255,214,170,.55), transparent 60%),radial-gradient(55% 45% at 92% 12%, rgba(201,224,255,.55), transparent 60%),radial-gradient(70% 55% at 50% 108%, rgba(214,245,224,.5), transparent 60%),linear-gradient(180deg,#fffaf3 0%,#faf6ff 100%)}
-  #niyam-shell .ns-wrap{max-width:460px;margin:0 auto;padding:44px 18px 56px}
+  #niyam-shell .ns-wrap{max-width:680px;margin:0 auto;padding:38px 22px 56px}
   #niyam-shell .ns-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 20px;margin-bottom:16px;box-shadow:0 10px 28px rgba(90,80,130,.12)}
   #niyam-shell .ns-brand{text-align:center;margin-bottom:20px}
   #niyam-shell .ns-mark{width:66px;height:66px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border-radius:20px;
     background:radial-gradient(circle at 50% 38%, rgba(244,183,64,.32), rgba(244,183,64,.04) 72%)}
-  #niyam-shell h1{font-size:30px;margin:0;text-align:center;color:#191a2f;letter-spacing:.16em;font-weight:800}
+  #niyam-shell h1{font-size:30px;margin:0;text-align:center;color:#191a2f;letter-spacing:.06em;font-weight:700}
   #niyam-shell .ns-tag{color:#6b6e86;font-size:13px;text-align:center;margin:7px 0 0;letter-spacing:.03em}
   #niyam-shell h2{font-size:19px;margin:0 0 10px;color:var(--ink);font-weight:800;letter-spacing:-.01em}
   #niyam-shell .ns-sub{color:var(--muted);font-size:14px;margin:0 0 16px;line-height:1.55}
@@ -59,7 +60,7 @@
   #niyam-shell .ns-q:first-child{margin-top:0}
   #niyam-shell .ns-qlabel{font-size:14px;font-weight:800;color:var(--ink);margin:0 0 8px}
   #niyam-shell .ns-qhint{font-size:12px;color:var(--muted);font-weight:500;margin:-4px 0 8px}
-  #niyam-shell .ns-opts{display:flex;flex-direction:column;gap:9px}
+  #niyam-shell .ns-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
   #niyam-shell .ns-opt{background:#fff;border:1.5px solid var(--line);color:#3a4150;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer;flex:0 0 auto;transition:.12s}
   #niyam-shell .ns-opt:hover{border-color:var(--gold)}
   #niyam-shell .ns-opt.sel{background:#191a2f;border-color:#191a2f;color:var(--gold);box-shadow:0 5px 14px rgba(25,26,47,.28)}
@@ -92,6 +93,16 @@
   #niyam-shell .ns-check.sel .ns-box:after{opacity:1;transform:rotate(45deg) scale(1)}
   #niyam-shell .ns-choice-txt{font-size:14.5px;font-weight:600;color:#2c3242}
   #niyam-shell .ns-primary:active{transform:translateY(1px)}
+  #niyam-shell .ns-qcard h2{text-align:center;font-size:23px;margin:2px 0 6px;font-weight:700;color:var(--ink)}
+  #niyam-shell .ns-center{text-align:center}
+  #niyam-shell .ns-qhint.ns-center{margin-top:0}
+  #niyam-shell .ns-icon{width:76px;height:76px;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:40px;line-height:1;margin:6px auto 14px;box-shadow:0 8px 18px rgba(0,0,0,.07)}
+  #niyam-shell .ns-qcard .ns-opts{margin-top:16px}
+  #niyam-shell .ns-qcard input[type=text]{margin-top:8px;font-family:inherit}
+  #niyam-shell .ns-choice-txt{font-family:inherit}
+  #niyam-shell .ns-primary,#niyam-shell .ns-back,#niyam-shell .ns-skip,#niyam-shell button{font-family:inherit}
+  #niyam-shell .ns-qcard .ns-handoff h2{font-size:24px}
+  #niyam-shell .ns-qcard{padding-bottom:24px}
   `;
   var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
@@ -134,111 +145,8 @@
      <button id="ns-pin-next" class="ns-primary">Save PIN</button>
      <div id="ns-pin-err" class="ns-err"></div>
     </div>
-    <div id="ns-p1" class="ns-card" style="display:none">
-     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">About your child</div></div>
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:9%"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Your child's full name</div>
-       <input id="ns-full-name" type="text" autocomplete="off" placeholder="e.g. Vaanya Sharma"></div>
-     <div class="ns-q"><div class="ns-qlabel">Which class?</div><div class="ns-opts" id="ns-opts-grade"></div></div>
-     <button class="ns-primary" data-page="p1" data-next="ns-p2">Continue</button>
-     <div id="ns-p1-err" class="ns-err"></div>
-    </div>
+    <div id="ns-pages"></div>
 
-    <div id="ns-p2" class="ns-card" style="display:none">
-     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">About your child</div></div>
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:18%"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Which board?</div><div class="ns-opts" id="ns-opts-board"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">School name <span class="ns-optional-tag">optional</span></div>
-       <input id="ns-school" type="text" autocomplete="off" placeholder="e.g. DPS Noida"></div>
-     <button class="ns-primary" data-page="p2" data-next="ns-p3">Continue</button>
-     <div id="ns-p2-err" class="ns-err"></div>
-    </div>
-
-    <div id="ns-p3" class="ns-card" style="display:none">
-     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Learning</div></div>
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:27%"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Favourite subject</div><div class="ns-opts" id="ns-opts-fav"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Subject that needs attention</div><div class="ns-opts" id="ns-opts-focus"></div></div>
-     <button class="ns-primary" data-page="p3" data-next="ns-p4">Continue</button>
-     <div id="ns-p3-err" class="ns-err"></div>
-    </div>
-
-    <div id="ns-p4" class="ns-card" style="display:none">
-     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Character</div></div>
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:36%"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Character content should draw from&#8230;</div><div class="ns-opts" id="ns-opts-source"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Core values to nurture</div><div class="ns-qhint">Pick 2 or 3.</div><div class="ns-opts" id="ns-opts-values"></div></div>
-     <button class="ns-primary" data-page="p4" data-next="ns-p5">Continue</button>
-     <div id="ns-p4-err" class="ns-err"></div>
-    </div>
-
-    <div id="ns-p5" class="ns-card" style="display:none">
-     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Character</div></div>
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:45%"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">The one value that matters most</div><div class="ns-qhint">Choose from the values you picked.</div><div class="ns-opts" id="ns-opts-top"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Your goal for the year <span class="ns-optional-tag">optional</span></div><div class="ns-opts" id="ns-opts-goal"></div></div>
-     <button class="ns-primary" data-page="p5" data-next="ns-p6">Continue</button>
-     <div id="ns-p5-err" class="ns-err"></div>
-    </div>
-
-    <div id="ns-p6" class="ns-card" style="display:none">
-     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">A photo <span class="ns-optional-tag">optional</span></div></div>
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:55%"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Child's photo</div><div class="ns-qhint">Used as their avatar. You can skip this.</div>
-       <div class="ns-photo-row">
-         <div class="ns-photo-prev" id="ns-photo-prev">&#11088;</div>
-         <button type="button" class="ns-photo-btn" id="ns-photo-pick">Choose photo</button>
-         <button type="button" class="ns-skip" id="ns-photo-clear" style="display:none">Remove</button>
-         <input id="ns-photo-input" type="file" accept="image/*" style="display:none">
-       </div></div>
-     <button class="ns-primary" data-next="ns-hp">Continue</button>
-    </div>
-
-    <div id="ns-hp" class="ns-card ns-childcard" style="display:none">
-     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button></div>
-     <div class="ns-handoff">
-       <div class="ns-flame">&#127775;</div>
-       <h2 id="ns-handoff-title">Now hand the phone to your child</h2>
-       <p class="ns-sub">The next few questions are for them to answer.</p>
-     </div>
-     <button class="ns-primary" data-next="ns-c1">I'm ready!</button>
-    </div>
-
-    <div id="ns-c1" class="ns-card ns-childcard" style="display:none">
-     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Your turn &#10024;</div></div>
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:73%"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Pick your Star Name</div><div class="ns-qhint">This goes on your Aurora Star badge.</div>
-       <input id="ns-star-name" type="text" autocomplete="off" placeholder="e.g. Star Explorer"></div>
-     <div class="ns-q"><div class="ns-qlabel">What do you love doing?</div><div class="ns-qhint">Pick up to 3.</div><div class="ns-opts" id="ns-opts-interests"></div></div>
-     <button class="ns-primary" data-page="c1" data-next="ns-c2">Continue</button>
-     <div id="ns-c1-err" class="ns-err"></div>
-    </div>
-
-    <div id="ns-c2" class="ns-card ns-childcard" style="display:none">
-     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Your turn &#10024;</div></div>
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:82%"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Favourite kind of reward</div><div class="ns-opts" id="ns-opts-reward"></div></div>
-     <button class="ns-primary" data-page="c2" data-next="ns-t1">Continue</button>
-     <div id="ns-c2-err" class="ns-err"></div>
-    </div>
-
-    <div id="ns-t1" class="ns-card" style="display:none">
-     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Personalize <span class="ns-optional-tag">optional</span></div></div>
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:91%"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Does your child take tuitions / coaching?</div><div class="ns-opts" id="ns-opts-tuition"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Family type</div><div class="ns-opts" id="ns-opts-family"></div></div>
-     <button class="ns-primary" data-next="ns-t2">Continue</button>
-    </div>
-
-    <div id="ns-t2" class="ns-card" style="display:none">
-     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0">Personalize <span class="ns-optional-tag">optional</span></div></div>
-     <div class="ns-progress"><div class="ns-progress-fill" style="width:100%"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Daily screen time</div><div class="ns-opts" id="ns-opts-screen"></div></div>
-     <div class="ns-q"><div class="ns-qlabel">Daily outdoor play</div><div class="ns-opts" id="ns-opts-outdoor"></div></div>
-     <button class="ns-primary" data-finish="1">Save &amp; finish</button>
-     <button class="ns-skip" data-finish="1">Skip &amp; finish</button>
-     <div id="ns-t2-err" class="ns-err"></div>
-    </div>
     <div id="ns-ob-done" class="ns-card" style="display:none;text-align:center">
      <h2>All set! &#10024;</h2><p class="ns-sub" id="ns-done-msg">Opening the app&#8230;</p>
     </div>
@@ -305,10 +213,9 @@
     var c = profile && profile.consent_at, p = profile && profile.parent_pin, ch = profile && profile.child_name;
     if(c && p && ch){ enterApp(); return; }
     screen('ns-onboard');
-    ['ns-ob-consent','ns-ob-pin','ns-p1','ns-p2','ns-p3','ns-p4','ns-p5','ns-p6','ns-hp','ns-c1','ns-c2','ns-t1','ns-t2','ns-ob-done'].forEach(function(x){ if($(x)) $(x).style.display='none'; });
-    if(!c) $('ns-ob-consent').style.display='block';
-    else if(!p) $('ns-ob-pin').style.display='block';
-    else { var _p=$('ns-p1'); _p.style.display='block'; _p.classList.add('ns-in'); }
+    $('ns-ob-done') && ($('ns-ob-done').style.display='none');
+    if(window.__nsShow){ if(!c) window.__nsShow('ns-ob-consent'); else if(!p) window.__nsShow('ns-ob-pin'); else window.__nsShow('ns-pp1'); }
+    else if(!c){ $('ns-ob-consent').style.display='block'; }
   }
 
   // login / signup
@@ -337,7 +244,7 @@
     if(a!==b) return showErr('ns-pin-err','The two PINs do not match.');
     try{ await saveProfile({ parent_pin:a }); route(); }catch(e){ showErr('ns-pin-err', e.message); }
   };
-  // ---- Step 3: profile-setup questionnaire (paged) ----
+  // ---- Step 3: profile-setup questionnaire (one-per-page, themed) ----
   (function(){
     var GRADES=['Class 4','Class 5','Class 6','Class 7','Class 8'];
     var BOARDS=['CBSE','ICSE','State Board','IB / Cambridge','Other'];
@@ -347,53 +254,71 @@
     var GOALS=['Build daily discipline & routine','Improve academics','Strengthen character & values','More independence & responsibility','Better focus & less screen time','Balanced all-round growth'];
     var INTERESTS=['Drawing / Art','Reading','Sports','Dancing','Music / Singing','Building / Lego','Video games','Animals','Cooking / Baking','Science experiments','Outdoor play','Coding'];
     var REWARDS=['Extra screen time','A treat / outing','A small toy / gift','Pocket money / savings','Special time with parent','A fun privilege'];
-    var YESNO=['Yes','No'];
-    var FAMILY=['Nuclear','Joint'];
+    var YESNO=['Yes','No']; var FAMILY=['Nuclear','Joint'];
     var SCREEN=['Under 1 hour','1-2 hours','2-3 hours','3+ hours'];
     var OUTDOOR=['Under 30 min','30-60 min','1-2 hours','2+ hours'];
 
     var Q={ interests:[], values:[] };
 
+    var SEC={
+      about:{pill:'About your child',accent:'#d99a18',soft:'#fff3d6'},
+      learning:{pill:'Learning',accent:'#4f86e6',soft:'#e8f0ff'},
+      character:{pill:'Character',accent:'#2fa674',soft:'#e4f6ed'},
+      child:{pill:'Your turn',accent:'#9a63e0',soft:'#f3ecff'},
+      extra:{pill:'A little extra',accent:'#7f8694',soft:'#eef0f3'}
+    };
+    var P=[
+      {id:'ns-pp1',sec:'about',icon:'\uD83D\uDC4B',key:'full_name',type:'text',q:"Your child's full name",ph:'e.g. Vaanya Sharma'},
+      {id:'ns-pp2',sec:'about',icon:'\uD83C\uDF93',key:'grade',type:'radio',list:GRADES,q:'Which class?'},
+      {id:'ns-pp3',sec:'about',icon:'\uD83C\uDFEB',key:'board',type:'radio',list:BOARDS,q:'Which board?'},
+      {id:'ns-pp4',sec:'about',icon:'\uD83D\uDCCD',key:'school',type:'text',q:'School name',ph:'e.g. DPS Noida',opt:true},
+      {id:'ns-pp5',sec:'learning',icon:'\uD83D\uDCDA',key:'fav_subject',type:'radio',list:SUBJECTS,q:'Favourite subject'},
+      {id:'ns-pp6',sec:'learning',icon:'\uD83C\uDFAF',key:'focus_subject',type:'radio',list:SUBJECTS,q:'Which subject needs the most attention?'},
+      {id:'ns-pp7',sec:'character',icon:'\uD83C\uDF31',key:'values_source',type:'radio',list:SOURCES,q:'Character lessons should draw from\u2026'},
+      {id:'ns-pp8',sec:'character',icon:'\uD83D\uDC9B',key:'values',type:'check',list:VALUES,max:3,q:'Which values would you like to nurture?',hint:'Pick 2 or 3.'},
+      {id:'ns-pp9',sec:'character',icon:'\uD83C\uDFC6',key:'top_value',type:'top',q:'The one value that matters most',hint:'Choose from the ones you picked.'},
+      {id:'ns-pp10',sec:'character',icon:'\uD83D\uDE80',key:'parent_goal',type:'radio',list:GOALS,q:'Your goal for the year',opt:true},
+      {id:'ns-pp11',sec:'about',icon:'\uD83D\uDCF8',key:'__photo',type:'photo',q:'A photo for the avatar',hint:'Optional \u2014 you can skip this.',opt:true},
+      {id:'ns-hp',type:'handoff'},
+      {id:'ns-cc1',sec:'child',icon:'\u2728',key:'star_name',type:'text',q:'Pick your Star Name',ph:'e.g. Star Explorer',hint:'It goes on your Aurora Star badge.'},
+      {id:'ns-cc2',sec:'child',icon:'\uD83C\uDFA8',key:'interests',type:'check',list:INTERESTS,max:3,q:'What do you love doing?',hint:'Pick up to 3.'},
+      {id:'ns-cc3',sec:'child',icon:'\uD83C\uDF81',key:'fav_reward',type:'radio',list:REWARDS,q:'Favourite kind of reward'},
+      {id:'ns-tt1',sec:'extra',icon:'\uD83D\uDCD8',key:'takes_tuitions',type:'radio',list:YESNO,q:'Does your child take tuitions / coaching?',opt:true},
+      {id:'ns-tt2',sec:'extra',icon:'\uD83D\uDC6A',key:'family_type',type:'radio',list:FAMILY,q:'Family type',opt:true},
+      {id:'ns-tt3',sec:'extra',icon:'\uD83D\uDCF1',key:'screen_time',type:'radio',list:SCREEN,q:'Daily screen time',opt:true},
+      {id:'ns-tt4',sec:'extra',icon:'\u26BD',key:'outdoor_time',type:'radio',list:OUTDOOR,q:'Daily outdoor play',opt:true,last:true}
+    ];
+    var byId={}; P.forEach(function(p,i){ byId[p.id]=p; p.req=(!p.opt && p.type!=='photo' && p.type!=='handoff'); p._next=(i<P.length-1)?P[i+1].id:null; });
+    var ORDER=P.map(function(p){return p.id;});
+    var ALLIDS=['ns-ob-consent','ns-ob-pin','ns-ob-done'].concat(ORDER);
+
     function choiceLabel(type,key,label){
-      var lab=document.createElement('label'); lab.className='ns-choice '+(type==='radio'?'ns-radio':'ns-check');
+      var lab=document.createElement('label'); lab.className='ns-choice '+(type==='radio'?'ns-radio':'ns-check'); lab.setAttribute('data-v',label);
       var inp=document.createElement('input'); inp.type=type; inp.value=label; if(type==='radio') inp.name='ns_'+key;
       var bx=document.createElement('span'); bx.className='ns-box';
       var tx=document.createElement('span'); tx.className='ns-choice-txt'; tx.textContent=label;
-      lab.appendChild(inp); lab.appendChild(bx); lab.appendChild(tx);
-      return { lab:lab, inp:inp };
+      lab.appendChild(inp); lab.appendChild(bx); lab.appendChild(tx); return {lab:lab,inp:inp};
     }
     function wireRadio(box,key){
       box.addEventListener('click',function(e){
-        var lab=e.target && e.target.closest ? e.target.closest('.ns-choice') : null;
-        if(!lab || !box.contains(lab)) return;
-        e.preventDefault();
-        Q[key]=lab.getAttribute('data-v');
+        var lab=e.target && e.target.closest ? e.target.closest('.ns-choice') : null; if(!lab||!box.contains(lab)) return;
+        e.preventDefault(); Q[key]=lab.getAttribute('data-v');
         Array.prototype.forEach.call(box.querySelectorAll('.ns-choice'),function(x){ x.classList.remove('sel'); var i=x.querySelector('input'); if(i) i.checked=false; });
         lab.classList.add('sel'); var inp=lab.querySelector('input'); if(inp) inp.checked=true;
       });
     }
     function renderRadios(id,list,key){
       var box=$(id); if(!box) return; box.innerHTML='';
-      list.forEach(function(label){
-        var c=choiceLabel('radio',key,label); c.lab.setAttribute('data-v',label);
-        if(Q[key]===label){ c.inp.checked=true; c.lab.classList.add('sel'); }
-        box.appendChild(c.lab);
-      });
+      list.forEach(function(label){ var c=choiceLabel('radio',key,label); if(Q[key]===label){ c.inp.checked=true; c.lab.classList.add('sel'); } box.appendChild(c.lab); });
       if(!box._wired){ box._wired=true; wireRadio(box,key); }
     }
     function renderChecks(id,list,key,max){
       var box=$(id); if(!box) return; box.innerHTML='';
-      list.forEach(function(label){
-        var c=choiceLabel('check',key,label); c.lab.setAttribute('data-v',label);
-        if(Q[key].indexOf(label)>-1){ c.inp.checked=true; c.lab.classList.add('sel'); }
-        box.appendChild(c.lab);
-      });
+      list.forEach(function(label){ var c=choiceLabel('check',key,label); if(Q[key].indexOf(label)>-1){ c.inp.checked=true; c.lab.classList.add('sel'); } box.appendChild(c.lab); });
       if(!box._wired){ box._wired=true;
         box.addEventListener('click',function(e){
-          var lab=e.target && e.target.closest ? e.target.closest('.ns-choice') : null;
-          if(!lab || !box.contains(lab)) return;
-          e.preventDefault();
-          var label=lab.getAttribute('data-v'), arr=Q[key], i=arr.indexOf(label), inp=lab.querySelector('input');
+          var lab=e.target && e.target.closest ? e.target.closest('.ns-choice') : null; if(!lab||!box.contains(lab)) return;
+          e.preventDefault(); var label=lab.getAttribute('data-v'), arr=Q[key], i=arr.indexOf(label), inp=lab.querySelector('input');
           if(i>-1){ arr.splice(i,1); lab.classList.remove('sel'); if(inp) inp.checked=false; }
           else { if(arr.length>=max) return; arr.push(label); lab.classList.add('sel'); if(inp) inp.checked=true; }
           if(key==='values') renderTopValue();
@@ -403,102 +328,107 @@
     function renderTopValue(){
       var box=$('ns-opts-top'); if(!box) return; box.innerHTML='';
       if(Q.top_value && Q.values.indexOf(Q.top_value)===-1) Q.top_value=null;
-      if(!Q.values.length){ box.innerHTML='<div class="ns-qhint">Choose 2\u20133 values on the previous step first.</div>'; }
-      else { Q.values.forEach(function(label){
-        var c=choiceLabel('radio','top',label); c.lab.setAttribute('data-v',label);
-        if(Q.top_value===label){ c.inp.checked=true; c.lab.classList.add('sel'); }
-        box.appendChild(c.lab);
-      }); }
+      if(!Q.values.length){ box.innerHTML='<div class="ns-qhint ns-center">Choose 2\u20133 values on the previous step first.</div>'; }
+      else { Q.values.forEach(function(label){ var c=choiceLabel('radio','top',label); if(Q.top_value===label){ c.inp.checked=true; c.lab.classList.add('sel'); } box.appendChild(c.lab); }); }
       if(!box._wired){ box._wired=true; wireRadio(box,'top_value'); }
     }
 
-    renderRadios('ns-opts-grade',GRADES,'grade');
-    renderRadios('ns-opts-board',BOARDS,'board');
-    renderRadios('ns-opts-fav',SUBJECTS,'fav_subject');
-    renderRadios('ns-opts-focus',SUBJECTS,'focus_subject');
-    renderRadios('ns-opts-source',SOURCES,'values_source');
-    renderChecks('ns-opts-values',VALUES,'values',3);
-    renderRadios('ns-opts-goal',GOALS,'parent_goal');
-    renderChecks('ns-opts-interests',INTERESTS,'interests',3);
-    renderRadios('ns-opts-reward',REWARDS,'fav_reward');
-    renderRadios('ns-opts-tuition',YESNO,'takes_tuitions');
-    renderRadios('ns-opts-family',FAMILY,'family_type');
-    renderRadios('ns-opts-screen',SCREEN,'screen_time');
-    renderRadios('ns-opts-outdoor',OUTDOOR,'outdoor_time');
-    renderTopValue();
+    function E(tag,cls,html){ var d=document.createElement(tag); if(cls) d.className=cls; if(html!=null) d.innerHTML=html; return d; }
+    function photoRow(){
+      var q=E('div','ns-q');
+      q.innerHTML='<div class="ns-photo-row"><div class="ns-photo-prev" id="ns-photo-prev">\u2b50</div>'+
+        '<button type="button" class="ns-photo-btn" id="ns-photo-pick">Choose photo</button>'+
+        '<button type="button" class="ns-skip" id="ns-photo-clear" style="display:none">Remove</button>'+
+        '<input id="ns-photo-input" type="file" accept="image/*" style="display:none"></div>';
+      return q;
+    }
+    function head(p,sec){
+      var h=E('div','ns-cardhead');
+      var b=E('button','ns-back','&#8592;'); b.setAttribute('data-back','prev'); h.appendChild(b);
+      if(sec){ var pill=E('span','ns-step',sec.pill); pill.style.color=sec.accent; pill.style.background=sec.soft; pill.style.border='1px solid '+sec.soft; h.appendChild(pill); }
+      if(p.opt){ h.appendChild(E('span','ns-optional-tag','optional')); }
+      return h;
+    }
+    function buildCard(p,qi,total){
+      var sec=SEC[p.sec];
+      var card=E('div','ns-card ns-qcard'); card.id=p.id; card.style.display='none';
+      card.appendChild(head(p,sec));
+      if(p.type==='handoff'){
+        var hf=E('div','ns-handoff'); hf.style.marginTop='6px';
+        hf.appendChild(E('div','ns-flame','\uD83C\uDF1F'));
+        var ht=E('h2'); ht.id='ns-handoff-title'; ht.textContent='Now hand the phone to your child'; hf.appendChild(ht);
+        hf.appendChild(E('p','ns-sub ns-center','The next few questions are for them to answer.'));
+        card.appendChild(hf);
+        var rb=E('button','ns-primary','I\u2019m ready!'); rb.setAttribute('data-next',p._next); card.appendChild(rb);
+        return card;
+      }
+      var pr=E('div','ns-progress'); var fl=E('div','ns-progress-fill'); fl.style.width=Math.round((qi+1)/total*100)+'%'; pr.appendChild(fl); card.appendChild(pr);
+      var ic=E('div','ns-icon',p.icon); if(sec) ic.style.background=sec.soft; card.appendChild(ic);
+      card.appendChild(E('h2',null,p.q));
+      if(p.hint) card.appendChild(E('div','ns-qhint ns-center',p.hint));
+      if(p.type==='text'){ var inp=E('input'); inp.type='text'; inp.id='in-'+p.key; inp.setAttribute('autocomplete','off'); if(p.ph) inp.placeholder=p.ph; card.appendChild(inp); }
+      else if(p.type==='radio'||p.type==='check'){ var bx=E('div','ns-opts'); bx.id='opts-'+p.id; card.appendChild(bx); }
+      else if(p.type==='top'){ var tb=E('div','ns-opts'); tb.id='ns-opts-top'; card.appendChild(tb); }
+      else if(p.type==='photo'){ card.appendChild(photoRow()); }
+      card.appendChild(Object.assign(E('div','ns-err'),{id:p.id+'-err'}));
+      if(p.last){
+        var fb=E('button','ns-primary','Finish'); fb.setAttribute('data-page',p.id); fb.setAttribute('data-finish','1'); card.appendChild(fb);
+        var sk=E('button','ns-skip','Skip & finish'); sk.setAttribute('data-finish','1'); card.appendChild(sk);
+      } else {
+        var cb=E('button','ns-primary','Continue'); cb.setAttribute('data-page',p.id); cb.setAttribute('data-next',p._next); card.appendChild(cb);
+      }
+      return card;
+    }
+
+    var host=$('ns-pages');
+    var qPages=P.filter(function(x){return x.type!=='handoff';}); var total=qPages.length;
+    if(host){ P.forEach(function(p){ host.appendChild(buildCard(p, p.type!=='handoff'?qPages.indexOf(p):-1, total)); }); }
+    P.forEach(function(p){
+      if(p.type==='radio') renderRadios('opts-'+p.id,p.list,p.key);
+      else if(p.type==='check') renderChecks('opts-'+p.id,p.list,p.key,p.max);
+      else if(p.type==='top') renderTopValue();
+    });
 
     var photoInput=$('ns-photo-input'), photoPrev=$('ns-photo-prev'), photoClear=$('ns-photo-clear'), photoPick=$('ns-photo-pick');
     if(photoPick) photoPick.onclick=function(){ photoInput.click(); };
     if(photoClear) photoClear.onclick=function(){ Q.child_photo=null; photoPrev.textContent='\u2b50'; photoClear.style.display='none'; photoInput.value=''; };
     if(photoInput) photoInput.onchange=function(){
-      var f=photoInput.files && photoInput.files[0]; if(!f) return;
-      var rd=new FileReader();
-      rd.onload=function(){
-        var img=new Image();
-        img.onload=function(){
-          var max=256, s=Math.min(max/img.width,max/img.height,1);
-          var cv=document.createElement('canvas'); cv.width=Math.round(img.width*s); cv.height=Math.round(img.height*s);
-          cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-          Q.child_photo=cv.toDataURL('image/jpeg',0.82);
-          photoPrev.innerHTML='<img src="'+Q.child_photo+'" alt="">';
-          photoClear.style.display='inline';
-        };
-        img.src=rd.result;
-      };
-      rd.readAsDataURL(f);
+      var f=photoInput.files && photoInput.files[0]; if(!f) return; var rd=new FileReader();
+      rd.onload=function(){ var img=new Image(); img.onload=function(){
+        var max=256, s=Math.min(max/img.width,max/img.height,1); var cv=document.createElement('canvas');
+        cv.width=Math.round(img.width*s); cv.height=Math.round(img.height*s); cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+        Q.child_photo=cv.toDataURL('image/jpeg',0.82); photoPrev.innerHTML='<img src="'+Q.child_photo+'" alt="">'; photoClear.style.display='inline';
+      }; img.src=rd.result; }; rd.readAsDataURL(f);
     };
 
-    var PAGES=['ns-p1','ns-p2','ns-p3','ns-p4','ns-p5','ns-p6','ns-hp','ns-c1','ns-c2','ns-t1','ns-t2'];
-    function hideAll(){ ['ns-ob-consent','ns-ob-pin','ns-ob-done'].concat(PAGES).forEach(function(x){ var e=$(x); if(e) e.style.display='none'; }); }
-    function visiblePage(){ for(var i=0;i<PAGES.length;i++){ var e=$(PAGES[i]); if(e && e.style.display!=='none') return PAGES[i]; } return null; }
+    function visiblePage(){ for(var i=0;i<ORDER.length;i++){ var e=$(ORDER[i]); if(e && e.style.display!=='none') return ORDER[i]; } return null; }
     function showCard(id){
-      hideAll();
-      var el=$(id); if(!el) return;
-      if(id==='ns-p5') renderTopValue();
-      if(id==='ns-hp'){ var fn=(Q.full_name||'').split(/\s+/)[0]; var ht=$('ns-handoff-title'); if(fn && ht) ht.textContent='Now hand the phone to '+fn+' \ud83c\udf1f'; }
-      el.style.display='block';
-      var idx=PAGES.indexOf(id), fill=el.querySelector('.ns-progress-fill');
-      if(fill && idx>=0) fill.style.width=Math.round((idx+1)/PAGES.length*100)+'%';
-      el.classList.remove('ns-in'); void el.offsetWidth; el.classList.add('ns-in');
-      window.scrollTo(0,0);
+      ALLIDS.forEach(function(x){ var e=$(x); if(e) e.style.display='none'; });
+      var el=$(id); if(!el) return; var p=byId[id];
+      if(p && p.type==='top') renderTopValue();
+      if(p && p.type==='handoff'){ var fn=(Q.full_name||'').split(/\s+/)[0]; var ht=$('ns-handoff-title'); if(fn && ht) ht.textContent='Now hand the phone to '+fn+' \uD83C\uDF1F'; }
+      el.style.display='block'; el.classList.remove('ns-in'); void el.offsetWidth; el.classList.add('ns-in'); window.scrollTo(0,0);
     }
-    function back(){
-      var cur=visiblePage(), idx=PAGES.indexOf(cur);
-      if(idx>0) showCard(PAGES[idx-1]); else showCard('ns-ob-pin');
-    }
-    function validate(page){
-      if(page==='p1'){ Q.full_name=$('ns-full-name').value.trim();
-        if(!Q.full_name) return 'Please enter your child\u2019s name.';
-        if(!Q.grade) return 'Please pick a class.'; }
-      if(page==='p2'){ Q.school=$('ns-school').value.trim();
-        if(!Q.board) return 'Please pick a board.'; }
-      if(page==='p3'){ if(!Q.fav_subject) return 'Please pick a favourite subject.';
-        if(!Q.focus_subject) return 'Please pick a subject that needs attention.'; }
-      if(page==='p4'){ if(!Q.values_source) return 'Please choose where character content draws from.';
-        if(Q.values.length<2) return 'Please pick at least 2 values.'; }
-      if(page==='p5'){ if(!Q.top_value) return 'Please pick the one value that matters most.'; }
-      if(page==='c1'){ Q.star_name=$('ns-star-name').value.trim();
-        if(!Q.star_name) return 'Please pick a star name.';
-        if(Q.interests.length<1) return 'Please pick at least one thing you love.'; }
-      if(page==='c2'){ if(!Q.fav_reward) return 'Please pick a favourite reward.'; }
+    window.__nsShow=showCard;
+    function back(){ var cur=visiblePage(), idx=ORDER.indexOf(cur); if(idx>0) showCard(ORDER[idx-1]); else showCard('ns-ob-pin'); }
+    function validate(id){
+      var p=byId[id]; if(!p) return null;
+      if(p.type==='text'){ var v=$('in-'+p.key).value.trim(); Q[p.key]=v||null; if(p.req && !v) return 'Please fill this in to continue.'; return null; }
+      if(!p.req) return null;
+      if(p.type==='radio'){ if(!Q[p.key]) return 'Please pick an option to continue.'; }
+      if(p.type==='check'){ var min=(p.key==='values')?2:1; if(Q[p.key].length<min) return 'Please pick at least '+min+(min>1?' values.':'.'); }
+      if(p.type==='top'){ if(!Q.top_value) return 'Please pick the one that matters most.'; }
       return null;
     }
     async function finish(){
       var first=(Q.full_name||'').split(/\s+/)[0]||Q.full_name;
-      var pd={
-        full_name:Q.full_name, grade:Q.grade, board:Q.board, school:Q.school||null,
-        fav_subject:Q.fav_subject, focus_subject:Q.focus_subject,
-        values_source:Q.values_source, values:Q.values, top_value:Q.top_value,
-        parent_goal:Q.parent_goal||null, child_photo:Q.child_photo||null,
-        star_name:Q.star_name, interests:Q.interests, fav_reward:Q.fav_reward,
-        takes_tuitions:Q.takes_tuitions||null, family_type:Q.family_type||null,
-        screen_time:Q.screen_time||null, outdoor_time:Q.outdoor_time||null
-      };
+      var pd={ full_name:Q.full_name, grade:Q.grade, board:Q.board, school:Q.school||null,
+        fav_subject:Q.fav_subject, focus_subject:Q.focus_subject, values_source:Q.values_source, values:Q.values, top_value:Q.top_value,
+        parent_goal:Q.parent_goal||null, child_photo:Q.child_photo||null, star_name:Q.star_name, interests:Q.interests, fav_reward:Q.fav_reward,
+        takes_tuitions:Q.takes_tuitions||null, family_type:Q.family_type||null, screen_time:Q.screen_time||null, outdoor_time:Q.outdoor_time||null };
       await saveProfile({ child_name:first, child_class:Q.grade, profile_data:pd });
-      hideAll();
-      $('ns-ob-done').style.display='block';
-      $('ns-done-msg').textContent='Opening '+first+"'s view\u2026";
-      setTimeout(enterApp,1300);
+      ALLIDS.forEach(function(x){ var e=$(x); if(e) e.style.display='none'; });
+      $('ns-ob-done').style.display='block'; $('ns-done-msg').textContent='Opening '+first+"'s view\u2026"; setTimeout(enterApp,1300);
     }
 
     var ob=$('ns-onboard');
@@ -508,8 +438,8 @@
       if(backTo!==null){ if(backTo==='consent') showCard('ns-ob-consent'); else back(); return; }
       var page=t.getAttribute('data-page'), next=t.getAttribute('data-next'), fin=t.getAttribute('data-finish');
       if(page===null && next===null && fin===null) return;
-      if(page!==null){ clearErr('ns-'+page+'-err'); var msg=validate(page); if(msg){ showErr('ns-'+page+'-err', msg); return; } }
-      if(fin!==null){ try{ await finish(); }catch(err){ showErr('ns-t2-err', err.message); } return; }
+      if(page!==null){ clearErr(page+'-err'); var msg=validate(page); if(msg){ showErr(page+'-err', msg); return; } }
+      if(fin!==null){ try{ await finish(); }catch(err){ showErr((page||'ns-tt4')+'-err', err.message); } return; }
       if(next!==null) showCard(next);
     });
   })();
