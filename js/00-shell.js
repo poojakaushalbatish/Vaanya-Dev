@@ -103,6 +103,13 @@
   #niyam-shell .ns-primary,#niyam-shell .ns-back,#niyam-shell .ns-skip,#niyam-shell button{font-family:inherit}
   #niyam-shell .ns-qcard .ns-handoff h2{font-size:24px}
   #niyam-shell .ns-qcard{padding-bottom:24px}
+  #niyam-shell .ns-avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:8px}
+  #niyam-shell .ns-avatar-wrap .ns-photo-prev{width:88px;height:88px;border-radius:26px;font-size:46px}
+  #niyam-shell .ns-avatar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%}
+  #niyam-shell .ns-avatar{font-size:30px;line-height:1;padding:12px 0;border:1.6px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;transition:.15s;width:auto;margin:0}
+  #niyam-shell .ns-avatar:hover{border-color:var(--gold);transform:translateY(-1px)}
+  #niyam-shell .ns-avatar.sel{border-color:var(--gold);background:var(--gold-soft);box-shadow:0 5px 14px rgba(244,183,64,.25)}
+  #niyam-shell #opts-ns-star + .ns-qhint{margin-top:14px}
   `;
   var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
@@ -244,25 +251,24 @@
     if(a!==b) return showErr('ns-pin-err','The two PINs do not match.');
     try{ await saveProfile({ parent_pin:a }); route(); }catch(e){ showErr('ns-pin-err', e.message); }
   };
-  // ---- Step 3: profile-setup questionnaire (one-per-page, themed) ----
+  // ---- Step 3: profile-setup questionnaire (one-per-page, themed v3) ----
   (function(){
     var GRADES=['Class 4','Class 5','Class 6','Class 7','Class 8'];
-    var BOARDS=['CBSE','ICSE','State Board','IB / Cambridge','Other'];
-    var SUBJECTS=['Maths','Science','English','Hindi','Social Studies','Computers / IT','Arts & Craft','Music','Sports / PE','Other'];
     var VALUES=['Honesty','Discipline','Respect','Kindness','Courage','Gratitude','Responsibility','Patience','Focus'];
     var SOURCES=['Bhagavad Geeta & Indian wisdom','Universal / secular values','A mix of both'];
-    var GOALS=['Build daily discipline & routine','Improve academics','Strengthen character & values','More independence & responsibility','Better focus & less screen time','Balanced all-round growth'];
-    var INTERESTS=['Drawing / Art','Reading','Sports','Dancing','Music / Singing','Building / Lego','Video games','Animals','Cooking / Baking','Science experiments','Outdoor play','Coding'];
+    var GOALS=['A steady routine they own','Calmer mornings, less nagging','More focus, fewer distractions','Kinder & more responsible','Confidence & independence','Consistent study habits'];
+    var INTERESTS=['Sports','Drawing / Art','Music & Dance','Reading','Video games','Science','Coding','Outdoor play'];
     var REWARDS=['Extra screen time','A treat / outing','A small toy / gift','Pocket money / savings','Special time with parent','A fun privilege'];
-    var YESNO=['Yes','No']; var FAMILY=['Nuclear','Joint'];
-    var SCREEN=['Under 1 hour','1-2 hours','2-3 hours','3+ hours'];
-    var OUTDOOR=['Under 30 min','30-60 min','1-2 hours','2+ hours'];
+    var FAMILY=['Joint family','Nuclear family'];
+    var SCREEN=['Barely any \uD83D\uDC22','About an hour \u23F3','A couple hours \uD83D\uDCFA','Loads! \uD83C\uDFAE'];
+    var OUTDOOR=['Not much \uD83C\uDFE0','A little \uD83C\uDF33','Lots! \uD83C\uDFC3',"I'd live outside if I could! \u26BD"];
+    var AVATARS=['\uD83E\uDD81','\uD83E\uDD89','\uD83D\uDE80','\uD83C\uDF1F','\uD83D\uDC2F','\uD83E\uDD84','\uD83D\uDC3C','\u26A1'];
+    var STARNAMES=['Star Explorer','Cosmic Champ','Captain Courage','Mighty Comet','Super Nova','Galaxy Hero','Shining Tiger','Brave Rocket'];
 
     var Q={ interests:[], values:[] };
 
     var SEC={
       about:{pill:'About your child',accent:'#d99a18',soft:'#fff3d6'},
-      learning:{pill:'Learning',accent:'#4f86e6',soft:'#e8f0ff'},
       character:{pill:'Character',accent:'#2fa674',soft:'#e4f6ed'},
       child:{pill:'Your turn',accent:'#9a63e0',soft:'#f3ecff'},
       extra:{pill:'A little extra',accent:'#7f8694',soft:'#eef0f3'}
@@ -270,25 +276,20 @@
     var P=[
       {id:'ns-pp1',sec:'about',icon:'\uD83D\uDC4B',key:'full_name',type:'text',q:"Your child's full name",ph:'e.g. Vaanya Sharma'},
       {id:'ns-pp2',sec:'about',icon:'\uD83C\uDF93',key:'grade',type:'radio',list:GRADES,q:'Which class?'},
-      {id:'ns-pp3',sec:'about',icon:'\uD83C\uDFEB',key:'board',type:'radio',list:BOARDS,q:'Which board?'},
-      {id:'ns-pp4',sec:'about',icon:'\uD83D\uDCCD',key:'school',type:'text',q:'School name',ph:'e.g. DPS Noida',opt:true},
-      {id:'ns-pp5',sec:'learning',icon:'\uD83D\uDCDA',key:'fav_subject',type:'radio',list:SUBJECTS,q:'Favourite subject'},
-      {id:'ns-pp6',sec:'learning',icon:'\uD83C\uDFAF',key:'focus_subject',type:'radio',list:SUBJECTS,q:'Which subject needs the most attention?'},
-      {id:'ns-pp7',sec:'character',icon:'\uD83C\uDF31',key:'values_source',type:'radio',list:SOURCES,q:'Character lessons should draw from\u2026'},
-      {id:'ns-pp8',sec:'character',icon:'\uD83D\uDC9B',key:'values',type:'check',list:VALUES,max:3,q:'Which values would you like to nurture?',hint:'Pick 2 or 3.'},
-      {id:'ns-pp9',sec:'character',icon:'\uD83C\uDFC6',key:'top_value',type:'top',q:'The one value that matters most',hint:'Choose from the ones you picked.'},
-      {id:'ns-pp10',sec:'character',icon:'\uD83D\uDE80',key:'parent_goal',type:'radio',list:GOALS,q:'Your goal for the year',opt:true},
-      {id:'ns-pp11',sec:'about',icon:'\uD83D\uDCF8',key:'__photo',type:'photo',q:'A photo for the avatar',hint:'Optional \u2014 you can skip this.',opt:true},
+      {id:'ns-pp3',sec:'about',icon:'\uD83D\uDCCD',key:'school',type:'text',q:'School name',ph:'e.g. DPS Noida',opt:true},
+      {id:'ns-pp4',sec:'character',icon:'\uD83C\uDF31',key:'values_source',type:'radio',list:SOURCES,q:'Where should character lessons come from?'},
+      {id:'ns-pp5',sec:'character',icon:'\uD83D\uDC9B',key:'values',type:'check',list:VALUES,max:3,q:'Which qualities should NIYAM-SE help build in your child?',hint:'These become the character focus \u2014 the values lessons, daily reminders, and the qualities you celebrate together.'},
+      {id:'ns-pp6',sec:'character',icon:'\uD83D\uDE80',key:'parent_goal',type:'radio',list:GOALS,q:'As a parent, what change in your child would make this year a win?',hint:"We'll keep this at the heart of NIYAM-SE and shape the daily nudges around it."},
+      {id:'ns-pp7',sec:'about',icon:'\uD83D\uDDBC\uFE0F',key:'__avatar',type:'avatar',q:'Choose an avatar \u2014 or add a real photo',hint:"This becomes your child's face at the top of their daily schedule. Pick a fun avatar now \u2014 you can swap in a real photo anytime.",opt:true},
       {id:'ns-hp',type:'handoff'},
-      {id:'ns-cc1',sec:'child',icon:'\u2728',key:'star_name',type:'text',q:'Pick your Star Name',ph:'e.g. Star Explorer',hint:'It goes on your Aurora Star badge.'},
+      {id:'ns-cc1',sec:'child',icon:'\u2728',key:'star_name',type:'starcombo',q:'Pick your Star Name \u2b50',hint:"It's the name on your badge at the top of your screen \u2014 like a superhero name!"},
       {id:'ns-cc2',sec:'child',icon:'\uD83C\uDFA8',key:'interests',type:'check',list:INTERESTS,max:3,q:'What do you love doing?',hint:'Pick up to 3.'},
-      {id:'ns-cc3',sec:'child',icon:'\uD83C\uDF81',key:'fav_reward',type:'radio',list:REWARDS,q:'Favourite kind of reward'},
-      {id:'ns-tt1',sec:'extra',icon:'\uD83D\uDCD8',key:'takes_tuitions',type:'radio',list:YESNO,q:'Does your child take tuitions / coaching?',opt:true},
-      {id:'ns-tt2',sec:'extra',icon:'\uD83D\uDC6A',key:'family_type',type:'radio',list:FAMILY,q:'Family type',opt:true},
-      {id:'ns-tt3',sec:'extra',icon:'\uD83D\uDCF1',key:'screen_time',type:'radio',list:SCREEN,q:'Daily screen time',opt:true},
-      {id:'ns-tt4',sec:'extra',icon:'\u26BD',key:'outdoor_time',type:'radio',list:OUTDOOR,q:'Daily outdoor play',opt:true,last:true}
+      {id:'ns-cc3',sec:'child',icon:'\uD83C\uDF81',key:'fav_reward',type:'radio',list:REWARDS,q:'When you crush your day, what would you love to earn?',hint:'Finish your tasks \u2192 earn stars \u2192 trade them for this! \u2b50'},
+      {id:'ns-cc4',sec:'child',icon:'\uD83D\uDC75',key:'family_type',type:'radio',list:FAMILY,q:'Are you blessed enough to stay with your grandparents?',opt:true},
+      {id:'ns-tt1',sec:'extra',icon:'\uD83D\uDCF1',key:'screen_time',type:'radio',list:SCREEN,q:"Screens, tablets, and TVs \u2014 how much do you watch 'em daily?",opt:true,skiprest:true},
+      {id:'ns-tt2',sec:'extra',icon:'\u26BD',key:'outdoor_time',type:'radio',list:OUTDOOR,q:'Sunlight check! How much time do you spend playing around outside?',opt:true,last:true}
     ];
-    var byId={}; P.forEach(function(p,i){ byId[p.id]=p; p.req=(!p.opt && p.type!=='photo' && p.type!=='handoff'); p._next=(i<P.length-1)?P[i+1].id:null; });
+    var byId={}; P.forEach(function(p,i){ byId[p.id]=p; p.req=(!p.opt && p.type!=='avatar' && p.type!=='handoff'); p._next=(i<P.length-1)?P[i+1].id:null; });
     var ORDER=P.map(function(p){return p.id;});
     var ALLIDS=['ns-ob-consent','ns-ob-pin','ns-ob-done'].concat(ORDER);
 
@@ -299,11 +300,11 @@
       var tx=document.createElement('span'); tx.className='ns-choice-txt'; tx.textContent=label;
       lab.appendChild(inp); lab.appendChild(bx); lab.appendChild(tx); return {lab:lab,inp:inp};
     }
+    function clearSel(box){ Array.prototype.forEach.call(box.querySelectorAll('.ns-choice'),function(x){ x.classList.remove('sel'); var i=x.querySelector('input'); if(i) i.checked=false; }); }
     function wireRadio(box,key){
       box.addEventListener('click',function(e){
         var lab=e.target && e.target.closest ? e.target.closest('.ns-choice') : null; if(!lab||!box.contains(lab)) return;
-        e.preventDefault(); Q[key]=lab.getAttribute('data-v');
-        Array.prototype.forEach.call(box.querySelectorAll('.ns-choice'),function(x){ x.classList.remove('sel'); var i=x.querySelector('input'); if(i) i.checked=false; });
+        e.preventDefault(); Q[key]=lab.getAttribute('data-v'); clearSel(box);
         lab.classList.add('sel'); var inp=lab.querySelector('input'); if(inp) inp.checked=true;
       });
     }
@@ -321,27 +322,11 @@
           e.preventDefault(); var label=lab.getAttribute('data-v'), arr=Q[key], i=arr.indexOf(label), inp=lab.querySelector('input');
           if(i>-1){ arr.splice(i,1); lab.classList.remove('sel'); if(inp) inp.checked=false; }
           else { if(arr.length>=max) return; arr.push(label); lab.classList.add('sel'); if(inp) inp.checked=true; }
-          if(key==='values') renderTopValue();
         });
       }
     }
-    function renderTopValue(){
-      var box=$('ns-opts-top'); if(!box) return; box.innerHTML='';
-      if(Q.top_value && Q.values.indexOf(Q.top_value)===-1) Q.top_value=null;
-      if(!Q.values.length){ box.innerHTML='<div class="ns-qhint ns-center">Choose 2\u20133 values on the previous step first.</div>'; }
-      else { Q.values.forEach(function(label){ var c=choiceLabel('radio','top',label); if(Q.top_value===label){ c.inp.checked=true; c.lab.classList.add('sel'); } box.appendChild(c.lab); }); }
-      if(!box._wired){ box._wired=true; wireRadio(box,'top_value'); }
-    }
 
     function E(tag,cls,html){ var d=document.createElement(tag); if(cls) d.className=cls; if(html!=null) d.innerHTML=html; return d; }
-    function photoRow(){
-      var q=E('div','ns-q');
-      q.innerHTML='<div class="ns-photo-row"><div class="ns-photo-prev" id="ns-photo-prev">\u2b50</div>'+
-        '<button type="button" class="ns-photo-btn" id="ns-photo-pick">Choose photo</button>'+
-        '<button type="button" class="ns-skip" id="ns-photo-clear" style="display:none">Remove</button>'+
-        '<input id="ns-photo-input" type="file" accept="image/*" style="display:none"></div>';
-      return q;
-    }
     function head(p,sec){
       var h=E('div','ns-cardhead');
       var b=E('button','ns-back','&#8592;'); b.setAttribute('data-back','prev'); h.appendChild(b);
@@ -368,14 +353,30 @@
       if(p.hint) card.appendChild(E('div','ns-qhint ns-center',p.hint));
       if(p.type==='text'){ var inp=E('input'); inp.type='text'; inp.id='in-'+p.key; inp.setAttribute('autocomplete','off'); if(p.ph) inp.placeholder=p.ph; card.appendChild(inp); }
       else if(p.type==='radio'||p.type==='check'){ var bx=E('div','ns-opts'); bx.id='opts-'+p.id; card.appendChild(bx); }
-      else if(p.type==='top'){ var tb=E('div','ns-opts'); tb.id='ns-opts-top'; card.appendChild(tb); }
-      else if(p.type==='photo'){ card.appendChild(photoRow()); }
+      else if(p.type==='starcombo'){
+        var sb=E('div','ns-opts'); sb.id='opts-ns-star'; card.appendChild(sb);
+        card.appendChild(E('div','ns-qhint ns-center','Or type your own:'));
+        var si=E('input'); si.type='text'; si.id='in-star_name'; si.setAttribute('autocomplete','off'); si.placeholder='Type a name'; card.appendChild(si);
+      }
+      else if(p.type==='avatar'){
+        var w=E('div','ns-avatar-wrap');
+        var prev=E('div','ns-photo-prev'); prev.id='ns-photo-prev'; prev.textContent='\uD83C\uDF1F'; w.appendChild(prev);
+        var grid=E('div','ns-avatar-grid'); grid.id='ns-avatar-grid';
+        AVATARS.forEach(function(a){ var t=E('button','ns-avatar',a); t.type='button'; t.setAttribute('data-av',a); grid.appendChild(t); });
+        w.appendChild(grid);
+        var row=E('div','ns-photo-row'); row.style.justifyContent='center';
+        row.innerHTML='<button type="button" class="ns-photo-btn" id="ns-photo-pick">Upload real photo</button>'+
+          '<button type="button" class="ns-skip" id="ns-photo-clear" style="display:none">Clear</button>'+
+          '<input id="ns-photo-input" type="file" accept="image/*" style="display:none">';
+        w.appendChild(row); card.appendChild(w);
+      }
       card.appendChild(Object.assign(E('div','ns-err'),{id:p.id+'-err'}));
       if(p.last){
         var fb=E('button','ns-primary','Finish'); fb.setAttribute('data-page',p.id); fb.setAttribute('data-finish','1'); card.appendChild(fb);
-        var sk=E('button','ns-skip','Skip & finish'); sk.setAttribute('data-finish','1'); card.appendChild(sk);
+        card.appendChild(Object.assign(E('button','ns-skip','Skip & finish'),{}) ).setAttribute('data-finish','1');
       } else {
         var cb=E('button','ns-primary','Continue'); cb.setAttribute('data-page',p.id); cb.setAttribute('data-next',p._next); card.appendChild(cb);
+        if(p.skiprest){ var sr=E('button','ns-skip','Skip the rest \u2192'); sr.setAttribute('data-finish','1'); card.appendChild(sr); }
       }
       return card;
     }
@@ -386,18 +387,38 @@
     P.forEach(function(p){
       if(p.type==='radio') renderRadios('opts-'+p.id,p.list,p.key);
       else if(p.type==='check') renderChecks('opts-'+p.id,p.list,p.key,p.max);
-      else if(p.type==='top') renderTopValue();
     });
 
-    var photoInput=$('ns-photo-input'), photoPrev=$('ns-photo-prev'), photoClear=$('ns-photo-clear'), photoPick=$('ns-photo-pick');
+    // star-name presets + custom
+    var sbox=$('opts-ns-star');
+    if(sbox){
+      STARNAMES.forEach(function(n){ sbox.appendChild(choiceLabel('radio','star',n).lab); });
+      sbox.addEventListener('click',function(e){
+        var lab=e.target && e.target.closest ? e.target.closest('.ns-choice') : null; if(!lab) return; e.preventDefault();
+        clearSel(sbox); lab.classList.add('sel'); var i=lab.querySelector('input'); if(i) i.checked=true;
+        var si=$('in-star_name'); if(si) si.value=lab.getAttribute('data-v');
+      });
+      var sin=$('in-star_name'); if(sin) sin.addEventListener('input',function(){ clearSel(sbox); });
+    }
+
+    // avatar + photo
+    var grid=$('ns-avatar-grid'), photoInput=$('ns-photo-input'), photoPrev=$('ns-photo-prev'), photoClear=$('ns-photo-clear'), photoPick=$('ns-photo-pick');
+    if(grid) grid.addEventListener('click',function(e){
+      var b=e.target && e.target.closest ? e.target.closest('.ns-avatar') : null; if(!b) return;
+      var a=b.getAttribute('data-av'); Q.child_avatar=a; Q.child_photo=null;
+      Array.prototype.forEach.call(grid.querySelectorAll('.ns-avatar'),function(x){ x.classList.remove('sel'); }); b.classList.add('sel');
+      if(photoPrev){ photoPrev.innerHTML=''; photoPrev.textContent=a; } if(photoClear) photoClear.style.display='inline';
+    });
     if(photoPick) photoPick.onclick=function(){ photoInput.click(); };
-    if(photoClear) photoClear.onclick=function(){ Q.child_photo=null; photoPrev.textContent='\u2b50'; photoClear.style.display='none'; photoInput.value=''; };
+    if(photoClear) photoClear.onclick=function(){ Q.child_photo=null; Q.child_avatar=null; if(photoPrev) photoPrev.textContent='\uD83C\uDF1F'; if(grid) Array.prototype.forEach.call(grid.querySelectorAll('.ns-avatar'),function(x){x.classList.remove('sel');}); photoClear.style.display='none'; photoInput.value=''; };
     if(photoInput) photoInput.onchange=function(){
       var f=photoInput.files && photoInput.files[0]; if(!f) return; var rd=new FileReader();
       rd.onload=function(){ var img=new Image(); img.onload=function(){
         var max=256, s=Math.min(max/img.width,max/img.height,1); var cv=document.createElement('canvas');
         cv.width=Math.round(img.width*s); cv.height=Math.round(img.height*s); cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-        Q.child_photo=cv.toDataURL('image/jpeg',0.82); photoPrev.innerHTML='<img src="'+Q.child_photo+'" alt="">'; photoClear.style.display='inline';
+        Q.child_photo=cv.toDataURL('image/jpeg',0.82); Q.child_avatar=null;
+        if(grid) Array.prototype.forEach.call(grid.querySelectorAll('.ns-avatar'),function(x){x.classList.remove('sel');});
+        if(photoPrev) photoPrev.innerHTML='<img src="'+Q.child_photo+'" alt="">'; if(photoClear) photoClear.style.display='inline';
       }; img.src=rd.result; }; rd.readAsDataURL(f);
     };
 
@@ -405,7 +426,6 @@
     function showCard(id){
       ALLIDS.forEach(function(x){ var e=$(x); if(e) e.style.display='none'; });
       var el=$(id); if(!el) return; var p=byId[id];
-      if(p && p.type==='top') renderTopValue();
       if(p && p.type==='handoff'){ var fn=(Q.full_name||'').split(/\s+/)[0]; var ht=$('ns-handoff-title'); if(fn && ht) ht.textContent='Now hand the phone to '+fn+' \uD83C\uDF1F'; }
       el.style.display='block'; el.classList.remove('ns-in'); void el.offsetWidth; el.classList.add('ns-in'); window.scrollTo(0,0);
     }
@@ -413,19 +433,18 @@
     function back(){ var cur=visiblePage(), idx=ORDER.indexOf(cur); if(idx>0) showCard(ORDER[idx-1]); else showCard('ns-ob-pin'); }
     function validate(id){
       var p=byId[id]; if(!p) return null;
-      if(p.type==='text'){ var v=$('in-'+p.key).value.trim(); Q[p.key]=v||null; if(p.req && !v) return 'Please fill this in to continue.'; return null; }
+      if(p.type==='text'||p.type==='starcombo'){ var v=$('in-'+p.key).value.trim(); Q[p.key]=v||null; if(p.req && !v) return (p.type==='starcombo'?'Pick a star name or type your own.':'Please fill this in to continue.'); return null; }
       if(!p.req) return null;
       if(p.type==='radio'){ if(!Q[p.key]) return 'Please pick an option to continue.'; }
       if(p.type==='check'){ var min=(p.key==='values')?2:1; if(Q[p.key].length<min) return 'Please pick at least '+min+(min>1?' values.':'.'); }
-      if(p.type==='top'){ if(!Q.top_value) return 'Please pick the one that matters most.'; }
       return null;
     }
     async function finish(){
       var first=(Q.full_name||'').split(/\s+/)[0]||Q.full_name;
-      var pd={ full_name:Q.full_name, grade:Q.grade, board:Q.board, school:Q.school||null,
-        fav_subject:Q.fav_subject, focus_subject:Q.focus_subject, values_source:Q.values_source, values:Q.values, top_value:Q.top_value,
-        parent_goal:Q.parent_goal||null, child_photo:Q.child_photo||null, star_name:Q.star_name, interests:Q.interests, fav_reward:Q.fav_reward,
-        takes_tuitions:Q.takes_tuitions||null, family_type:Q.family_type||null, screen_time:Q.screen_time||null, outdoor_time:Q.outdoor_time||null };
+      var pd={ full_name:Q.full_name, grade:Q.grade, school:Q.school||null, values_source:Q.values_source, values:Q.values,
+        parent_goal:Q.parent_goal||null, child_avatar:Q.child_avatar||null, child_photo:Q.child_photo||null,
+        star_name:Q.star_name, interests:Q.interests, fav_reward:Q.fav_reward, family_type:Q.family_type||null,
+        screen_time:Q.screen_time||null, outdoor_time:Q.outdoor_time||null };
       await saveProfile({ child_name:first, child_class:Q.grade, profile_data:pd });
       ALLIDS.forEach(function(x){ var e=$(x); if(e) e.style.display='none'; });
       $('ns-ob-done').style.display='block'; $('ns-done-msg').textContent='Opening '+first+"'s view\u2026"; setTimeout(enterApp,1300);
@@ -439,7 +458,7 @@
       var page=t.getAttribute('data-page'), next=t.getAttribute('data-next'), fin=t.getAttribute('data-finish');
       if(page===null && next===null && fin===null) return;
       if(page!==null){ clearErr(page+'-err'); var msg=validate(page); if(msg){ showErr(page+'-err', msg); return; } }
-      if(fin!==null){ try{ await finish(); }catch(err){ showErr((page||'ns-tt4')+'-err', err.message); } return; }
+      if(fin!==null){ try{ await finish(); }catch(err){ showErr((page||'ns-tt2')+'-err', err.message); } return; }
       if(next!==null) showCard(next);
     });
   })();
