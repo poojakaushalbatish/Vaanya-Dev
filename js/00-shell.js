@@ -362,51 +362,54 @@
       lab.appendChild(inp); lab.appendChild(bx); lab.appendChild(tx);
       return { lab:lab, inp:inp };
     }
+    function wireRadio(box,key){
+      box.addEventListener('click',function(e){
+        var lab=e.target && e.target.closest ? e.target.closest('.ns-choice') : null;
+        if(!lab || !box.contains(lab)) return;
+        e.preventDefault();
+        Q[key]=lab.getAttribute('data-v');
+        Array.prototype.forEach.call(box.querySelectorAll('.ns-choice'),function(x){ x.classList.remove('sel'); var i=x.querySelector('input'); if(i) i.checked=false; });
+        lab.classList.add('sel'); var inp=lab.querySelector('input'); if(inp) inp.checked=true;
+      });
+    }
     function renderRadios(id,list,key){
       var box=$(id); if(!box) return; box.innerHTML='';
       list.forEach(function(label){
-        var c=choiceLabel('radio',key,label);
+        var c=choiceLabel('radio',key,label); c.lab.setAttribute('data-v',label);
         if(Q[key]===label){ c.inp.checked=true; c.lab.classList.add('sel'); }
-        c.inp.addEventListener('change',function(){
-          Q[key]=label;
-          Array.prototype.forEach.call(box.querySelectorAll('.ns-choice'),function(x){ x.classList.remove('sel'); });
-          c.lab.classList.add('sel');
-        });
         box.appendChild(c.lab);
       });
+      if(!box._wired){ box._wired=true; wireRadio(box,key); }
     }
     function renderChecks(id,list,key,max){
       var box=$(id); if(!box) return; box.innerHTML='';
       list.forEach(function(label){
-        var c=choiceLabel('check',key,label);
+        var c=choiceLabel('check',key,label); c.lab.setAttribute('data-v',label);
         if(Q[key].indexOf(label)>-1){ c.inp.checked=true; c.lab.classList.add('sel'); }
-        c.inp.addEventListener('change',function(){
-          var arr=Q[key], i=arr.indexOf(label);
-          if(c.inp.checked){
-            if(arr.length>=max){ c.inp.checked=false; return; }
-            if(i<0) arr.push(label); c.lab.classList.add('sel');
-          } else {
-            if(i>-1) arr.splice(i,1); c.lab.classList.remove('sel');
-          }
-          if(key==='values') renderTopValue();
-        });
         box.appendChild(c.lab);
       });
+      if(!box._wired){ box._wired=true;
+        box.addEventListener('click',function(e){
+          var lab=e.target && e.target.closest ? e.target.closest('.ns-choice') : null;
+          if(!lab || !box.contains(lab)) return;
+          e.preventDefault();
+          var label=lab.getAttribute('data-v'), arr=Q[key], i=arr.indexOf(label), inp=lab.querySelector('input');
+          if(i>-1){ arr.splice(i,1); lab.classList.remove('sel'); if(inp) inp.checked=false; }
+          else { if(arr.length>=max) return; arr.push(label); lab.classList.add('sel'); if(inp) inp.checked=true; }
+          if(key==='values') renderTopValue();
+        });
+      }
     }
     function renderTopValue(){
       var box=$('ns-opts-top'); if(!box) return; box.innerHTML='';
       if(Q.top_value && Q.values.indexOf(Q.top_value)===-1) Q.top_value=null;
-      if(!Q.values.length){ box.innerHTML='<div class="ns-qhint">Choose 2\u20133 values on the previous step first.</div>'; return; }
-      Q.values.forEach(function(label){
-        var c=choiceLabel('radio','top',label);
+      if(!Q.values.length){ box.innerHTML='<div class="ns-qhint">Choose 2\u20133 values on the previous step first.</div>'; }
+      else { Q.values.forEach(function(label){
+        var c=choiceLabel('radio','top',label); c.lab.setAttribute('data-v',label);
         if(Q.top_value===label){ c.inp.checked=true; c.lab.classList.add('sel'); }
-        c.inp.addEventListener('change',function(){
-          Q.top_value=label;
-          Array.prototype.forEach.call(box.querySelectorAll('.ns-choice'),function(x){ x.classList.remove('sel'); });
-          c.lab.classList.add('sel');
-        });
         box.appendChild(c.lab);
-      });
+      }); }
+      if(!box._wired){ box._wired=true; wireRadio(box,'top_value'); }
     }
 
     renderRadios('ns-opts-grade',GRADES,'grade');
