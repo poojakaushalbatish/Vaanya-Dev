@@ -136,8 +136,8 @@ const RIDDLES=[
 // ════════════════════════════════════════════
 // SUPABASE SETUP
 // ════════════════════════════════════════════
-const SUPABASE_URL = 'https://mlxoxzbpzpjfjwsppmgi.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1seG94emJwenBqZmp3c3BwbWdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NTMyMTIsImV4cCI6MjA5MjQyOTIxMn0._w5nd9ZWcmTnK1k_pwq4rEc5P4oJxGawou36dvLVU-E';
+// Supabase access goes through the single shared, authenticated client
+// created in js/00-shell.js. No URLs or keys live in this file.
 const _supabase = window.sb || null; // shared authenticated client from js/00-shell.js
 
 // Local state — loaded from Supabase on startup
@@ -1868,4 +1868,3 @@ function buildEarnGuide(){
       <td style="color:var(--muted)">${note}</td>
     </tr>`).join('');
 }
-
