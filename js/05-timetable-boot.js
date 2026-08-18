@@ -10,11 +10,25 @@ let ttClockInterval = null;
 // ── BLOCK DEFINITIONS ─────────────────────────────────────────
 
 // ── Get current schedule ───────────────────────────────────────
+// True when today should use the WEEKEND schedule. Use this instead of
+// comparing schedule objects by identity — a family's custom timetable is a
+// different array object, so `ttGetSchedule() === TT_WEEKEND` would be false.
+function ttIsWeekendSchedule(){
+  const day = new Date().getDay(); // 0=Sun,6=Sat
+  return (day===0 || day===6 || ttIsHoliday);
+}
+
+// Returns this family's custom schedule when they have saved one in the
+// parent admin screen; otherwise the built-in default. window.TT_CUSTOM is
+// filled in by js/00-shell.js before the app boots.
 function ttGetSchedule(){
-  const d = new Date();
-  const day = d.getDay(); // 0=Sun,6=Sat
-  const isWeekend = (day===0||day===6);
-  return (isWeekend || ttIsHoliday) ? TT_WEEKEND : TT_WEEKDAY;
+  const useWeekend = ttIsWeekendSchedule();
+  const C = window.TT_CUSTOM;
+  if(C){
+    const custom = useWeekend ? C.weekend : C.weekday;
+    if(Array.isArray(custom) && custom.length) return custom;
+  }
+  return useWeekend ? TT_WEEKEND : TT_WEEKDAY;
 }
 
 // ── Get current hour (0-23) ────────────────────────────────────
@@ -485,7 +499,7 @@ function ttRenderMiniSchedule(){
   if(!container) return;
   const schedule = ttGetSchedule();
   const nowH = ttNowHour();
-  const isWE = ttGetSchedule() === TT_WEEKEND;
+  const isWE = ttIsWeekendSchedule();
   if(titleEl) titleEl.textContent = (isWE || ttIsHoliday) ? '☀️ Weekend Schedule' : '🏫 Weekday Schedule';
 
   container.innerHTML = schedule.map(block => {
@@ -1176,4 +1190,3 @@ function cgNavigate(dir){
     cgOpenDetail(next);
   }
 }
-
