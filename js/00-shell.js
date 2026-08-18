@@ -202,6 +202,33 @@
     profile = Object.assign(profile||{}, row);
   }
 
+  // ---- Family timetable (parent admin screen) --------------------------
+  // Fills window.TT_CUSTOM so ttGetSchedule() can prefer this family's own
+  // schedule. No row = no override = built-in default schedule is used.
+  window.TT_CUSTOM = null;
+  async function loadFamilyTimetable(){
+    try{
+      if(!window.sb || !currentUser) return;
+      var r = await window.sb.from('timetables').select('weekday,weekend').maybeSingle();
+      if(r.error || !r.data) return;
+      var wd = r.data.weekday, we = r.data.weekend;
+      if(typeof wd === 'string'){ try{ wd = JSON.parse(wd); }catch(e){ wd = null; } }
+      if(typeof we === 'string'){ try{ we = JSON.parse(we); }catch(e){ we = null; } }
+      window.TT_CUSTOM = { weekday: wd || null, weekend: we || null };
+    }catch(e){ console.warn('[shell] timetable load:', e); }
+  }
+  window.niyamLoadTimetable = loadFamilyTimetable;
+
+  // Saves this family's schedules and refreshes the in-memory copy.
+  async function saveFamilyTimetable(weekday, weekend){
+    var row = { user_id: currentUser.id, weekday: weekday, weekend: weekend,
+                updated_at: new Date().toISOString() };
+    var r = await window.sb.from('timetables').upsert(row, { onConflict: 'user_id' });
+    if(r.error) throw new Error(r.error.message);
+    window.TT_CUSTOM = { weekday: weekday, weekend: weekend };
+  }
+  window.niyamSaveTimetable = saveFamilyTimetable;
+
   function enterApp(){
     // --- Per-family browser-storage guard (fixes cross-account cache leak) ---
     try{
@@ -241,7 +268,12 @@
     $('ns-topbtns').style.display='flex';
     if(profile && profile.child_name){ var nm=$('ns-pz-name'); if(nm) nm.textContent=profile.child_name; }
     var ar=document.getElementById('app-root'); if(ar) ar.style.display='';
-    if(!booted){ booted=true; if(typeof window.bootApp==='function') window.bootApp(); }
+    if(!booted){
+      booted=true;
+      loadFamilyTimetable().then(function(){
+        if(typeof window.bootApp==='function') window.bootApp();
+      });
+    }
   }
 
   async function route(){
