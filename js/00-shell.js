@@ -203,6 +203,31 @@
   }
 
   function enterApp(){
+    // --- Per-family browser-storage guard (fixes cross-account cache leak) ---
+    try{
+      var _uid = currentUser && currentUser.id;
+      if(_uid && localStorage.getItem('niyam_owner') !== _uid){
+        localStorage.clear(); sessionStorage.clear();
+        localStorage.setItem('niyam_owner', _uid);
+      }
+    }catch(e){}
+    // --- Personalize the dashboard header from this family's profile ---
+    try{
+      var p = profile || {}, pd = p.profile_data || {};
+      if(typeof pd === 'string'){ try{ pd = JSON.parse(pd); }catch(e){ pd = {}; } }
+      var nm = p.child_name || 'My Star';
+      var tEl = document.getElementById('hdr-title');
+      if(tEl) tEl.textContent = nm.toUpperCase() + "'S SCHEDULE & SCOREBOARD \uD83C\uDFC6";
+      var sEl = document.getElementById('hdr-sub');
+      if(sEl) sEl.textContent = [p.child_class, pd.school].filter(Boolean).join(' \u00B7 ') || 'NIYAM \u00B7 Small Habits, Big Destiny';
+      var stEl = document.getElementById('hdr-star');
+      if(stEl && pd.star_name) stEl.textContent = '\uD83C\uDF08 ' + pd.star_name.toUpperCase();
+      var avEl = document.getElementById('hdr-avatar');
+      if(avEl){
+        if(pd.child_photo){ avEl.innerHTML = '<img src="'+pd.child_photo+'" style="width:100%;height:100%;object-fit:cover">'; }
+        else if(pd.child_avatar){ avEl.textContent = pd.child_avatar; }
+      }
+    }catch(e){ console.warn('[shell] header personalize:', e); }
     $('ns-login').style.display='none';
     $('ns-onboard').style.display='none';
     $('ns-topbtns').style.display='flex';
@@ -463,7 +488,7 @@
     });
   })();
 
-  $('ns-pz-logout').onclick=async function(){ try{ await window.sb.auth.signOut(); }catch(e){} location.reload(); };
+  $('ns-pz-logout').onclick=async function(){ try{ await window.sb.auth.signOut(); }catch(e){} try{ localStorage.clear(); sessionStorage.clear(); }catch(e){} location.reload(); };
 
   // ---- Parent Zone (B2): per-family PIN gate + navy zone ----
   function hidePinPrompt(){ $('ns-pinprompt').style.display='none'; }
