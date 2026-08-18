@@ -207,7 +207,15 @@
     try{
       var _uid = currentUser && currentUser.id;
       if(_uid && localStorage.getItem('niyam_owner') !== _uid){
-        localStorage.clear(); sessionStorage.clear();
+        // Wipe ONLY app cache keys. Never touch 'sb-*' — that is Supabase's
+        // login session; deleting it silently logs the requests out (42501s).
+        var _rm = [];
+        for(var _i = 0; _i < localStorage.length; _i++){
+          var _k = localStorage.key(_i);
+          if(_k && _k.indexOf('sb-') !== 0) _rm.push(_k);
+        }
+        _rm.forEach(function(_k){ localStorage.removeItem(_k); });
+        sessionStorage.clear();
         localStorage.setItem('niyam_owner', _uid);
       }
     }catch(e){}
@@ -488,7 +496,7 @@
     });
   })();
 
-  $('ns-pz-logout').onclick=async function(){ try{ await window.sb.auth.signOut(); }catch(e){} try{ localStorage.clear(); sessionStorage.clear(); }catch(e){} location.reload(); };
+  $('ns-pz-logout').onclick=async function(){ try{ await window.sb.auth.signOut(); }catch(e){} try{ var _rm=[]; for(var _i=0;_i<localStorage.length;_i++){ var _k=localStorage.key(_i); if(_k && _k.indexOf('sb-')!==0) _rm.push(_k);} _rm.forEach(function(_k){ localStorage.removeItem(_k); }); sessionStorage.clear(); }catch(e){} location.reload(); };
 
   // ---- Parent Zone (B2): per-family PIN gate + navy zone ----
   function hidePinPrompt(){ $('ns-pinprompt').style.display='none'; }
