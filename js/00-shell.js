@@ -1,5 +1,5 @@
 // ============================================================
-// NIYAM-SE SHELL (Phase 1 / B1)
+// NIYAM SHELL (Phase 1 / B1)
 // Creates the authenticated Supabase client (shared with the app),
 // runs the login + onboarding gate, and boots the app on entry.
 // Loads BEFORE 01-core.js so window.sb exists when the app reads it.
@@ -118,7 +118,7 @@
    <div class="ns-wrap">
     <div class="ns-brand">
      <div class="ns-mark"><svg width="42" height="42" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="nsg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd36b"/><stop offset="1" stop-color="#e8a838"/></linearGradient></defs><path d="M12 2.2l2.55 6.06 6.55.52-4.99 4.27 1.55 6.39L12 16.6l-5.21 3.84 1.55-6.39-4.99-4.27 6.55-.52z" fill="url(#nsg)"/></svg></div>
-     <h1>NIYAM-SE</h1>
+     <h1>NIYAM</h1>
      <p class="ns-tag">Small Habits, Big Destiny.</p>
     </div>
     <div class="ns-card">
@@ -138,9 +138,9 @@
   <div id="ns-onboard" class="ns-screen">
    <div class="ns-wrap">
     <div id="ns-ob-consent" class="ns-card" style="display:none">
-     <div class="ns-step">Step 1 of 3</div><h2>Welcome to NIYAM-SE</h2>
-     <p class="ns-sub">NIYAM-SE helps your child build small daily habits. You're in control of everything.</p>
-     <div class="ns-consent"><input id="ns-consent-check" type="checkbox"><span>I am the parent or legal guardian, and I consent to my child's information being used in NIYAM-SE. <em>(Wording to be finalised with legal review.)</em></span></div>
+     <div class="ns-step">Step 1 of 3</div><h2>Welcome to NIYAM</h2>
+     <p class="ns-sub">NIYAM helps your child build small daily habits. You're in control of everything.</p>
+     <div class="ns-consent"><input id="ns-consent-check" type="checkbox"><span>I am the parent or legal guardian, and I consent to my child's information being used in NIYAM. <em>(Wording to be finalised with legal review.)</em></span></div>
      <button id="ns-consent-next" class="ns-primary">Continue</button>
      <div id="ns-consent-err" class="ns-err"></div>
     </div>
@@ -278,8 +278,8 @@
       {id:'ns-pp2',sec:'about',icon:'\uD83C\uDF93',key:'grade',type:'radio',list:GRADES,q:'Which class?'},
       {id:'ns-pp3',sec:'about',icon:'\uD83D\uDCCD',key:'school',type:'text',q:'School name',ph:'e.g. DPS Noida',opt:true},
       {id:'ns-pp4',sec:'character',icon:'\uD83C\uDF31',key:'values_source',type:'radio',list:SOURCES,q:'Where should character lessons come from?'},
-      {id:'ns-pp5',sec:'character',icon:'\uD83D\uDC9B',key:'values',type:'check',list:VALUES,max:3,q:'Which qualities should NIYAM-SE help build in your child?',hint:'These become the character focus \u2014 the values lessons, daily reminders, and the qualities you celebrate together.'},
-      {id:'ns-pp6',sec:'character',icon:'\uD83D\uDE80',key:'parent_goal',type:'radio',list:GOALS,q:'As a parent, what change in your child would make this year a win?',hint:"We'll keep this at the heart of NIYAM-SE and shape the daily nudges around it."},
+      {id:'ns-pp5',sec:'character',icon:'\uD83D\uDC9B',key:'values',type:'check',list:VALUES,max:3,q:'Which qualities should NIYAM help build in your child?',hint:'These become the character focus \u2014 the values lessons, daily reminders, and the qualities you celebrate together.'},
+      {id:'ns-pp6',sec:'character',icon:'\uD83D\uDE80',key:'parent_goal',type:'radio',list:GOALS,q:'As a parent, what change in your child would make this year a win?',hint:"We'll keep this at the heart of NIYAM and shape the daily nudges around it."},
       {id:'ns-pp7',sec:'about',icon:'\uD83D\uDDBC\uFE0F',key:'__avatar',type:'avatar',q:'Choose an avatar \u2014 or add a real photo',hint:"This becomes your child's face at the top of their daily schedule. Pick a fun avatar now \u2014 you can swap in a real photo anytime.",opt:true},
       {id:'ns-hp',type:'handoff'},
       {id:'ns-cc1',sec:'child',icon:'\u2728',key:'star_name',type:'starcombo',q:'Pick your Star Name \u2b50',hint:"It's the name on your badge at the top of your screen \u2014 like a superhero name!"},
