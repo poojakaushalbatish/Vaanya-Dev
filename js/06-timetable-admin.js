@@ -29,6 +29,60 @@
     }, 0);
   }
 
+  // ---- time handling ------------------------------------------------------
+  // Blocks are ordered and unlocked by unlockHour (decimal 24h). Parents pick
+  // real start/end times, so we always know exactly when a block belongs.
+  function hhmmToDec(s){
+    if(!s) return null;
+    var m = /^(\d{1,2}):(\d{2})$/.exec(s.trim());
+    if(!m) return null;
+    return parseInt(m[1],10) + parseInt(m[2],10)/60;
+  }
+  function decToHHMM(d){
+    if(d===undefined || d===null || isNaN(d)) return '';
+    var h = Math.floor(d), mi = Math.round((d-h)*60);
+    if(mi===60){ h+=1; mi=0; }
+    return ('0'+h).slice(-2) + ':' + ('0'+mi).slice(-2);
+  }
+  function fmt12(hhmm){
+    var d = hhmmToDec(hhmm); if(d===null) return '';
+    var h = Math.floor(d), mi = Math.round((d-h)*60);
+    var ap = h>=12 ? 'PM' : 'AM', h12 = h%12; if(h12===0) h12=12;
+    return h12 + ':' + ('0'+mi).slice(-2) + ' ' + ap;
+  }
+  // Reads "6:00 AM \u2013 3:00 PM", "3:30 TO 4:00", "7:00-8:00", "9:30 PM"\u2026
+  function parseOne(txt){
+    if(!txt) return null;
+    var m = /(\d{1,2})\s*:\s*(\d{2})\s*([ap]\.?m\.?)?/i.exec(txt);
+    if(!m) return null;
+    var h = parseInt(m[1],10), mi = parseInt(m[2],10), ap = (m[3]||'').toLowerCase();
+    if(ap.indexOf('p')===0 && h<12) h+=12;
+    if(ap.indexOf('a')===0 && h===12) h=0;
+    return ('0'+h).slice(-2) + ':' + ('0'+mi).slice(-2);
+  }
+  function splitTime(b){
+    var txt = String(b.time||'');
+    var parts = txt.split(/\u2013|\u2014|--|\bto\b|-/i);
+    var st = parseOne(parts[0]);
+    var en = parts.length>1 ? parseOne(parts.slice(1).join(' ')) : null;
+    if(st===null && b.unlockHour!==undefined) st = decToHHMM(b.unlockHour);
+    return { start: st || '', end: en || '' };
+  }
+  function blockDec(b){
+    if(b.unlockHour!==undefined && b.unlockHour!==null && !isNaN(b.unlockHour)) return b.unlockHour;
+    var d = hhmmToDec(splitTime(b).start);
+    return (d===null ? 99 : d);
+  }
+  // Order blocks by start time \u2014 what the parent sees is what the child sees.
+  function sortByTime(arr){
+    return (arr||[]).slice().sort(function(a,b){ return blockDec(a) - blockDec(b); });
+  }
+  function applyTimes(b, start, end){
+    b.time = fmt12(start) + (end ? ' \u2013 ' + fmt12(end) : '');
+    var d = hhmmToDec(start);
+    if(d!==null) b.unlockHour = d;
+  }
+
   function defaults(which){
     var src = (which==='weekend')
       ? (typeof TT_WEEKEND!=='undefined' ? TT_WEEKEND : [])
@@ -38,8 +92,8 @@
 
   function loadIntoEditor(){
     var C = window.TT_CUSTOM || {};
-    TTA.weekday = (C.weekday && C.weekday.length) ? clone(C.weekday) : defaults('weekday');
-    TTA.weekend = (C.weekend && C.weekend.length) ? clone(C.weekend) : defaults('weekend');
+    TTA.weekday = sortByTime((C.weekday && C.weekday.length) ? clone(C.weekday) : defaults('weekday'));
+    TTA.weekend = sortByTime((C.weekend && C.weekend.length) ? clone(C.weekend) : defaults('weekend'));
   }
 
   function list(){ return TTA.tab==='weekend' ? TTA.weekend : TTA.weekday; }
@@ -116,8 +170,9 @@
       +     '<button class="tta-tab on" id="tta-t-wd">\uD83C\uDFEB Weekdays</button>'
       +     '<button class="tta-tab" id="tta-t-we">\u2600\uFE0F Weekends</button>'
       +   '</div>'
-      +   '<div class="tta-note">Edit your child\u2019s day here. Tap a block to open it, change names, '
-      +     'times and points, add or remove tasks. <b>Already-approved past reports never change</b> \u2014 '
+      +   '<div class="tta-note">Edit your child\u2019s day here. Tap \u270F\uFE0F to open a block, '
+      +     'set its start and end time, and add or remove tasks. Blocks sort themselves into '
+      +     'time order automatically. <b>Already-approved past reports never change</b> \u2014 '
       +     'edits apply to days going forward.</div>'
       +   '<div id="tta-list"></div>'
       +   '<button class="tta-btn tta-soft" id="tta-addblock" style="width:100%;padding:13px;margin-top:6px">'
@@ -192,13 +247,12 @@
         +   '<div class="tta-tt"><b>'+esc(b.name||'Untitled block')+'</b>'
         +     '<span>'+esc(b.time||'no time set')+' \u00B7 '+blockMax(b)+' pts max \u00B7 '
         +     (b.activities||[]).length+' task(s)</span></div>'
-        +   '<button class="tta-mini" data-a="up"   data-i="'+i+'" title="Move up">\u25B2</button>'
-        +   '<button class="tta-mini" data-a="down" data-i="'+i+'" title="Move down">\u25BC</button>'
         +   '<button class="tta-mini" data-a="del"  data-i="'+i+'" title="Delete block">\uD83D\uDDD1\uFE0F</button>'
         +   '<button class="tta-mini" data-a="tog"  data-i="'+i+'" title="Open/close">'+(isOpen?'\u2715':'\u270F\uFE0F')+'</button>'
         + '</div>';
 
       if(isOpen){
+        var tm = splitTime(b);
         h += '<div class="tta-open">'
           + '<div class="tta-row">'
           +   '<div class="tta-f" style="flex:0 0 74px"><label>Icon</label>'
@@ -207,11 +261,10 @@
           +     '<input data-f="name" data-i="'+i+'" value="'+esc(b.name||'')+'"></div>'
           + '</div>'
           + '<div class="tta-row">'
-          +   '<div class="tta-f"><label>Time shown to child</label>'
-          +     '<input data-f="time" data-i="'+i+'" value="'+esc(b.time||'')+'" placeholder="4:00 PM \u2013 6:00 PM"></div>'
-          +   '<div class="tta-f" style="flex:0 0 130px"><label>Unlocks at (24h)</label>'
-          +     '<input data-f="unlockHour" data-i="'+i+'" type="number" step="0.25" min="0" max="23.99" '
-          +     'value="'+(b.unlockHour!==undefined?b.unlockHour:'')+'" placeholder="16"></div>'
+          +   '<div class="tta-f"><label>Starts at</label>'
+          +     '<input data-f="start" data-i="'+i+'" type="time" value="'+esc(tm.start)+'"></div>'
+          +   '<div class="tta-f"><label>Ends at</label>'
+          +     '<input data-f="end" data-i="'+i+'" type="time" value="'+esc(tm.end)+'"></div>'
           + '</div>'
           + '<div class="tta-row"><div class="tta-f"><label>Block type</label>'
           +   '<select data-f="type" data-i="'+i+'">'+opts(TYPES, b.type||'normal')+'</select></div></div>'
@@ -249,8 +302,6 @@
         var i=+btn.getAttribute('data-i'), j=+btn.getAttribute('data-j'), L=list(), b=L[i];
         switch(btn.getAttribute('data-a')){
           case 'tog':  TTA.open[b.id] = !TTA.open[b.id]; render(); break;
-          case 'up':   if(i>0){ L.splice(i-1,0,L.splice(i,1)[0]); render(); } break;
-          case 'down': if(i<L.length-1){ L.splice(i+1,0,L.splice(i,1)[0]); render(); } break;
           case 'del':
             if(confirm('Delete the block \u201C'+(b.name||'this block')+'\u201D and all its tasks?')){
               L.splice(i,1); render();
@@ -272,10 +323,21 @@
     // saveTo, galleryKey…) are preserved exactly as the app expects.
     Array.prototype.forEach.call(host.querySelectorAll('[data-f]'), function(el){
       el.onchange = function(){
-        var b = list()[+el.getAttribute('data-i')], f = el.getAttribute('data-f'), v = el.value;
-        if(f==='unlockHour'){ b.unlockHour = (v==='' ? undefined : parseFloat(v)); }
-        else { b[f] = v; }
-        if(f==='name' || f==='icon' || f==='time') render();
+        var b = list()[+el.getAttribute('data-i')], f = el.getAttribute('data-f');
+        if(f==='start' || f==='end'){
+          var host2 = el.closest('.tta-card');
+          var st = host2.querySelector('[data-f="start"]').value;
+          var en = host2.querySelector('[data-f="end"]').value;
+          if(!st){ alert('Please set a start time \u2014 it decides where this block sits in the day.'); return; }
+          applyTimes(b, st, en);
+          // Re-sort so the block jumps straight to its correct place in the day.
+          if(TTA.tab==='weekend') TTA.weekend = sortByTime(TTA.weekend);
+          else TTA.weekday = sortByTime(TTA.weekday);
+          render();
+          return;
+        }
+        b[f] = el.value;
+        if(f==='name' || f==='icon') render();
       };
     });
 
@@ -300,12 +362,15 @@
   // ---- actions -------------------------------------------------------------
   function addBlock(){
     list().push({
-      id: uid('cblk'), time:'', name:'New time block', icon:'\u2B50',
+      id: uid('cblk'), time:'', name:'New time block', icon:'\u2B50', unlockHour: 17,
       iconBg:'#FFF7ED', iconColor:'#EA580C', color:'#EA580C', lightBg:'#FFF7ED',
       type:'normal', maxPts:0, unlockHour:undefined,
       activities:[{ id: uid('cact'), name:'New task', pts:5, type:'self', note:'' }]
     });
-    var L=list(); TTA.open[L[L.length-1].id]=true;
+    var L=list(); var nb=L[L.length-1];
+    applyTimes(nb, '17:00', '18:00');
+    TTA.open[nb.id]=true;
+    if(TTA.tab==='weekend') TTA.weekend = sortByTime(TTA.weekend); else TTA.weekday = sortByTime(TTA.weekday);
     render();
     window.scrollTo(0, document.body.scrollHeight);
   }
@@ -320,7 +385,7 @@
   }
 
   function tidy(arr){
-    return (arr||[]).map(function(b){
+    return sortByTime(arr).map(function(b){
       var c = clone(b);
       c.id = c.id || uid('cblk');
       c.activities = (c.activities||[]).map(function(a){
