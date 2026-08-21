@@ -220,9 +220,9 @@
 
   // ---- render --------------------------------------------------------------
   var TYPES = [
-    ['normal',           'Normal (earns points)'],
-    ['break',            'Break / rest (no points)'],
-    ['locked-until-3pm', 'School hours (locked till 3 PM)']
+    ['normal',           'Earns points'],
+    ['break',            'No points \u2014 break or rest'],
+    ['locked-until-3pm', 'School time \u2014 locked until the day opens']
   ];
   var ACT_TYPES = [
     ['self',      'Child ticks it'],
@@ -270,8 +270,22 @@
           +     '<input data-f="end" data-i="'+i+'" type="time" value="'+esc(tm.end)+'"></div>'
           + '</div>'
           + '<div class="tta-row"><div class="tta-f"><label>Block type</label>'
-          +   '<select data-f="type" data-i="'+i+'">'+opts(TYPES, b.type||'normal')+'</select></div></div>'
-          + '<div style="margin-top:12px"><b style="font-size:12px;color:#6b7280;text-transform:uppercase;'
+          +   '<select data-f="type" data-i="'+i+'">'+opts(TYPES, b.type||'normal')+'</select></div></div>';
+
+        // Break and school blocks carry no tasks \u2014 hide the task editor entirely.
+        var earns = (b.type !== 'break' && b.type !== 'locked-until-3pm');
+        if(!earns){
+          h += '<div style="background:#f6f7fa;border-radius:11px;padding:11px 13px;margin-top:6px;'
+            +  'font-size:12.5px;color:#6b7280;line-height:1.55">'
+            +  (b.type === 'break'
+                 ? '\uD83D\uDE0C This is rest time \u2014 no tasks and no points. Switch the block type to '
+                   + '<b>Earns points</b> if you want tasks here.'
+                 : '\uD83C\uDFEB This block stays locked until the day opens, so it holds no tasks.')
+            +  '</div></div>';
+          return h + '</div>';
+        }
+
+        h += '<div style="margin-top:12px"><b style="font-size:12px;color:#6b7280;text-transform:uppercase;'
           +   'letter-spacing:.06em">Tasks in this block</b></div>';
 
         (b.activities||[]).forEach(function(a, j){
@@ -340,7 +354,14 @@
           return;
         }
         b[f] = el.value;
-        if(f==='name' || f==='icon') render();
+        if(f==='type'){
+          // Moving to break/school clears tasks; moving back gives a fresh one.
+          if(el.value === 'break' || el.value === 'locked-until-3pm'){ b.activities = []; }
+          else if(!b.activities || !b.activities.length){
+            b.activities = [{ id: uid('cact'), name:'New task', pts:5, type:'self', note:'' }];
+          }
+        }
+        if(f==='name' || f==='icon' || f==='type') render();
       };
     });
 
