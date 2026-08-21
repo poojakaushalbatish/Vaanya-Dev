@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-08-21 · A3 · Tomorrow\u2019s Plan';
+  window.NIYAM_BUILD = '2026-08-21 · A3.1 · band-save diagnostics';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   var isFile = location.protocol === 'file:'; // local test = memory session; https = persistent
@@ -230,7 +230,11 @@
     var row = { user_id: currentUser.id, weekday: weekday, weekend: weekend,
                 updated_at: new Date().toISOString() };
     var r = await window.sb.from('timetables').upsert(row, { onConflict: 'user_id' });
-    if(r.error) throw new Error(r.error.message);
+    if(r.error){
+      console.error('[shell] timetable save failed:', r.error);
+      throw new Error('Could not save the timetable: ' + r.error.message
+        + (r.error.hint ? ' (' + r.error.hint + ')' : ''));
+    }
     window.TT_CUSTOM = { weekday: weekday, weekend: weekend };
   }
   window.niyamSaveTimetable = saveFamilyTimetable;
@@ -618,11 +622,17 @@
       await saveProfile({ child_name:Q.child_name, child_class:cls, profile_data:pd });
 
       // Build this family's starting timetable from their class band.
-      if(typeof window.niyamBuildTimetable === 'function'){
-        var tt = window.niyamBuildTimetable(cls, sh);
-        try{ await saveFamilyTimetable(tt.weekday, tt.weekend); }
-        catch(e){ console.warn('[setup] timetable save:', e); }
+      // This must not fail quietly \u2014 if it does, the family silently gets
+      // the old built-in default instead of their class band.
+      if(typeof window.niyamBuildTimetable !== 'function'){
+        throw new Error('Class timetables did not load. Check that data/timetable-bands.js '
+          + 'is included in index.html, then refresh and try again.');
       }
+      var tt = window.niyamBuildTimetable(cls, sh);
+      console.log('[setup] band ' + tt.band + ' (' + tt.label + ') \u00B7 '
+        + tt.weekday.length + ' weekday blocks, ' + tt.weekend.length + ' weekend blocks');
+      await saveFamilyTimetable(tt.weekday, tt.weekend);
+      console.log('[setup] timetable saved for class ' + cls);
 
       // Remember these so the preview can fall back to the band if needed.
       window.__niyamClass = cls; window.__niyamStartHour = sh;
