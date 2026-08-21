@@ -199,7 +199,10 @@
     $('tta-t-wd').onclick     = function(){ switchTab('weekday'); };
     $('tta-t-we').onclick     = function(){ switchTab('weekend'); };
     $('tta-stay').onclick     = function(){ $('tta-ask').style.display='none'; };
-    $('tta-go-child').onclick = function(){ location.reload(); };
+    $('tta-go-child').onclick = function(){
+      if(typeof window.niyamCloseTomorrowsPlan === 'function') window.niyamCloseTomorrowsPlan();
+      location.reload();
+    };
   }
 
   function toast(m){
@@ -404,6 +407,7 @@
     var btn = $('tta-save'); btn.disabled = true; btn.textContent = 'Saving\u2026';
     try{
       await window.niyamSaveTimetable(tidy(TTA.weekday), tidy(TTA.weekend));
+      if(typeof window.niyamRefreshPlan === 'function') window.niyamRefreshPlan();
       $('tta-ask').style.display = 'flex';
     }catch(e){
       alert('Save failed: ' + (e && e.message ? e.message : e) + '\n\nYour edits are still on screen \u2014 try Save again.');
