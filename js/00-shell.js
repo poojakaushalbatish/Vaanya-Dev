@@ -8,8 +8,23 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-08-21 · A3.2 · editor race fix';
+  window.NIYAM_BUILD = '2026-08-21 · A3.3 · script-tag guard';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
+
+  // Startup self-check: shout early if a required script tag is missing from
+  // index.html, instead of failing later in the middle of a parent's setup.
+  setTimeout(function(){
+    var missing = [];
+    if(typeof window.niyamBuildTimetable !== 'function') missing.push('data/timetable-bands.js');
+    if(typeof window.niyamOpenTimetableEditor !== 'function') missing.push('js/06-timetable-admin.js');
+    if(typeof window.niyamOpenTomorrowsPlan !== 'function') missing.push('js/07-tomorrows-plan.js');
+    if(missing.length){
+      console.error('%cNIYAM: missing script tag(s) in index.html \u2192 ' + missing.join(', '),
+        'color:#fff;background:#c0392b;padding:2px 6px;border-radius:3px;font-weight:bold');
+    } else {
+      console.log('%cNIYAM: all modules loaded \u2713', 'color:#1d7a53;font-weight:bold');
+    }
+  }, 800);
 
   var isFile = location.protocol === 'file:'; // local test = memory session; https = persistent
   window.sb = (typeof supabase !== 'undefined')
