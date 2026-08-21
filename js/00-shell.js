@@ -145,8 +145,8 @@
      <div id="ns-consent-err" class="ns-err"></div>
     </div>
     <div id="ns-ob-pin" class="ns-card" style="display:none">
-     <div class="ns-cardhead"><button class="ns-back" data-back="consent">&#8592;</button><div class="ns-step" style="margin-bottom:0">Step 2 of 3</div></div><h2>Create your Parent PIN</h2>
-     <p class="ns-sub">A 4-digit PIN for the Parent Zone. You can change it later.</p>
+     <div class="ns-cardhead"><button class="ns-back" data-back="prev">&#8592;</button><div class="ns-step" style="margin-bottom:0;color:#9a63e0;background:#f3ecff;border:1px solid #f3ecff">Almost there</div></div><h2>Set your 4-digit parent PIN</h2>
+     <p class="ns-sub">This is what keeps the parent side yours. You&#8217;ll need it to approve the day, adjust points, change the timetable and manage rewards.<br><br>Keep it private from your child &#8212; the approval only means something if it&#8217;s really you.</p>
      <label>4-digit PIN</label><input id="ns-pin1" type="tel" inputmode="numeric" maxlength="4" class="ns-pin" placeholder="****">
      <label>Confirm PIN</label><input id="ns-pin2" type="tel" inputmode="numeric" maxlength="4" class="ns-pin" placeholder="****">
      <button id="ns-pin-next" class="ns-primary">Save PIN</button>
@@ -155,7 +155,7 @@
     <div id="ns-pages"></div>
 
     <div id="ns-ob-done" class="ns-card" style="display:none;text-align:center">
-     <h2>All set! &#10024;</h2><p class="ns-sub" id="ns-done-msg">Opening the app&#8230;</p>
+     <h2>All set! &#10024;</h2><p class="ns-sub" id="ns-done-msg">Building the first day&#8230;</p>
     </div>
    </div>
   </div>
@@ -282,11 +282,24 @@
     currentUser = s.data.session ? s.data.session.user : null;
     if(!currentUser){ screen('ns-login'); return; }
     profile = await loadProfile();
-    var c = profile && profile.consent_at, p = profile && profile.parent_pin, ch = profile && profile.child_name;
-    if(c && p && ch){ enterApp(); return; }
+    var pd = (profile && profile.profile_data) || {};
+    if(typeof pd === 'string'){ try{ pd = JSON.parse(pd); }catch(e){ pd = {}; } }
+    var c  = profile && profile.consent_at;      // S2 done
+    var ch = profile && profile.child_name;      // S3 done
+    var p  = profile && profile.parent_pin;      // S6 done
+    var done = !!pd.setup_done;                  // S7 done
+
+    if(c && ch && p && done){ enterApp(); return; }
+
     screen('ns-onboard');
     $('ns-ob-done') && ($('ns-ob-done').style.display='none');
-    if(window.__nsShow){ if(!c) window.__nsShow('ns-ob-consent'); else if(!p) window.__nsShow('ns-ob-pin'); else window.__nsShow('ns-pp1'); }
+    if(window.__nsShow){
+      // S2 consent -> S3/S4/S5 -> S6 PIN -> S7 what's included
+      if(!c)        window.__nsShow('ns-ob-consent');
+      else if(!ch)  window.__nsShow(window.__nsFirstPage || 'ns-pp1');
+      else if(!p)   window.__nsShow('ns-ob-pin');
+      else          window.__nsShow(window.__nsLastPage || 'ns-pp4');
+    }
     else if(!c){ $('ns-ob-consent').style.display='block'; }
   }
 
@@ -314,218 +327,288 @@
     var a=$('ns-pin1').value.trim(), b=$('ns-pin2').value.trim();
     if(!/^\d{4}$/.test(a)) return showErr('ns-pin-err','PIN must be exactly 4 digits.');
     if(a!==b) return showErr('ns-pin-err','The two PINs do not match.');
-    try{ await saveProfile({ parent_pin:a }); route(); }catch(e){ showErr('ns-pin-err', e.message); }
+    try{
+      await saveProfile({ parent_pin:a });
+      if(window.__nsShow && window.__nsLastPage) window.__nsShow(window.__nsLastPage);
+      else route();
+    }catch(e){ showErr('ns-pin-err', e.message); }
   };
-  // ---- Step 3: profile-setup questionnaire (one-per-page, themed v3) ----
-  (function(){
-    var GRADES=['Class 4','Class 5','Class 6','Class 7','Class 8'];
-    var VALUES=['Honesty','Discipline','Respect','Kindness','Courage','Gratitude','Responsibility','Patience','Focus'];
-    var SOURCES=['Bhagavad Geeta & Indian wisdom','Universal / secular values','A mix of both'];
-    var GOALS=['A steady routine they own','Calmer mornings, less nagging','More focus, fewer distractions','Kinder & more responsible','Confidence & independence','Consistent study habits'];
-    var INTERESTS=['Sports','Drawing / Art','Music & Dance','Reading','Video games','Science','Coding','Outdoor play'];
-    var REWARDS=['Extra screen time','A treat / outing','A small toy / gift','Pocket money / savings','Special time with parent','A fun privilege'];
-    var FAMILY=['Joint family','Nuclear family'];
-    var SCREEN=['Barely any \uD83D\uDC22','About an hour \u23F3','A couple hours \uD83D\uDCFA','Loads! \uD83C\uDFAE'];
-    var OUTDOOR=['Not much \uD83C\uDFE0','A little \uD83C\uDF33','Lots! \uD83C\uDFC3',"I'd live outside if I could! \u26BD"];
-    var AVATARS=['\uD83E\uDD81','\uD83E\uDD89','\uD83D\uDE80','\uD83C\uDF1F','\uD83D\uDC2F','\uD83E\uDD84','\uD83D\uDC3C','\u26A1'];
-    var STARNAMES=['Star Explorer','Cosmic Champ','Captain Courage','Mighty Comet','Super Nova','Galaxy Hero','Shining Tiger','Brave Rocket'];
 
-    var Q={ interests:[], values:[] };
+
+  // ---- Parent setup questionnaire (A2 rewrite) -------------------------
+  // Screen order: S3 About your child -> S4 Your wish -> S5 Day begins
+  //               -> S6 Parent PIN -> S7 What's included -> build timetable
+  (function(){
+    var GRADES=['Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8'];
+    var GOALS=[
+      'A steady routine they own',
+      'Calmer evenings, less nagging',
+      'More focus, fewer distractions',
+      'Kinder and more responsible',
+      'Confidence and independence',
+      'Consistent study habits'
+    ];
+    var GOAL_HINT={
+      'A steady routine they own':'fewer reminders, more self-starting',
+      'Calmer evenings, less nagging':'the day runs without a fight',
+      'More focus, fewer distractions':'finishing what they start',
+      'Kinder and more responsible':'noticing others, helping at home',
+      'Confidence and independence':'trying without being pushed',
+      'Consistent study habits':'homework becomes normal, not a battle'
+    };
+    var STARTS=['1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
+
+    // S7 feature cards. locked:true = always included, cannot be switched off.
+    var FEATURES=[
+      {key:'timetable', icon:'\uD83D\uDDD3\uFE0F', name:'Daily Timetable',
+       desc:'Their day, block by block \u2014 built for their class.', locked:true},
+      {key:'approval',  icon:'\u2705', name:'Parent Review & Approval',
+       desc:'You review the day and approve it. Points are banked only when you say so.', locked:true},
+      {key:'rewards',   icon:'\uD83C\uDFC6', name:'Points & Rewards',
+       desc:'Earn, save and spend on rewards you set yourself.', locked:true},
+      {key:'geeta',     icon:'\uD83D\uDCFF', name:'Values & Wisdom',
+       desc:'One short verse from the Bhagavad Geeta each day with its meaning in simple language \u2014 timeless wisdom about honesty, effort and self-control. NIYAM is rooted in Indian tradition and open to every family.', locked:true},
+      {key:'brainlab',  icon:'\uD83E\uDDE0', name:'Brain Lab',
+       desc:'A daily logical-reasoning set, new every day.'},
+      {key:'sudoku',    icon:'\uD83D\uDD22', name:'Sudoku & Maths Practice',
+       desc:'A puzzle a day, and maths practice scored out of 100%.'},
+      {key:'wordbook',  icon:'\uD83D\uDCD6', name:'WordBook',
+       desc:'New words with meanings and sentences, plus a quiz.'},
+      {key:'creative',  icon:'\uD83C\uDFA8', name:'Creative Moments & Gallery',
+       desc:'Drawings, poems and stories \u2014 saved into their own gallery.'},
+      {key:'progress',  icon:'\uD83D\uDCC8', name:'Progress',
+       desc:'Streaks, points over time, and how the week went.'}
+    ];
+
+    var Q={ features:{} };
+    FEATURES.forEach(function(f){ Q.features[f.key]=true; });
 
     var SEC={
       about:{pill:'About your child',accent:'#d99a18',soft:'#fff3d6'},
-      character:{pill:'Character',accent:'#2fa674',soft:'#e4f6ed'},
-      child:{pill:'Your turn',accent:'#9a63e0',soft:'#f3ecff'},
-      extra:{pill:'A little extra',accent:'#7f8694',soft:'#eef0f3'}
+      wish:{pill:'Your wish',accent:'#2fa674',soft:'#e4f6ed'},
+      day:{pill:'Their day',accent:'#9a63e0',soft:'#f3ecff'},
+      ready:{pill:'Ready',accent:'#d99a18',soft:'#fff3d6'}
     };
+
     var P=[
-      {id:'ns-pp1',sec:'about',icon:'\uD83D\uDC4B',key:'full_name',type:'text',q:"Your child's full name",ph:'e.g. Vaanya Sharma'},
-      {id:'ns-pp2',sec:'about',icon:'\uD83C\uDF93',key:'grade',type:'radio',list:GRADES,q:'Which class?'},
-      {id:'ns-pp3',sec:'about',icon:'\uD83D\uDCCD',key:'school',type:'text',q:'School name',ph:'e.g. DPS Noida',opt:true},
-      {id:'ns-pp4',sec:'character',icon:'\uD83C\uDF31',key:'values_source',type:'radio',list:SOURCES,q:'Where should character lessons come from?'},
-      {id:'ns-pp5',sec:'character',icon:'\uD83D\uDC9B',key:'values',type:'check',list:VALUES,max:3,q:'Which qualities should NIYAM help build in your child?',hint:'These become the character focus \u2014 the values lessons, daily reminders, and the qualities you celebrate together.'},
-      {id:'ns-pp6',sec:'character',icon:'\uD83D\uDE80',key:'parent_goal',type:'radio',list:GOALS,q:'As a parent, what change in your child would make this year a win?',hint:"We'll keep this at the heart of NIYAM and shape the daily nudges around it."},
-      {id:'ns-pp7',sec:'about',icon:'\uD83D\uDDBC\uFE0F',key:'__avatar',type:'avatar',q:'Choose an avatar \u2014 or add a real photo',hint:"This becomes your child's face at the top of their daily schedule. Pick a fun avatar now \u2014 you can swap in a real photo anytime.",opt:true},
-      {id:'ns-hp',type:'handoff'},
-      {id:'ns-cc1',sec:'child',icon:'\u2728',key:'star_name',type:'starcombo',q:'Pick your Star Name \u2b50',hint:"It's the name on your badge at the top of your screen \u2014 like a superhero name!"},
-      {id:'ns-cc2',sec:'child',icon:'\uD83C\uDFA8',key:'interests',type:'check',list:INTERESTS,max:3,q:'What do you love doing?',hint:'Pick up to 3.'},
-      {id:'ns-cc3',sec:'child',icon:'\uD83C\uDF81',key:'fav_reward',type:'radio',list:REWARDS,q:'When you crush your day, what would you love to earn?',hint:'Finish your tasks \u2192 earn stars \u2192 trade them for this! \u2b50'},
-      {id:'ns-cc4',sec:'child',icon:'\uD83D\uDC75',key:'family_type',type:'radio',list:FAMILY,q:'Are you blessed enough to stay with your grandparents?',opt:true},
-      {id:'ns-tt1',sec:'extra',icon:'\uD83D\uDCF1',key:'screen_time',type:'radio',list:SCREEN,q:"Screens, tablets, and TVs \u2014 how much do you watch 'em daily?",opt:true,skiprest:true},
-      {id:'ns-tt2',sec:'extra',icon:'\u26BD',key:'outdoor_time',type:'radio',list:OUTDOOR,q:'Sunlight check! How much time do you spend playing around outside?',opt:true,last:true}
+      {id:'ns-pp1',sec:'about',icon:'\uD83D\uDC4B',type:'childinfo',
+       q:'Tell us about your child',
+       hint:'Just enough to build their day. Nothing more.'},
+      {id:'ns-pp2',sec:'wish',icon:'\uD83D\uDE80',key:'parent_goal',type:'radio',list:GOALS,
+       q:'What would make this year a win for {name}?',
+       hint:'Pick the one that matters most right now. NIYAM will keep it at the centre of everything.'},
+      {id:'ns-pp3',sec:'day',icon:'\uD83C\uDF24\uFE0F',key:'day_start',type:'radio',list:STARTS,
+       q:'When does {name}\u2019s day open up?',
+       hint:'The school bag drops. The shoes come off. Somewhere in that gap, the day stops belonging to school and starts belonging to them.<br><br>NIYAM stays completely quiet until that moment \u2014 no tasks, no points, no nudges while {name} is still in class or on the way home. Tell us when their free time really begins, and their day will be waiting.',
+       foot:'Weekends and holidays open earlier \u2014 you can set that separately whenever you like.'},
+      {id:'ns-pp4',sec:'ready',icon:'\u2B50',type:'features',
+       q:'Here\u2019s what {name} gets',
+       hint:'Everything below is switched on. Turn off anything you don\u2019t want \u2014 you can change this any time from the Parent Zone.',
+       last:true}
     ];
-    var byId={}; P.forEach(function(p,i){ byId[p.id]=p; p.req=(!p.opt && p.type!=='avatar' && p.type!=='handoff'); p._next=(i<P.length-1)?P[i+1].id:null; });
+    var byId={}; P.forEach(function(p,i){ byId[p.id]=p; p._next=(i<P.length-1)?P[i+1].id:null; });
     var ORDER=P.map(function(p){return p.id;});
+    // The PIN screen sits between S5 and S7 in the flow.
+    var PIN_AFTER='ns-pp3';
     var ALLIDS=['ns-ob-consent','ns-ob-pin','ns-ob-done'].concat(ORDER);
 
-    function choiceLabel(type,key,label){
-      var lab=document.createElement('label'); lab.className='ns-choice '+(type==='radio'?'ns-radio':'ns-check'); lab.setAttribute('data-v',label);
-      var inp=document.createElement('input'); inp.type=type; inp.value=label; if(type==='radio') inp.name='ns_'+key;
+    function nm(){ return Q.child_name || 'your child'; }
+    function fill(t){ return String(t||'').replace(/\{name\}/g, nm()); }
+
+    function E(tag,cls,html){ var d=document.createElement(tag); if(cls) d.className=cls; if(html!=null) d.innerHTML=html; return d; }
+
+    function choiceLabel(key,label,sub){
+      var lab=document.createElement('label'); lab.className='ns-choice ns-radio'; lab.setAttribute('data-v',label);
+      var inp=document.createElement('input'); inp.type='radio'; inp.value=label; inp.name='ns_'+key;
       var bx=document.createElement('span'); bx.className='ns-box';
-      var tx=document.createElement('span'); tx.className='ns-choice-txt'; tx.textContent=label;
+      var tx=document.createElement('span'); tx.className='ns-choice-txt';
+      tx.innerHTML = sub ? (label+'<span style="display:block;font-size:11.5px;color:#8a8f9c;margin-top:2px">'+sub+'</span>') : label;
       lab.appendChild(inp); lab.appendChild(bx); lab.appendChild(tx); return {lab:lab,inp:inp};
     }
     function clearSel(box){ Array.prototype.forEach.call(box.querySelectorAll('.ns-choice'),function(x){ x.classList.remove('sel'); var i=x.querySelector('input'); if(i) i.checked=false; }); }
-    function wireRadio(box,key){
-      box.addEventListener('click',function(e){
-        var lab=e.target && e.target.closest ? e.target.closest('.ns-choice') : null; if(!lab||!box.contains(lab)) return;
-        e.preventDefault(); Q[key]=lab.getAttribute('data-v'); clearSel(box);
-        lab.classList.add('sel'); var inp=lab.querySelector('input'); if(inp) inp.checked=true;
+    function renderRadios(id,list,key,subs){
+      var box=$(id); if(!box) return; box.innerHTML='';
+      list.forEach(function(label){
+        var c=choiceLabel(key,label,subs?subs[label]:null);
+        if(Q[key]===label){ c.inp.checked=true; c.lab.classList.add('sel'); }
+        box.appendChild(c.lab);
       });
-    }
-    function renderRadios(id,list,key){
-      var box=$(id); if(!box) return; box.innerHTML='';
-      list.forEach(function(label){ var c=choiceLabel('radio',key,label); if(Q[key]===label){ c.inp.checked=true; c.lab.classList.add('sel'); } box.appendChild(c.lab); });
-      if(!box._wired){ box._wired=true; wireRadio(box,key); }
-    }
-    function renderChecks(id,list,key,max){
-      var box=$(id); if(!box) return; box.innerHTML='';
-      list.forEach(function(label){ var c=choiceLabel('check',key,label); if(Q[key].indexOf(label)>-1){ c.inp.checked=true; c.lab.classList.add('sel'); } box.appendChild(c.lab); });
       if(!box._wired){ box._wired=true;
         box.addEventListener('click',function(e){
           var lab=e.target && e.target.closest ? e.target.closest('.ns-choice') : null; if(!lab||!box.contains(lab)) return;
-          e.preventDefault(); var label=lab.getAttribute('data-v'), arr=Q[key], i=arr.indexOf(label), inp=lab.querySelector('input');
-          if(i>-1){ arr.splice(i,1); lab.classList.remove('sel'); if(inp) inp.checked=false; }
-          else { if(arr.length>=max) return; arr.push(label); lab.classList.add('sel'); if(inp) inp.checked=true; }
+          e.preventDefault(); Q[key]=lab.getAttribute('data-v'); clearSel(box);
+          lab.classList.add('sel'); var inp=lab.querySelector('input'); if(inp) inp.checked=true;
         });
       }
     }
 
-    function E(tag,cls,html){ var d=document.createElement(tag); if(cls) d.className=cls; if(html!=null) d.innerHTML=html; return d; }
     function head(p,sec){
       var h=E('div','ns-cardhead');
       var b=E('button','ns-back','&#8592;'); b.setAttribute('data-back','prev'); h.appendChild(b);
       if(sec){ var pill=E('span','ns-step',sec.pill); pill.style.color=sec.accent; pill.style.background=sec.soft; pill.style.border='1px solid '+sec.soft; h.appendChild(pill); }
-      if(p.opt){ h.appendChild(E('span','ns-optional-tag','optional')); }
       return h;
     }
+
     function buildCard(p,qi,total){
       var sec=SEC[p.sec];
       var card=E('div','ns-card ns-qcard'); card.id=p.id; card.style.display='none';
       card.appendChild(head(p,sec));
-      if(p.type==='handoff'){
-        var hf=E('div','ns-handoff'); hf.style.marginTop='6px';
-        hf.appendChild(E('div','ns-flame','\uD83C\uDF1F'));
-        var ht=E('h2'); ht.id='ns-handoff-title'; ht.textContent='Now hand the phone to your child'; hf.appendChild(ht);
-        hf.appendChild(E('p','ns-sub ns-center','The next few questions are for them to answer.'));
-        card.appendChild(hf);
-        var rb=E('button','ns-primary','I\u2019m ready!'); rb.setAttribute('data-next',p._next); card.appendChild(rb);
-        return card;
-      }
-      var pr=E('div','ns-progress'); var fl=E('div','ns-progress-fill'); fl.style.width=Math.round((qi+1)/total*100)+'%'; pr.appendChild(fl); card.appendChild(pr);
+      var pr=E('div','ns-progress'); var fl=E('div','ns-progress-fill');
+      fl.style.width=Math.round((qi+1)/total*100)+'%'; pr.appendChild(fl); card.appendChild(pr);
       var ic=E('div','ns-icon',p.icon); if(sec) ic.style.background=sec.soft; card.appendChild(ic);
-      card.appendChild(E('h2',null,p.q));
-      if(p.hint) card.appendChild(E('div','ns-qhint ns-center',p.hint));
-      if(p.type==='text'){ var inp=E('input'); inp.type='text'; inp.id='in-'+p.key; inp.setAttribute('autocomplete','off'); if(p.ph) inp.placeholder=p.ph; card.appendChild(inp); }
-      else if(p.type==='radio'||p.type==='check'){ var bx=E('div','ns-opts'); bx.id='opts-'+p.id; card.appendChild(bx); }
-      else if(p.type==='starcombo'){
-        var sb=E('div','ns-opts'); sb.id='opts-ns-star'; card.appendChild(sb);
-        card.appendChild(E('div','ns-qhint ns-center','Or type your own:'));
-        var si=E('input'); si.type='text'; si.id='in-star_name'; si.setAttribute('autocomplete','off'); si.placeholder='Type a name'; card.appendChild(si);
+      card.appendChild(Object.assign(E('h2',null,p.q),{id:p.id+'-q'}));
+      if(p.hint) card.appendChild(Object.assign(E('div','ns-qhint ns-center',p.hint),{id:p.id+'-hint'}));
+
+      if(p.type==='childinfo'){
+        var w=E('div');
+        w.appendChild(Object.assign(E('div','ns-qhint'),{innerHTML:'<b>What should we call them?</b>'}));
+        var inp=E('input'); inp.type='text'; inp.id='in-child_name'; inp.setAttribute('autocomplete','off');
+        inp.placeholder='First name or nickname'; w.appendChild(inp);
+        w.appendChild(Object.assign(E('div','ns-qhint'),{innerHTML:'<b>Which class?</b>',style:'margin-top:14px'}));
+        var bx=E('div','ns-opts'); bx.id='opts-'+p.id; w.appendChild(bx);
+        w.appendChild(Object.assign(E('div','ns-qhint ns-center'),
+          {innerHTML:'This shapes their whole timetable \u2014 how long they study, when they sleep, and which activities appear.',
+           style:'margin-top:10px'}));
+        card.appendChild(w);
       }
-      else if(p.type==='avatar'){
-        var w=E('div','ns-avatar-wrap');
-        var prev=E('div','ns-photo-prev'); prev.id='ns-photo-prev'; prev.textContent='\uD83C\uDF1F'; w.appendChild(prev);
-        var grid=E('div','ns-avatar-grid'); grid.id='ns-avatar-grid';
-        AVATARS.forEach(function(a){ var t=E('button','ns-avatar',a); t.type='button'; t.setAttribute('data-av',a); grid.appendChild(t); });
-        w.appendChild(grid);
-        var row=E('div','ns-photo-row'); row.style.justifyContent='center';
-        row.innerHTML='<button type="button" class="ns-photo-btn" id="ns-photo-pick">Upload real photo</button>'+
-          '<button type="button" class="ns-skip" id="ns-photo-clear" style="display:none">Clear</button>'+
-          '<input id="ns-photo-input" type="file" accept="image/*" style="display:none">';
-        w.appendChild(row); card.appendChild(w);
+      else if(p.type==='radio'){ var rb=E('div','ns-opts'); rb.id='opts-'+p.id; card.appendChild(rb); }
+      else if(p.type==='features'){
+        var fw=E('div'); fw.id='ns-feat-wrap';
+        FEATURES.forEach(function(f){
+          var row=E('div','ns-feat-row');
+          row.setAttribute('data-f',f.key);
+          row.style.cssText='display:flex;gap:11px;align-items:flex-start;text-align:left;background:#fff;'
+            +'border:1.5px solid #ece7df;border-radius:14px;padding:12px 13px;margin-bottom:9px';
+          row.innerHTML =
+            '<div style="font-size:23px;line-height:1;flex:0 0 auto">'+f.icon+'</div>'
+            + '<div style="flex:1;min-width:0">'
+            +   '<div style="font-weight:800;font-size:14.5px;margin-bottom:3px">'+f.name+'</div>'
+            +   '<div style="font-size:12px;color:#6b7280;line-height:1.5">'+f.desc+'</div>'
+            + '</div>'
+            + (f.locked
+                ? '<div style="flex:0 0 auto;font-size:10.5px;font-weight:800;color:#8a5a00;background:#fff5dd;'
+                  +'border-radius:8px;padding:5px 8px;white-space:nowrap">Always on</div>'
+                : '<button type="button" class="ns-feat-tog" data-k="'+f.key+'" '
+                  +'style="flex:0 0 auto;border:0;border-radius:9px;padding:7px 11px;font-size:11.5px;'
+                  +'font-weight:800;cursor:pointer;background:#e4f6ed;color:#1d7a53">On</button>');
+          fw.appendChild(row);
+        });
+        card.appendChild(fw);
       }
+
+      if(p.foot) card.appendChild(Object.assign(E('div','ns-qhint ns-center',p.foot),{style:'margin-top:12px'}));
       card.appendChild(Object.assign(E('div','ns-err'),{id:p.id+'-err'}));
-      if(p.last){
-        var fb=E('button','ns-primary','Finish'); fb.setAttribute('data-page',p.id); fb.setAttribute('data-finish','1'); card.appendChild(fb);
-        card.appendChild(Object.assign(E('button','ns-skip','Skip & finish'),{}) ).setAttribute('data-finish','1');
-      } else {
-        var cb=E('button','ns-primary','Continue'); cb.setAttribute('data-page',p.id); cb.setAttribute('data-next',p._next); card.appendChild(cb);
-        if(p.skiprest){ var sr=E('button','ns-skip','Skip the rest \u2192'); sr.setAttribute('data-finish','1'); card.appendChild(sr); }
-      }
+
+      var btn=E('button','ns-primary', p.last ? 'Finish setup' : 'Continue');
+      btn.setAttribute('data-page',p.id);
+      if(p.last) btn.setAttribute('data-finish','1'); else btn.setAttribute('data-next', p._next);
+      card.appendChild(btn);
       return card;
     }
 
     var host=$('ns-pages');
-    var qPages=P.filter(function(x){return x.type!=='handoff';}); var total=qPages.length;
-    if(host){ P.forEach(function(p){ host.appendChild(buildCard(p, p.type!=='handoff'?qPages.indexOf(p):-1, total)); }); }
-    P.forEach(function(p){
-      if(p.type==='radio') renderRadios('opts-'+p.id,p.list,p.key);
-      else if(p.type==='check') renderChecks('opts-'+p.id,p.list,p.key,p.max);
-    });
-
-    // star-name presets + custom
-    var sbox=$('opts-ns-star');
-    if(sbox){
-      STARNAMES.forEach(function(n){ sbox.appendChild(choiceLabel('radio','star',n).lab); });
-      sbox.addEventListener('click',function(e){
-        var lab=e.target && e.target.closest ? e.target.closest('.ns-choice') : null; if(!lab) return; e.preventDefault();
-        clearSel(sbox); lab.classList.add('sel'); var i=lab.querySelector('input'); if(i) i.checked=true;
-        var si=$('in-star_name'); if(si) si.value=lab.getAttribute('data-v');
-      });
-      var sin=$('in-star_name'); if(sin) sin.addEventListener('input',function(){ clearSel(sbox); });
+    if(host){
+      host.innerHTML='';
+      P.forEach(function(p,i){ host.appendChild(buildCard(p,i,P.length)); });
     }
+    renderRadios('opts-ns-pp1',GRADES,'child_class');
+    renderRadios('opts-ns-pp2',GOALS,'parent_goal',GOAL_HINT);
+    renderRadios('opts-ns-pp3',STARTS,'day_start');
 
-    // avatar + photo
-    var grid=$('ns-avatar-grid'), photoInput=$('ns-photo-input'), photoPrev=$('ns-photo-prev'), photoClear=$('ns-photo-clear'), photoPick=$('ns-photo-pick');
-    if(grid) grid.addEventListener('click',function(e){
-      var b=e.target && e.target.closest ? e.target.closest('.ns-avatar') : null; if(!b) return;
-      var a=b.getAttribute('data-av'); Q.child_avatar=a; Q.child_photo=null;
-      Array.prototype.forEach.call(grid.querySelectorAll('.ns-avatar'),function(x){ x.classList.remove('sel'); }); b.classList.add('sel');
-      if(photoPrev){ photoPrev.innerHTML=''; photoPrev.textContent=a; } if(photoClear) photoClear.style.display='inline';
+    // feature on/off toggles
+    var fwrap=$('ns-feat-wrap');
+    if(fwrap) fwrap.addEventListener('click',function(e){
+      var b=e.target && e.target.closest ? e.target.closest('.ns-feat-tog') : null; if(!b) return;
+      var k=b.getAttribute('data-k'); Q.features[k]=!Q.features[k];
+      b.textContent = Q.features[k] ? 'On' : 'Off';
+      b.style.background = Q.features[k] ? '#e4f6ed' : '#f1f2f6';
+      b.style.color      = Q.features[k] ? '#1d7a53' : '#9aa0ad';
+      var row=b.closest('.ns-feat-row');
+      if(row) row.style.opacity = Q.features[k] ? '1' : '.55';
     });
-    if(photoPick) photoPick.onclick=function(){ photoInput.click(); };
-    if(photoClear) photoClear.onclick=function(){ Q.child_photo=null; Q.child_avatar=null; if(photoPrev) photoPrev.textContent='\uD83C\uDF1F'; if(grid) Array.prototype.forEach.call(grid.querySelectorAll('.ns-avatar'),function(x){x.classList.remove('sel');}); photoClear.style.display='none'; photoInput.value=''; };
-    if(photoInput) photoInput.onchange=function(){
-      var f=photoInput.files && photoInput.files[0]; if(!f) return; var rd=new FileReader();
-      rd.onload=function(){ var img=new Image(); img.onload=function(){
-        var max=256, s=Math.min(max/img.width,max/img.height,1); var cv=document.createElement('canvas');
-        cv.width=Math.round(img.width*s); cv.height=Math.round(img.height*s); cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-        Q.child_photo=cv.toDataURL('image/jpeg',0.82); Q.child_avatar=null;
-        if(grid) Array.prototype.forEach.call(grid.querySelectorAll('.ns-avatar'),function(x){x.classList.remove('sel');});
-        if(photoPrev) photoPrev.innerHTML='<img src="'+Q.child_photo+'" alt="">'; if(photoClear) photoClear.style.display='inline';
-      }; img.src=rd.result; }; rd.readAsDataURL(f);
-    };
 
-    function visiblePage(){ for(var i=0;i<ORDER.length;i++){ var e=$(ORDER[i]); if(e && e.style.display!=='none') return ORDER[i]; } return null; }
+    function visiblePage(){ for(var i=0;i<ALLIDS.length;i++){ var e=$(ALLIDS[i]); if(e && e.style.display!=='none') return ALLIDS[i]; } return null; }
     function showCard(id){
       ALLIDS.forEach(function(x){ var e=$(x); if(e) e.style.display='none'; });
-      var el=$(id); if(!el) return; var p=byId[id];
-      if(p && p.type==='handoff'){ var fn=(Q.full_name||'').split(/\s+/)[0]; var ht=$('ns-handoff-title'); if(fn && ht) ht.textContent='Now hand the phone to '+fn+' \uD83C\uDF1F'; }
+      var el=$(id); if(!el) return;
+      var p=byId[id];
+      if(p){   // re-fill {name} placeholders now that we may know the child's name
+        var qEl=$(p.id+'-q'); if(qEl) qEl.textContent=fill(p.q);
+        var hEl=$(p.id+'-hint'); if(hEl && p.hint) hEl.innerHTML=fill(p.hint);
+      }
       el.style.display='block'; el.classList.remove('ns-in'); void el.offsetWidth; el.classList.add('ns-in'); window.scrollTo(0,0);
     }
     window.__nsShow=showCard;
-    function back(){ var cur=visiblePage(), idx=ORDER.indexOf(cur); if(idx>0) showCard(ORDER[idx-1]); else showCard('ns-ob-pin'); }
+
+    function back(){
+      var cur=visiblePage();
+      if(cur==='ns-ob-pin'){ showCard(PIN_AFTER); return; }
+      if(cur==='ns-pp4'){ showCard('ns-ob-pin'); return; }
+      var idx=ORDER.indexOf(cur);
+      if(idx>0) showCard(ORDER[idx-1]); else showCard('ns-ob-consent');
+    }
+
     function validate(id){
       var p=byId[id]; if(!p) return null;
-      if(p.type==='text'||p.type==='starcombo'){ var v=$('in-'+p.key).value.trim(); Q[p.key]=v||null; if(p.req && !v) return (p.type==='starcombo'?'Pick a star name or type your own.':'Please fill this in to continue.'); return null; }
-      if(!p.req) return null;
-      if(p.type==='radio'){ if(!Q[p.key]) return 'Please pick an option to continue.'; }
-      if(p.type==='check'){ var min=(p.key==='values')?2:1; if(Q[p.key].length<min) return 'Please pick at least '+min+(min>1?' values.':'.'); }
+      if(p.type==='childinfo'){
+        var v=$('in-child_name').value.trim();
+        Q.child_name=v||null;
+        if(!v) return 'Please tell us what to call your child.';
+        if(!Q.child_class) return 'Please pick their class.';
+        return null;
+      }
+      if(p.type==='radio' && !Q[p.key]) return 'Please pick an option to continue.';
       return null;
     }
+
+    // '3:00 PM' -> 15
+    function startHour(txt){
+      var m=/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(txt||''); if(!m) return null;
+      var h=parseInt(m[1],10); if(/pm/i.test(m[3]) && h<12) h+=12; if(/am/i.test(m[3]) && h===12) h=0;
+      return h + parseInt(m[2],10)/60;
+    }
+
     async function finish(){
-      var first=(Q.full_name||'').split(/\s+/)[0]||Q.full_name;
-      var pd={ full_name:Q.full_name, grade:Q.grade, school:Q.school||null, values_source:Q.values_source, values:Q.values,
-        parent_goal:Q.parent_goal||null, child_avatar:Q.child_avatar||null, child_photo:Q.child_photo||null,
-        star_name:Q.star_name, interests:Q.interests, fav_reward:Q.fav_reward, family_type:Q.family_type||null,
-        screen_time:Q.screen_time||null, outdoor_time:Q.outdoor_time||null };
-      await saveProfile({ child_name:first, child_class:Q.grade, profile_data:pd });
+      var cls=Q.child_class, sh=startHour(Q.day_start);
+      var pd={
+        child_name:Q.child_name, grade:cls, parent_goal:Q.parent_goal||null,
+        day_start:Q.day_start||null, day_start_hour:sh,
+        features:Q.features, setup_done:true, setup_at:new Date().toISOString()
+      };
+      await saveProfile({ child_name:Q.child_name, child_class:cls, profile_data:pd });
+
+      // Build this family's starting timetable from their class band.
+      if(typeof window.niyamBuildTimetable === 'function'){
+        var tt = window.niyamBuildTimetable(cls, sh);
+        try{ await saveFamilyTimetable(tt.weekday, tt.weekend); }
+        catch(e){ console.warn('[setup] timetable save:', e); }
+      }
+
       ALLIDS.forEach(function(x){ var e=$(x); if(e) e.style.display='none'; });
-      $('ns-ob-done').style.display='block'; $('ns-done-msg').textContent='Opening '+first+"'s view\u2026"; setTimeout(enterApp,1300);
+      $('ns-ob-done').style.display='block';
+      $('ns-done-msg').textContent='Building '+Q.child_name+'\u2019s first day\u2026';
+      setTimeout(enterApp,1300);
     }
 
     var ob=$('ns-onboard');
     if(ob) ob.addEventListener('click', async function(e){
       var t=e.target; if(!t || t.tagName!=='BUTTON') return;
+      if(t.classList.contains('ns-feat-tog')) return;      // handled above
       var backTo=t.getAttribute('data-back');
       if(backTo!==null){ if(backTo==='consent') showCard('ns-ob-consent'); else back(); return; }
       var page=t.getAttribute('data-page'), next=t.getAttribute('data-next'), fin=t.getAttribute('data-finish');
       if(page===null && next===null && fin===null) return;
       if(page!==null){ clearErr(page+'-err'); var msg=validate(page); if(msg){ showErr(page+'-err', msg); return; } }
-      if(fin!==null){ try{ await finish(); }catch(err){ showErr((page||'ns-tt2')+'-err', err.message); } return; }
-      if(next!==null) showCard(next);
+      if(fin!==null){ try{ await finish(); }catch(err){ showErr((page||'ns-pp4')+'-err', err.message); } return; }
+      if(next!==null){
+        if(page===PIN_AFTER){ showCard('ns-ob-pin'); return; }   // PIN sits here
+        showCard(next);
+      }
     });
+
+    // expose for route()
+    window.__nsFirstPage = ORDER[0];
+    window.__nsLastPage  = ORDER[ORDER.length-1];
   })();
 
   $('ns-pz-logout').onclick=async function(){ try{ await window.sb.auth.signOut(); }catch(e){} try{ var _rm=[]; for(var _i=0;_i<localStorage.length;_i++){ var _k=localStorage.key(_i); if(_k && _k.indexOf('sb-')!==0) _rm.push(_k);} _rm.forEach(function(_k){ localStorage.removeItem(_k); }); sessionStorage.clear(); }catch(e){} location.reload(); };
