@@ -425,6 +425,10 @@
       alert('Could not save \u2014 the app is still starting up. Please refresh and try again.');
       return;
     }
+    if(!TTA.weekday.length && !TTA.weekend.length){
+      alert('Nothing to save yet \u2014 the timetable is still loading. Please try again in a moment.');
+      return;
+    }
     var btn = $('tta-save'); btn.disabled = true; btn.textContent = 'Saving\u2026';
     try{
       await window.niyamSaveTimetable(tidy(TTA.weekday), tidy(TTA.weekend));
@@ -437,8 +441,18 @@
     }
   }
 
-  function open(){
-    build(); loadIntoEditor(); switchTab('weekday');
+  async function open(){
+    build();
+    // CRITICAL: never open on empty data. If the family's timetable hasn't
+    // finished loading yet, wait for it — otherwise the editor would show the
+    // built-in default and Save would overwrite the family's real timetable.
+    if(!window.TT_CUSTOM && typeof window.niyamLoadTimetable === 'function'){
+      var host = $('tta-list');
+      if(host) host.innerHTML = '<div class="tta-empty">Loading your timetable\u2026</div>';
+      $('tta-screen').style.display = 'block';
+      try{ await window.niyamLoadTimetable(); }catch(e){ console.warn('[editor] load:', e); }
+    }
+    loadIntoEditor(); switchTab('weekday');
     $('tta-screen').style.display = 'block';
     window.scrollTo(0,0);
   }

@@ -164,8 +164,12 @@
       + ' \u00B7 ' + list.length + ' blocks';
   }
 
-  function open(opts){
+  async function open(opts){
     build();
+    // Same rule as the editor: show the family's real timetable, never a default.
+    if(!window.TT_CUSTOM && typeof window.niyamLoadTimetable === 'function'){
+      try{ await window.niyamLoadTimetable(); }catch(e){ console.warn('[plan] load:', e); }
+    }
     opts = opts || {};
     TP.name = opts.name || 'your child';
     TP.tab  = tomorrowIsWeekend() ? 'weekend' : 'weekday';
