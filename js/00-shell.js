@@ -5,6 +5,12 @@
 // Loads BEFORE 01-core.js so window.sb exists when the app reads it.
 // ============================================================
 (function(){
+  // ---- BUILD STAMP -------------------------------------------------------
+  // Bump this whenever you upload a new js/00-shell.js. Check it in the
+  // browser console to be certain which build the browser is actually running.
+  window.NIYAM_BUILD = '2026-08-21 · A3 · Tomorrow\u2019s Plan';
+  console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
+
   var isFile = location.protocol === 'file:'; // local test = memory session; https = persistent
   window.sb = (typeof supabase !== 'undefined')
     ? supabase.createClient(
@@ -229,6 +235,32 @@
   }
   window.niyamSaveTimetable = saveFamilyTimetable;
 
+  // Hides the tabs a family switched off on the "What's included" screen.
+  // Always-on features (timetable, approval, rewards, Geeta) are never hidden.
+  function applyFeatureToggles(feats){
+    if(!feats) return;
+    var MAP = {
+      brainlab: ["showTab('brain'"],
+      wordbook: ["showTab('wordbook'"],
+      creative: ["showTab('creative'", "showTab('gallery'"],
+      progress: ["showTab('graphs'"]
+      // sudoku lives inside Brain Lab; handled by the brainlab toggle
+    };
+    try{
+      var buttons = document.querySelectorAll('button.nb');
+      Object.keys(MAP).forEach(function(key){
+        if(feats[key] !== false) return;             // only hide explicit false
+        MAP[key].forEach(function(sig){
+          Array.prototype.forEach.call(buttons, function(b){
+            var oc = b.getAttribute('onclick') || '';
+            if(oc.indexOf(sig) > -1) b.style.display = 'none';
+          });
+        });
+      });
+    }catch(e){ console.warn('[shell] feature toggles:', e); }
+  }
+  window.niyamApplyFeatures = applyFeatureToggles;
+
   function enterApp(){
     // --- Per-family browser-storage guard (fixes cross-account cache leak) ---
     try{
@@ -263,6 +295,11 @@
         else if(pd.child_avatar){ avEl.textContent = pd.child_avatar; }
       }
     }catch(e){ console.warn('[shell] header personalize:', e); }
+    try{
+      var _pd = (profile && profile.profile_data) || {};
+      if(typeof _pd === 'string'){ try{ _pd = JSON.parse(_pd); }catch(e){ _pd = {}; } }
+      applyFeatureToggles(_pd.features);
+    }catch(e){}
     $('ns-login').style.display='none';
     $('ns-onboard').style.display='none';
     $('ns-topbtns').style.display='flex';
@@ -339,7 +376,7 @@
   // Screen order: S3 About your child -> S4 Your wish -> S5 Day begins
   //               -> S6 Parent PIN -> S7 What's included -> build timetable
   (function(){
-    var GRADES=['Class 1','Class 2','Class 3','Class 4','Class 5','Class 6','Class 7','Class 8'];
+    var GRADES=['Class 4','Class 5','Class 6','Class 7','Class 8'];
     var GOALS=[
       'A steady routine they own',
       'Calmer evenings, less nagging',
@@ -469,6 +506,9 @@
         w.appendChild(Object.assign(E('div','ns-qhint ns-center'),
           {innerHTML:'This shapes their whole timetable \u2014 how long they study, when they sleep, and which activities appear.',
            style:'margin-top:10px'}));
+        w.appendChild(Object.assign(E('div','ns-qhint ns-center'),
+          {innerHTML:'NIYAM is built for Classes 4 to 8 right now. <b>Little ones are coming soon.</b>',
+           style:'margin-top:8px;background:#fff8e6;border:1px solid #f0d9a0;border-radius:11px;padding:9px 11px;color:#6b5a2a'}));
         card.appendChild(w);
       }
       else if(p.type==='radio'){ var rb=E('div','ns-opts'); rb.id='opts-'+p.id; card.appendChild(rb); }
@@ -584,10 +624,19 @@
         catch(e){ console.warn('[setup] timetable save:', e); }
       }
 
+      // Remember these so the preview can fall back to the band if needed.
+      window.__niyamClass = cls; window.__niyamStartHour = sh;
+
       ALLIDS.forEach(function(x){ var e=$(x); if(e) e.style.display='none'; });
       $('ns-ob-done').style.display='block';
       $('ns-done-msg').textContent='Building '+Q.child_name+'\u2019s first day\u2026';
-      setTimeout(enterApp,1300);
+      setTimeout(function(){
+        enterApp();
+        // Land on Tomorrow's Plan: the real dashboard, in parent preview.
+        if(typeof window.niyamOpenTomorrowsPlan === 'function'){
+          window.niyamOpenTomorrowsPlan({ name: Q.child_name });
+        }
+      },1300);
     }
 
     var ob=$('ns-onboard');
