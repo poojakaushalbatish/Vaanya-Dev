@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-08-21 · A3.1 · band-save diagnostics';
+  window.NIYAM_BUILD = '2026-08-21 · A3.2 · editor race fix';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   var isFile = location.protocol === 'file:'; // local test = memory session; https = persistent
@@ -313,6 +313,10 @@
       booted=true;
       loadFamilyTimetable().then(function(){
         if(typeof window.bootApp==='function') window.bootApp();
+        // Anything queued to run once the timetable is really loaded.
+        if(typeof window.__niyamAfterBoot === 'function'){
+          var fn = window.__niyamAfterBoot; window.__niyamAfterBoot = null; fn();
+        }
       });
     }
   }
@@ -641,11 +645,13 @@
       $('ns-ob-done').style.display='block';
       $('ns-done-msg').textContent='Building '+Q.child_name+'\u2019s first day\u2026';
       setTimeout(function(){
+        // Queue the preview so it opens only once the timetable is loaded.
+        window.__niyamAfterBoot = function(){
+          if(typeof window.niyamOpenTomorrowsPlan === 'function'){
+            window.niyamOpenTomorrowsPlan({ name: Q.child_name });
+          }
+        };
         enterApp();
-        // Land on Tomorrow's Plan: the real dashboard, in parent preview.
-        if(typeof window.niyamOpenTomorrowsPlan === 'function'){
-          window.niyamOpenTomorrowsPlan({ name: Q.child_name });
-        }
       },1300);
     }
 
