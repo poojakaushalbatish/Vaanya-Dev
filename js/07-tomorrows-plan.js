@@ -30,19 +30,31 @@
   }
 
   function schedules(){
+    var raw;
     var C = window.TT_CUSTOM;
     if(C && ((C.weekday && C.weekday.length) || (C.weekend && C.weekend.length))){
-      return { weekday: C.weekday || [], weekend: C.weekend || [] };
+      raw = { weekday: C.weekday || [], weekend: C.weekend || [] };
     }
     // Fallback: build from the class band if the save hasn't landed yet.
-    if(typeof window.niyamBuildTimetable === 'function' && window.__niyamClass){
+    else if(typeof window.niyamBuildTimetable === 'function' && window.__niyamClass){
       var t = window.niyamBuildTimetable(window.__niyamClass, window.__niyamStartHour);
-      return { weekday: t.weekday, weekend: t.weekend };
+      raw = { weekday: t.weekday, weekend: t.weekend };
     }
-    return {
-      weekday: (typeof TT_WEEKDAY !== 'undefined') ? TT_WEEKDAY : [],
-      weekend: (typeof TT_WEEKEND !== 'undefined') ? TT_WEEKEND : []
-    };
+    else {
+      raw = {
+        weekday: (typeof TT_WEEKDAY !== 'undefined') ? TT_WEEKDAY : [],
+        weekend: (typeof TT_WEEKEND !== 'undefined') ? TT_WEEKEND : []
+      };
+    }
+    // A4.5: match exactly what the child will see — same feature filter as
+    // ttGetSchedule() in 05-timetable-boot.js, keyed off window.niyamFeatures.
+    if(typeof window.niyamFilterSchedule === 'function'){
+      raw = {
+        weekday: window.niyamFilterSchedule(raw.weekday, window.niyamFeatures),
+        weekend: window.niyamFilterSchedule(raw.weekend, window.niyamFeatures)
+      };
+    }
+    return raw;
   }
 
   var CSS = ''
