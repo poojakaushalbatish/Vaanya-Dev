@@ -318,6 +318,9 @@
       var _pd = (profile && profile.profile_data) || {};
       if(typeof _pd === 'string'){ try{ _pd = JSON.parse(_pd); }catch(e){ _pd = {}; } }
       applyFeatureToggles(_pd.features);
+      // A4.5: exposed so ttGetSchedule() (05-timetable-boot.js) and Tomorrow's
+      // Plan (07-tomorrows-plan.js) can filter out tasks for switched-off features.
+      window.niyamFeatures = _pd.features || {};
     }catch(e){}
     $('ns-login').style.display='none';
     $('ns-onboard').style.display='none';
