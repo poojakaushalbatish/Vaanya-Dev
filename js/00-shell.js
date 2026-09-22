@@ -254,6 +254,39 @@
   }
   window.niyamSaveTimetable = saveFamilyTimetable;
 
+  // ---- Family rewards (Star Rewards editor) -----------------------------
+  // js/02-report.js's renderRewards()/claimReward() already read a
+  // 'vaanya_admin_rewards' localStorage key as an override for the built-in
+  // REWARDS list (falling back to REWARDS when it's empty) — that mechanism
+  // pre-dates this table. We just keep that key in sync with Supabase so a
+  // family's custom rewards follow them across devices, same as the timetable.
+  async function loadFamilyRewards(){
+    try{
+      if(!window.sb || !currentUser) return;
+      var r = await window.sb.from('rewards').select('items').maybeSingle();
+      if(r.error || !r.data) return;
+      var items = r.data.items;
+      if(typeof items === 'string'){ try{ items = JSON.parse(items); }catch(e){ items = null; } }
+      if(Array.isArray(items) && items.length){
+        localStorage.setItem('vaanya_admin_rewards', JSON.stringify(items));
+      }
+    }catch(e){ console.warn('[shell] rewards load:', e); }
+  }
+  window.niyamLoadRewards = loadFamilyRewards;
+
+  // Saves this family's custom rewards and refreshes the local override key.
+  async function saveFamilyRewards(items){
+    var row = { user_id: currentUser.id, items: items, updated_at: new Date().toISOString() };
+    var r = await window.sb.from('rewards').upsert(row, { onConflict: 'user_id' });
+    if(r.error){
+      console.error('[shell] rewards save failed:', r.error);
+      throw new Error('Could not save rewards: ' + r.error.message
+        + (r.error.hint ? ' (' + r.error.hint + ')' : ''));
+    }
+    localStorage.setItem('vaanya_admin_rewards', JSON.stringify(items));
+  }
+  window.niyamSaveRewards = saveFamilyRewards;
+
   // Hides the tabs a family switched off on the "What's included" screen.
   // Always-on features (timetable, approval, rewards, Geeta) are never hidden.
   function applyFeatureToggles(feats){
@@ -329,7 +362,7 @@
     var ar=document.getElementById('app-root'); if(ar) ar.style.display='';
     if(!booted){
       booted=true;
-      loadFamilyTimetable().then(function(){
+      Promise.all([loadFamilyTimetable(), loadFamilyRewards()]).then(function(){
         if(typeof window.bootApp==='function') window.bootApp();
         // Anything queued to run once the timetable is really loaded.
         if(typeof window.__niyamAfterBoot === 'function'){
