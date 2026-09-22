@@ -959,14 +959,17 @@ function markRewardClaimed(key, pts, title){
   localStorage.setItem('vaanya_claimed_rewards', JSON.stringify(claimed));
 }
 
-function claimReward(rewardIdx, pts){
+// A5: keyed by stable reward id (not array position) — see the comment on
+// REWARDS in js/01-core.js for why. rewardId is a string; pts still comes
+// from the button's own onclick so a stale reference can't overspend.
+function claimReward(rewardId, pts){
   const _rData=(()=>{try{return JSON.parse(localStorage.getItem('vaanya_admin_rewards')||'null')||REWARDS;}catch(e){return REWARDS;}})();
-  const _r=_rData.filter(x=>x.active!==false).sort((a,b)=>a.pts-b.pts)[rewardIdx]||{};
+  const _r=_rData.find(x=>x.id===rewardId)||{};
   const title=_r.title||'Reward';
   if(availablePts() < pts){ toast('Not enough points yet! Keep earning! 💪'); return; }
   if(!confirm('Claim "'+title+'" for '+pts.toLocaleString()+' pts?\n\nTell Mamma or Papa!\nDeducts '+pts.toLocaleString()+' pts from your bank.')) return;
   // Reuse spendPts mechanism to deduct pts + log to Supabase
-  const key = 'reward_'+rewardIdx;
+  const key = 'reward_'+rewardId;
   totalSpent += pts;
   const spendItem = {id:key, cost:pts, title, date:new Date().toISOString().split('T')[0]};
   spendHist.unshift(spendItem);
@@ -997,7 +1000,7 @@ function renderRewards(){
     const unlocked = avail>=r.pts;
     const prog = Math.min(100,Math.round(avail/r.pts*100));
     const grad = r.grad||('linear-gradient(135deg,'+r.col+','+r.col+'CC)');
-    const key = 'reward_'+idx;
+    const key = 'reward_'+r.id;
     const claimInfo = claimed[key];
     const claimCount = claimInfo ? claimInfo.count : 0;
 
@@ -1015,7 +1018,7 @@ function renderRewards(){
     if(unlocked){
       btnText = claimCount>0 ? '🔄 Claim again!' : '🎉 Claim it!';
       btnStyle = 'color:'+strip+';border-color:'+strip;
-      btnClick = 'onclick="claimReward('+idx+','+r.pts+')"';
+      btnClick = 'onclick="claimReward(\''+r.id+'\','+r.pts+')"';
     } else {
       btnText = '🔒 '+(r.pts-avail).toLocaleString()+' more needed';
       btnStyle = 'color:#9CA3AF;border-color:#E5E7EB;cursor:not-allowed';
