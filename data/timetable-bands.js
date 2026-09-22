@@ -407,6 +407,54 @@ function _niyamExpand(defs, startHour, prefix, bedtime){
   return out;
 }
 
+// ---------------------------------------------------------------------------
+// A4.5 — Feature filtering
+// Drops activities (and any block left with none) that belong to a feature
+// the family switched off on the "What's included" screen. Runs at LOAD time
+// (called from ttGetSchedule / Tomorrow's Plan) rather than only once at
+// generation time, so a feature toggled off after setup takes effect on the
+// very next render — no need to regenerate or resave the timetable.
+// ---------------------------------------------------------------------------
+
+// Which feature key (if any) gates a single activity. Returns null for
+// activities that are never feature-gated (self, parent/Geeta, pct-calc…).
+function niyamActivityFeature(act){
+  if(!act) return null;
+  if(act.premium === true) return 'creative';                       // photo/gallery work
+  if(act.type === 'wordbook') return 'wordbook';
+  if(act.type === 'link' && act.tab === 'brain') return 'brainlab';  // covers Sudoku too — same tab
+  return null;
+}
+
+/**
+ * Filter a weekday/weekend block list down to what this family's feature
+ * toggles allow. Never mutates the input. A block that started with tasks
+ * but has none left after filtering (every task belonged to an off feature)
+ * is dropped entirely — there is nothing left in it for the child to do.
+ * Blocks with no tasks to begin with (break, school) are always kept.
+ * @param {Array} blocks
+ * @param {Object} [features]  profile_data.features — missing/undefined key = on
+ */
+function niyamFilterSchedule(blocks, features){
+  if(!Array.isArray(blocks)) return blocks;
+  var feats = features || {};
+  var out = [];
+  blocks.forEach(function(b){
+    var before = (b.activities || []);
+    var acts = before.filter(function(a){
+      var f = niyamActivityFeature(a);
+      return !f || feats[f] !== false;   // keep unless the feature is explicitly off
+    });
+    if(before.length && !acts.length) return;   // nothing left in this block — drop it
+    var copy = {};
+    for(var k in b) if(Object.prototype.hasOwnProperty.call(b, k)) copy[k] = b[k];
+    copy.activities = acts;
+    copy.maxPts = _niyamBlockMax(acts);
+    out.push(copy);
+  });
+  return out;
+}
+
 /**
  * Build a family's starting timetable.
  * @param {number|string} cls        child's class, 1–8
@@ -444,4 +492,5 @@ if(typeof window !== 'undefined'){
   window.niyamBandForClass    = niyamBandForClass;
   window.niyamBuildTimetable  = niyamBuildTimetable;
   window.niyamDayMax          = niyamDayMax;
+  window.niyamFilterSchedule  = niyamFilterSchedule;
 }
