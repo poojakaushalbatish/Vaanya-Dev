@@ -61,14 +61,18 @@ function updateSS(){
   calcDayPts();
 }
 
+// A5: every reward carries a stable id now — claimed-trophy tracking in
+// js/02-report.js keys off this id, not array position, so the Rewards
+// editor can safely add/edit/delete/reorder without scrambling a child's
+// already-claimed badges.
 const REWARDS=[
-  {pts:400,  icon:'🎬', strip:'#FF6B6B', title:'A Movie at Home',                        items:['Family movie of your choice!','Popcorn & snacks included!','Any day, any time!']},
-  {pts:600,  icon:'📚', strip:'#06D6A0', title:'Buy a New Book of your choice',           items:['Any book you want — fiction, comics, knowledge!','Visit bookstore together!']},
-  {pts:800,  icon:'🌱', strip:'#FFBE0B', title:'1 Hour Do Not Disturb — anything you want', items:['No interruptions! 100% your time!','Read, draw, play, relax — you decide!','Parents will not disturb 🤐']},
-  {pts:1000, icon:'🍿', strip:'#FB5607', title:'Movie in a Theater with Parents',         items:['Big screen experience!','Popcorn + cold drink included!','You pick the film!']},
-  {pts:1200, icon:'🎁', strip:'#FF006E', title:'Surprise Gift by Parents',                items:['Mystery wrapped gift!','Could be ANYTHING amazing! 🌟']},
-  {pts:1500, icon:'🌟', strip:'#8338EC', title:'Half Yes Day',                            items:['Half a day — you decide everything!','Morning or afternoon — your call!','Mamma & Papa say YES to your ideas!']},
-  {pts:2700, icon:'👑', strip:'#FF006E', title:'Full Yes Day',                            items:['Vaanya rules for a FULL day!','One magical day — YOU decide EVERYTHING!','👑 The most epic reward EVER!']},
+  {id:'r-movie',   pts:400,  icon:'🎬', strip:'#FF6B6B', title:'A Movie at Home',                        items:['Family movie of your choice!','Popcorn & snacks included!','Any day, any time!']},
+  {id:'r-book',    pts:600,  icon:'📚', strip:'#06D6A0', title:'Buy a New Book of your choice',           items:['Any book you want — fiction, comics, knowledge!','Visit bookstore together!']},
+  {id:'r-dnd',     pts:800,  icon:'🌱', strip:'#FFBE0B', title:'1 Hour Do Not Disturb — anything you want', items:['No interruptions! 100% your time!','Read, draw, play, relax — you decide!','Parents will not disturb 🤐']},
+  {id:'r-theater', pts:1000, icon:'🍿', strip:'#FB5607', title:'Movie in a Theater with Parents',         items:['Big screen experience!','Popcorn + cold drink included!','You pick the film!']},
+  {id:'r-gift',    pts:1200, icon:'🎁', strip:'#FF006E', title:'Surprise Gift by Parents',                items:['Mystery wrapped gift!','Could be ANYTHING amazing! 🌟']},
+  {id:'r-halfyes', pts:1500, icon:'🌟', strip:'#8338EC', title:'Half Yes Day',                            items:['Half a day — you decide everything!','Morning or afternoon — your call!','Mamma & Papa say YES to your ideas!']},
+  {id:'r-fullyes', pts:2700, icon:'👑', strip:'#FF006E', title:'Full Yes Day',                            items:['Vaanya rules for a FULL day!','One magical day — YOU decide EVERYTHING!','👑 The most epic reward EVER!']},
 ];
 
 const SPEND_ITEMS=[
