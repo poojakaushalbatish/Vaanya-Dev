@@ -21,14 +21,20 @@ function ttIsWeekendSchedule(){
 // Returns this family's custom schedule when they have saved one in the
 // parent admin screen; otherwise the built-in default. window.TT_CUSTOM is
 // filled in by js/00-shell.js before the app boots.
+// A4.5: the result is filtered through this family's feature toggles
+// (window.niyamFeatures, set by 00-shell.js) so a switched-off feature never
+// leaves an orphaned task in what the child sees — see data/timetable-bands.js.
 function ttGetSchedule(){
   const useWeekend = ttIsWeekendSchedule();
   const C = window.TT_CUSTOM;
+  let raw = useWeekend ? TT_WEEKEND : TT_WEEKDAY;
   if(C){
     const custom = useWeekend ? C.weekend : C.weekday;
-    if(Array.isArray(custom) && custom.length) return custom;
+    if(Array.isArray(custom) && custom.length) raw = custom;
   }
-  return useWeekend ? TT_WEEKEND : TT_WEEKDAY;
+  return (typeof window.niyamFilterSchedule === 'function')
+    ? window.niyamFilterSchedule(raw, window.niyamFeatures)
+    : raw;
 }
 
 // ── Get current hour (0-23) ────────────────────────────────────
