@@ -298,6 +298,17 @@
       progress: ["showTab('graphs'"]
       // sudoku lives inside Brain Lab; handled by the brainlab toggle
     };
+    // The Parent Zone's daily-report approval accordion (index.html's
+    // pr-acc-1..6) is a second, separate place these same categories show up
+    // — the tab-hiding above never touched it, so a switched-off feature's
+    // review section (e.g. "Creative Moments") kept appearing there even
+    // though the child has no way to submit anything for it. pr-acc-3
+    // (Geeta) is deliberately not in here — Geeta is an always-on feature.
+    var SECTION_MAP = {
+      brainlab: ['pr-acc-2'],
+      creative: ['pr-acc-4'],
+      wordbook: ['pr-acc-5']
+    };
     try{
       var buttons = document.querySelectorAll('button.nb');
       Object.keys(MAP).forEach(function(key){
@@ -307,6 +318,13 @@
             var oc = b.getAttribute('onclick') || '';
             if(oc.indexOf(sig) > -1) b.style.display = 'none';
           });
+        });
+      });
+      Object.keys(SECTION_MAP).forEach(function(key){
+        if(feats[key] !== false) return;
+        SECTION_MAP[key].forEach(function(id){
+          var el = document.getElementById(id);
+          if(el) el.style.display = 'none';
         });
       });
     }catch(e){ console.warn('[shell] feature toggles:', e); }
