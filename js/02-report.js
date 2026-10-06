@@ -1,3 +1,7 @@
+// Real child's name (set by js/00-shell.js on login), falling back to the
+// same generic label the header uses before a profile has loaded.
+function _childName(){ return window.niyamChildName || 'My Star'; }
+
 // ════════════════════════════════════════════
 // SCORE CALC — fix #4: show % + points in section
 // ════════════════════════════════════════════
@@ -540,21 +544,21 @@ function evalReflection(n){
     const isGenuine = achieveWords.some(w=>d.includes(w)) || words>=6;
     pts = isGenuine ? (words>=12?7:words>=7?5:3) : 2;
     icon = pts>=6?'🌟':pts>=4?'👍':'🙂';
-    msg = pts>=6?'Wonderful reflection, Vaanya! That is a real achievement!':pts>=4?'Good effort! Being specific helps you remember your wins.':'Try to be more specific — what exactly did you do?';
+    msg = pts>=6?('Wonderful reflection, '+_childName()+'! That is a real achievement!'):pts>=4?'Good effort! Being specific helps you remember your wins.':'Try to be more specific — what exactly did you do?';
     bg='var(--pl)'; col='var(--pd)';
   } else if(n===2){
     // Improvement — should be honest and specific
     const isGenuine = improveWords.some(w=>d.includes(w)) || words>=6;
     pts = isGenuine ? (words>=12?7:words>=7?5:3) : 2;
     icon = pts>=6?'💪':pts>=4?'👍':'🙂';
-    msg = pts>=6?'Excellent self-awareness, Vaanya! Knowing what to improve is the first step!':pts>=4?'Good honest reflection! The more specific, the better.':'Be more honest and specific — what exactly needs improving?';
+    msg = pts>=6?('Excellent self-awareness, '+_childName()+'! Knowing what to improve is the first step!'):pts>=4?'Good honest reflection! The more specific, the better.':'Be more honest and specific — what exactly needs improving?';
     bg='var(--al)'; col='var(--ad)';
   } else if(n===3){
     // Tomorrow plan — should be actionable
     const isGenuine = planWords.some(w=>d.includes(w)) || words>=5;
     pts = isGenuine ? (words>=12?7:words>=7?5:3) : 2;
     icon = pts>=6?'🎯':pts>=4?'👍':'🙂';
-    msg = pts>=6?'Great plan, Vaanya! A clear goal for tomorrow sets you up for success!':pts>=4?'Good plan! Try to make it even more specific next time.':'Make your plan more actionable — say exactly what you will do!';
+    msg = pts>=6?('Great plan, '+_childName()+'! A clear goal for tomorrow sets you up for success!'):pts>=4?'Good plan! Try to make it even more specific next time.':'Make your plan more actionable — say exactly what you will do!';
     bg='var(--gl)'; col='var(--gd)';
   }
 
@@ -852,7 +856,7 @@ async function approveReport(){
   const appSec=document.getElementById('approved-section');
   if(appSec)appSec.style.display='block';
   const appMsg=document.getElementById('approved-msg');
-  if(appMsg)appMsg.textContent='✅ +'+pts+' points approved! Keep shining, Vaanya! 🌟';
+  if(appMsg)appMsg.textContent='✅ +'+pts+' points approved! Keep shining, '+_childName()+'! 🌟';
   const appTime=document.getElementById('approved-time');
   if(appTime)appTime.textContent='Approved: '+new Date().toLocaleString('en-IN');
 
@@ -862,7 +866,12 @@ async function approveReport(){
   const _rptEl=document.getElementById('rpt-date');
   if(_rptEl && _rptEl.value!==date) _rptEl.value=date;
   populateResetDatePicker();
-  showPop('✅','Report Approved! 🎉','Vaanya your report has been approved! You earned '+pts+' points today! ⭐ Keep it up!');
+  // This date is no longer pending — refresh the Parent Zone queue so it
+  // drops off immediately instead of still showing "awaiting approval"
+  // next to the approval banner for the same date.
+  if(typeof _pendingReviewDate!=='undefined' && _pendingReviewDate===date) _pendingReviewDate = null;
+  if(typeof renderPendingQueue==='function') renderPendingQueue();
+  showPop('✅','Report Approved! 🎉',_childName()+' your report has been approved! You earned '+pts+' points today! ⭐ Keep it up!');
   toast('Report approved! +'+pts+' points saved! Report is now locked.');
   if(!_approveOk){
     toast('⚠️ Cloud sync is slow right now — your approval is saved on this device and will sync automatically.');
@@ -873,13 +882,13 @@ async function approveReport(){
   const streak=getStreak();
   if([5,10,15,20,30].includes(streak)){
     const bonus=streak>=20?150:streak>=10?120:50;
-    setTimeout(()=>showPop('🔥',streak+'-Day Streak!','Amazing consistency Vaanya! +'+bonus+' bonus points!'),1800);
+    setTimeout(()=>showPop('🔥',streak+'-Day Streak!','Amazing consistency '+_childName()+'! +'+bonus+' bonus points!'),1800);
   }
 }
 
 async function rejectReport(){
   const date = _pendingReviewDate || document.getElementById('rpt-date')?.value;
-  if(!confirm('REJECT this report? This will completely erase all entries for '+(date||'today')+'. Vaanya will need to start fresh.')) return;
+  if(!confirm('REJECT this report? This will completely erase all entries for '+(date||'today')+'. '+_childName()+' will need to start fresh.')) return;
 
   // 1. Delete from Supabase (remove the draft entirely)
   if(date){
@@ -913,7 +922,7 @@ async function rejectReport(){
   todayApproved=false;
   updateTopBar();
 
-  showPop('❌','Report Rejected!','The report has been completely erased. Vaanya, please fill everything carefully and resubmit for approval! 💪');
+  showPop('❌','Report Rejected!','The report has been completely erased. '+_childName()+', please fill everything carefully and resubmit for approval! 💪');
 
   // 5. Go to Daily Report tab
   setTimeout(()=>showTab('report', document.querySelector('.nb.t0')), 800);
@@ -938,7 +947,8 @@ function showVaanyaMotivation(){
   do { idx = Math.floor(Math.random()*VAANYA_QUOTES.length); } while(idx===_lastQuoteIdx);
   _lastQuoteIdx = idx;
   const q = VAANYA_QUOTES[idx];
-  showPop(q.icon, q.title, q.msg);
+  const nm = _childName();
+  showPop(q.icon, q.title.replace(/Vaanya/g, nm), q.msg.replace(/Vaanya/g, nm));
 }
 // Show a motivation pop-up when switching to rewards or spend tab
 // (called from showTab)
@@ -1111,7 +1121,7 @@ function renderSpendQuote(){
     '<div style="position:absolute;font-size:50px;left:6px;bottom:-12px;opacity:.18;pointer-events:none">'+q.emoji+'</div>'+
     '<div style="font-family:Fredoka One,cursive;font-size:16px;color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,.2);'+
     'margin-bottom:6px;position:relative;line-height:1.4">&ldquo;'+q.q+'&rdquo;</div>'+
-    '<div style="font-size:11px;color:rgba(255,255,255,.85);font-weight:800;position:relative">'+q.attr+'</div>'+
+    '<div style="font-size:11px;color:rgba(255,255,255,.85);font-weight:800;position:relative">'+(q.attr||'').replace(/Vaanya/g,_childName())+'</div>'+
     '<div style="font-size:10px;color:rgba(255,255,255,.65);margin-top:5px">tap for next quote ✨</div>'+
     '</div>';
 }
@@ -1245,7 +1255,7 @@ function renderParentTab(){
       : '(Shloka not loaded)';
   }
   if(shlokaRef){
-    shlokaRef.textContent = shlokaReflect.length>2 ? shlokaReflect : '— Vaanya has not filled this yet —';
+    shlokaRef.textContent = shlokaReflect.length>2 ? shlokaReflect : '— '+_childName()+' has not filled this yet —';
     shlokaRef.style.color = shlokaReflect.length>2 ? '#064E3B' : '#9CA3AF';
   }
 
