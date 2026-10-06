@@ -72,7 +72,7 @@ const REWARDS=[
   {id:'r-theater', pts:1000, icon:'🍿', strip:'#FB5607', title:'Movie in a Theater with Parents',         items:['Big screen experience!','Popcorn + cold drink included!','You pick the film!']},
   {id:'r-gift',    pts:1200, icon:'🎁', strip:'#FF006E', title:'Surprise Gift by Parents',                items:['Mystery wrapped gift!','Could be ANYTHING amazing! 🌟']},
   {id:'r-halfyes', pts:1500, icon:'🌟', strip:'#8338EC', title:'Half Yes Day',                            items:['Half a day — you decide everything!','Morning or afternoon — your call!','Mamma & Papa say YES to your ideas!']},
-  {id:'r-fullyes', pts:2700, icon:'👑', strip:'#FF006E', title:'Full Yes Day',                            items:['Vaanya rules for a FULL day!','One magical day — YOU decide EVERYTHING!','👑 The most epic reward EVER!']},
+  {id:'r-fullyes', pts:2700, icon:'👑', strip:'#FF006E', title:'Full Yes Day',                            items:['You rule for a FULL day!','One magical day — YOU decide EVERYTHING!','👑 The most epic reward EVER!']},
 ];
 
 const SPEND_ITEMS=[
@@ -610,9 +610,9 @@ function calcParentRating(){
   if(!document.getElementById('parent-rating').value){el.innerHTML='';return;}
   let col,icon,msg;
   if(val<=-100){col='#B91C1C';icon='😟';msg='Below Average — needs to work much harder tomorrow!';}
-  else if(val<0){col='#D97706';icon='😐';msg='Average — Vaanya can definitely do better!';}
+  else if(val<0){col='#D97706';icon='😐';msg='Average — '+_childName()+' can definitely do better!';}
   else if(val===0){col='#6B7280';icon='🙂';msg='Satisfactory — an okay day. Keep improving!';}
-  else if(val===25){col='#3B82F6';icon='😊';msg='Good — well done today, Vaanya!';}
+  else if(val===25){col='#3B82F6';icon='😊';msg='Good — well done today, '+_childName()+'!';}
   else if(val===50){col='#10B981';icon='😄';msg='Excellent — great effort and performance!';}
   else{col='#7C3AED';icon='🌟';msg='Extraordinary — outstanding day! We are so proud!';}
   el.style.background=col+'15';el.style.color=col;el.style.border='1.5px solid '+col+'40';
@@ -1519,7 +1519,7 @@ function _openShloka(shlokaId){
     '<div style="background:linear-gradient(135deg,#EFF6FF,#F5F3FF);border:1.5px solid #93C5FD;border-radius:13px;padding:12px 14px;margin-bottom:13px"><div style="font-size:10px;font-weight:900;color:#1D4ED8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">\uD83D\uDD35 What Krishna Is Really Saying</div><div style="font-size:13px;color:#1E3A8A;line-height:1.85">'+s.krishnaSays+'</div></div>'+
     '<div style="background:#fff;border:2px solid #FDE68A;border-radius:15px;padding:14px;margin-bottom:13px"><div style="font-size:10px;font-weight:900;color:#92400E;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px">\uD83D\uDCDA The Story</div><div style="font-size:13px;color:#374151;line-height:1.9">'+s.story+'</div></div>'+
     '<div style="background:linear-gradient(135deg,#065F46,#047857);border-radius:13px;padding:12px 14px;margin-bottom:12px"><div style="font-size:10px;font-weight:900;color:rgba(167,243,208,.9);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">\u2B50 The Lesson</div><div style="font-size:14px;font-weight:800;color:#fff;line-height:1.6">'+s.lesson+'</div></div>'+
-    '<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:13px;padding:12px 14px;margin-bottom:4px"><div style="font-size:10px;font-weight:900;color:#92400E;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">\uD83C\uDF1F Vaanya&#39;s Life</div><div style="font-size:13px;color:#78350F;line-height:1.85">'+s.lifeConnect+'</div></div>'+
+    '<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:13px;padding:12px 14px;margin-bottom:4px"><div style="font-size:10px;font-weight:900;color:#92400E;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">\uD83C\uDF1F In Your Life</div><div style="font-size:13px;color:#78350F;line-height:1.85">'+s.lifeConnect+'</div></div>'+
     actionHtml+
     '</div>';
   document.getElementById('shloka-overlay').style.display='block';
@@ -1627,7 +1627,7 @@ async function _moveToRelearning(shlokaId){
   if(!parentUnlocked){ toast('PIN required.'); return; }
   const shloka=SHLOKAS.find(s=>s.id===shlokaId);
   const name=shloka?shloka.chapter+' — '+shloka.chapterName:shlokaId;
-  const confirmed=window.confirm('Move "'+name+'" to Relearning?\n\n• Vaanya will need to recite it again\n• 10 pts will be deducted\n• You can Re-Master it after she recites correctly');
+  const confirmed=window.confirm('Move "'+name+'" to Relearning?\n\n• '+_childName()+' will need to recite it again\n• 10 pts will be deducted\n• You can Re-Master it after they recite correctly');
   if(!confirmed) return;
 
   const today=new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
@@ -1659,7 +1659,7 @@ async function _moveToRelearning(shlokaId){
   calcDayPts();
   _renderBrowseGrid();
   renderParentShlokaMgmt();
-  toast('🔄 Moved to Relearning! 10 pts deducted. Ask Vaanya to recite again when ready.');
+  toast('🔄 Moved to Relearning! 10 pts deducted. Ask '+_childName()+' to recite again when ready.');
 }
 
 function toggleMasteredList(){
@@ -1722,10 +1722,10 @@ function renderParentShlokaApproval(){
       // Show a clear message instead of a blind approve button
       container.innerHTML='<div style="background:#FFF7ED;border:1.5px solid #FCD34D;border-radius:12px;padding:12px 14px;font-size:12px;color:#92400E;font-weight:700;line-height:1.6">'
         +'⚠️ No shloka found in <b>Learning</b> or <b>Relearning</b> status.<br>'
-        +'Please go to the <b>Geeta — Soul Work</b> tab, have Vaanya tap on a shloka to start learning it first, then come back here to approve.</div>';
+        +'Please go to the <b>Geeta — Soul Work</b> tab, have '+_childName()+' tap on a shloka to start learning it first, then come back here to approve.</div>';
       return;
     }
-    container.innerHTML='<div style="font-size:12px;color:#9CA3AF;text-align:center;padding:12px">No shlokas awaiting approval. Vaanya needs to start learning one first.</div>';
+    container.innerHTML='<div style="font-size:12px;color:#9CA3AF;text-align:center;padding:12px">No shlokas awaiting approval. '+_childName()+' needs to start learning one first.</div>';
     return;
   }
 
@@ -1739,8 +1739,8 @@ function renderParentShlokaApproval(){
     const headerCol=isRelearning?'#1D4ED8':'#92400E';
     const subCol=isRelearning?'#1E3A8A':'#78350F';
     const noteText=isRelearning
-      ?'Vaanya has been re-practising this shloka. If she recites it correctly — tap Re-Master below.'
-      :'Ask Vaanya to recite this shloka. If correct — tap Approve below.';
+      ?(_childName()+' has been re-practising this shloka. If they recite it correctly — tap Re-Master below.')
+      :('Ask '+_childName()+' to recite this shloka. If correct — tap Approve below.');
     return '<div style="background:'+cardBg+';border:2px solid '+cardBord+';border-radius:13px;padding:14px;margin-bottom:9px">'
       +'<div style="font-size:13px;font-weight:900;color:'+headerCol+';margin-bottom:2px">'+s.chapter+since+'</div>'
       +'<div style="font-size:12px;font-weight:800;color:'+subCol+';margin-bottom:6px">'+s.chapterName+' — <i>'+s.chapterMeaning+'</i></div>'
@@ -1793,7 +1793,7 @@ async function _parentApproveCurrentShloka(){
   // Find the shloka details so parent can confirm the right one
   const shloka = SHLOKAS.find(s=>s.id===id);
   const name = shloka ? shloka.chapter + ' — ' + shloka.chapterName : id;
-  const confirmed = window.confirm('✅ Approve this shloka as MASTERED?\n\n' + name + '\n\nThis will unlock the next shloka for Vaanya.');
+  const confirmed = window.confirm('✅ Approve this shloka as MASTERED?\n\n' + name + '\n\nThis will unlock the next shloka for '+_childName()+'.');
   if(!confirmed) return;
 
   await _parentApproveShloka(id);
