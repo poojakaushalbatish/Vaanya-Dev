@@ -353,6 +353,9 @@
       var p = profile || {}, pd = p.profile_data || {};
       if(typeof pd === 'string'){ try{ pd = JSON.parse(pd); }catch(e){ pd = {}; } }
       var nm = p.child_name || 'My Star';
+      // Exposed so any file (e.g. js/02-report.js's popups) can address the
+      // real child by name instead of a hardcoded placeholder.
+      window.niyamChildName = nm;
       var tEl = document.getElementById('hdr-title');
       if(tEl) tEl.textContent = nm.toUpperCase() + "'S SCHEDULE & SCOREBOARD \uD83C\uDFC6";
       var sEl = document.getElementById('hdr-sub');
@@ -450,26 +453,12 @@
 
 
   // ---- Parent setup questionnaire (A2 rewrite) -------------------------
-  // Screen order: S3 About your child -> S4 Your wish -> S5 Day begins
+  // Screen order: S3 About your child -> S5 Day begins
   //               -> S6 Parent PIN -> S7 What's included -> build timetable
+  // (the "what would make this year a win" wish screen was cut — it never
+  // affected anything downstream; see the A5/A7 fix-pass notes.)
   (function(){
     var GRADES=['Class 4','Class 5','Class 6','Class 7','Class 8'];
-    var GOALS=[
-      'A steady routine they own',
-      'Calmer evenings, less nagging',
-      'More focus, fewer distractions',
-      'Kinder and more responsible',
-      'Confidence and independence',
-      'Consistent study habits'
-    ];
-    var GOAL_HINT={
-      'A steady routine they own':'fewer reminders, more self-starting',
-      'Calmer evenings, less nagging':'the day runs without a fight',
-      'More focus, fewer distractions':'finishing what they start',
-      'Kinder and more responsible':'noticing others, helping at home',
-      'Confidence and independence':'trying without being pushed',
-      'Consistent study habits':'homework becomes normal, not a battle'
-    };
     var STARTS=['1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
 
     // S7 feature cards. locked:true = always included, cannot be switched off.
@@ -483,9 +472,7 @@
       {key:'geeta',     icon:'\uD83D\uDCFF', name:'Values & Wisdom',
        desc:'One short verse from the Bhagavad Geeta each day with its meaning in simple language \u2014 timeless wisdom about honesty, effort and self-control. NIYAM is rooted in Indian tradition and open to every family.', locked:true},
       {key:'brainlab',  icon:'\uD83E\uDDE0', name:'Brain Lab',
-       desc:'A daily logical-reasoning set, new every day.'},
-      {key:'sudoku',    icon:'\uD83D\uDD22', name:'Sudoku & Maths Practice',
-       desc:'A puzzle a day, and maths practice scored out of 100%.'},
+       desc:'A daily logical-reasoning set, sudoku and maths practice, new every day.'},
       {key:'wordbook',  icon:'\uD83D\uDCD6', name:'WordBook',
        desc:'New words with meanings and sentences, plus a quiz.'},
       {key:'creative',  icon:'\uD83C\uDFA8', name:'Creative Moments & Gallery',
@@ -499,7 +486,6 @@
 
     var SEC={
       about:{pill:'About your child',accent:'#d99a18',soft:'#fff3d6'},
-      wish:{pill:'Your wish',accent:'#2fa674',soft:'#e4f6ed'},
       day:{pill:'Their day',accent:'#9a63e0',soft:'#f3ecff'},
       ready:{pill:'Ready',accent:'#d99a18',soft:'#fff3d6'}
     };
@@ -508,9 +494,6 @@
       {id:'ns-pp1',sec:'about',icon:'\uD83D\uDC4B',type:'childinfo',
        q:'Tell us about your child',
        hint:'Just enough to build their day. Nothing more.'},
-      {id:'ns-pp2',sec:'wish',icon:'\uD83D\uDE80',key:'parent_goal',type:'radio',list:GOALS,
-       q:'What would make this year a win for {name}?',
-       hint:'Pick the one that matters most right now. NIYAM will keep it at the centre of everything.'},
       {id:'ns-pp3',sec:'day',icon:'\uD83C\uDF24\uFE0F',key:'day_start',type:'radio',list:STARTS,
        q:'When does {name}\u2019s day open up?',
        hint:'The school bag drops. The shoes come off. Somewhere in that gap, the day stops belonging to school and starts belonging to them.<br><br>NIYAM stays completely quiet until that moment \u2014 no tasks, no points, no nudges while {name} is still in class or on the way home. Tell us when their free time really begins, and their day will be waiting.',
@@ -629,7 +612,6 @@
       P.forEach(function(p,i){ host.appendChild(buildCard(p,i,P.length)); });
     }
     renderRadios('opts-ns-pp1',GRADES,'child_class');
-    renderRadios('opts-ns-pp2',GOALS,'parent_goal',GOAL_HINT);
     renderRadios('opts-ns-pp3',STARTS,'day_start');
 
     // feature on/off toggles
@@ -688,7 +670,7 @@
     async function finish(){
       var cls=Q.child_class, sh=startHour(Q.day_start);
       var pd={
-        child_name:Q.child_name, grade:cls, parent_goal:Q.parent_goal||null,
+        child_name:Q.child_name, grade:cls,
         day_start:Q.day_start||null, day_start_hour:sh,
         features:Q.features, setup_done:true, setup_at:new Date().toISOString()
       };
