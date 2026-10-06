@@ -189,7 +189,7 @@ async function doResetEdit(){
   closeResetConfirm();
   document.getElementById('reset-report-view').style.display = 'none';
   document.getElementById('reset-no-report').style.display = 'block';
-  document.getElementById('reset-no-report').innerHTML = '✏️ ' + dateLabel + ' moved to Under Review. Vaanya can now edit this entry. ' + pts + ' pts paused until re-approved.';
+  document.getElementById('reset-no-report').innerHTML = '✏️ ' + dateLabel + ' moved to Under Review. ' + _childName() + ' can now edit this entry. ' + pts + ' pts paused until re-approved.';
   document.getElementById('reset-no-report').style.color = '#92400E';
   document.getElementById('reset-no-report').style.background = '#FFF7ED';
   document.getElementById('reset-no-report').style.borderColor = '#FCD34D';
@@ -704,7 +704,7 @@ function openPinModalParent(){
     renderPendingQueue();
     renderParentTab();
     renderParentShlokaMgmt();
-    toast('Welcome! Review Vaanya report 📋');
+    toast('Welcome! Review '+_childName()+'’s report 📋');
   };
   document.getElementById('pin-overlay').classList.add('show');
   setTimeout(focusPinInput, 200);
@@ -1351,20 +1351,20 @@ function refreshParentSudokuPanel(){
   if(sudokuFrozen){
     if(badge){ badge.textContent='🔒 Locked'; badge.style.background='#FEF2F2'; badge.style.color='#B91C1C'; badge.style.borderColor='#FCA5A5'; }
     const diffLabel = {easy:'Easy',medium:'Medium',hard:'Hard'}[sudokuDifficulty||'easy']||'—';
-    status.innerHTML = `Vaanya completed her sudoku attempt today (<b>${sudokuPts} pts</b>, <b>${diffLabel}</b> difficulty).<br>
+    status.innerHTML = `${_childName()} completed their sudoku attempt today (<b>${sudokuPts} pts</b>, <b>${diffLabel}</b> difficulty).<br>
       <span style="color:#6B7280;font-size:12px">The sudoku is locked. You can grant one more attempt below.</span>`;
     if(unlockW) unlockW.style.display='block';
     if(unlockedNotice) unlockedNotice.style.display='none';
     if(openNotice) openNotice.style.display='none';
   } else if(sudokuPts > 0){
     if(badge){ badge.textContent='🔓 Unlocked'; badge.style.background='#ECFDF5'; badge.style.color='#065F46'; badge.style.borderColor='#6EE7B7'; }
-    status.textContent = 'Sudoku is currently unlocked — Vaanya is on her bonus attempt.';
+    status.textContent = 'Sudoku is currently unlocked — '+_childName()+' is on their bonus attempt.';
     if(unlockW) unlockW.style.display='none';
     if(unlockedNotice) unlockedNotice.style.display='block';
     if(openNotice) openNotice.style.display='none';
   } else {
     if(badge){ badge.textContent='📖 Not attempted'; badge.style.background='#EFF6FF'; badge.style.color='#1E3A8A'; badge.style.borderColor='#93C5FD'; }
-    status.textContent = 'Vaanya has not attempted today\'s sudoku yet. No unlock needed.';
+    status.textContent = _childName()+' has not attempted today\'s sudoku yet. No unlock needed.';
     if(unlockW) unlockW.style.display='none';
     if(unlockedNotice) unlockedNotice.style.display='none';
     if(openNotice) openNotice.style.display='block';
@@ -1375,7 +1375,7 @@ function parentUnlockSudoku(){
   unfreezeSudoku();
   saveBrainDraft();           // persist unfrozen state immediately
   refreshParentSudokuPanel();
-  toast('🔓 Sudoku unlocked! Vaanya gets one more attempt — will lock again after she checks.');
+  toast('🔓 Sudoku unlocked! '+_childName()+' gets one more attempt — will lock again after they check.');
 }
 
 // ════════════════════════════════════════════
