@@ -107,7 +107,7 @@ function renderCups(days){
       <span class="cup-icon">${cu.icon}</span>
       <div class="cup-name" style="color:#fff">${cu.name}</div>
       <div class="cup-pts" style="color:rgba(255,255,255,.85)">${cu.threshold}+ pts</div>
-      <div class="cup-desc" style="color:rgba(255,255,255,.75)">${achieved?cu.expert:isNext?'Need '+ptsNeed+' more pts!':cu.desc}</div>
+      <div class="cup-desc" style="color:rgba(255,255,255,.75)">${achieved?cu.expert.replace(/Vaanya/g,_childName()):isNext?'Need '+ptsNeed+' more pts!':cu.desc}</div>
       ${achieved?'<div class="cup-achieved-tag" style="color:#fff">✅ ACHIEVED TODAY!</div>':''}
       ${!achieved?`<div style="background:rgba(0,0,0,.25);border-radius:5px;height:5px;overflow:hidden;margin-top:7px">
         <div style="width:${pct}%;height:100%;background:rgba(255,255,255,.55);border-radius:5px;transition:width .8s"></div>
@@ -229,7 +229,7 @@ function showCupOverlay(id){
       <div style="font-size:32px;font-weight:900;color:#F472B6;letter-spacing:.06em;margin-bottom:10px">NOT YET!</div>
       <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px">${pts} pts today</div>
       <div style="font-size:14px;color:rgba(255,255,255,.85);max-width:300px;line-height:1.6;margin-bottom:20px">
-        Need ${200-pts} more pts for Bronze! Come on Vaanya — every single task counts. Tomorrow is your chance to shine!
+        Need ${200-pts} more pts for Bronze! Come on ${_childName()} — every single task counts. Tomorrow is your chance to shine!
       </div>
       <div style="font-size:13px;color:rgba(255,255,255,.5)">Tap anywhere to continue</div>`;
   } else {
@@ -237,7 +237,7 @@ function showCupOverlay(id){
       <div style="font-size:120px;line-height:1;margin-bottom:14px;animation:cupShake .6s ease .3s">${cup.icon}</div>
       <div style="font-size:38px;font-weight:900;color:#FCD34D;letter-spacing:.08em;margin-bottom:8px">${cup.name.toUpperCase()} CUP!</div>
       <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px">${pts} pts earned!</div>
-      <div style="font-size:14px;color:rgba(255,255,255,.85);max-width:320px;line-height:1.6;margin-bottom:20px">${cup.expert}</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.85);max-width:320px;line-height:1.6;margin-bottom:20px">${cup.expert.replace(/Vaanya/g,_childName())}</div>
       <div style="font-size:13px;color:rgba(255,255,255,.5)">Tap anywhere to continue</div>`;
   }
 
@@ -381,11 +381,11 @@ function renderPerfCard(days){
   const cup=getDayCup(avgPts);
 
   let rank,emoji,msg,col;
-  if(avgPts>=420){rank='S';emoji='👑';msg='LEGENDARY! Vaanya is absolutely unstoppable!';col='#047857';}
+  if(avgPts>=420){rank='S';emoji='👑';msg='LEGENDARY! '+_childName()+' is absolutely unstoppable!';col='#047857';}
   else if(avgPts>=300){rank='A';emoji='🌟';msg='Outstanding performance! You are a true star!';col='#1D4ED8';}
   else if(avgPts>=180){rank='B';emoji='💪';msg='Great effort! One more push and you hit S-rank!';col='#D97706';}
   else if(avgPts>=100){rank='C';emoji='🙂';msg='You are building momentum — keep going!';col='#EA580C';}
-  else{rank='D';emoji='😤';msg='Come on Vaanya — your best days are ahead of you!';col='#B91C1C';}
+  else{rank='D';emoji='😤';msg='Come on '+_childName()+' — your best days are ahead of you!';col='#B91C1C';}
 
   el.innerHTML=`
   <div style="background:linear-gradient(135deg,#065F46,#0F766E,#1D4ED8);border-radius:18px;padding:18px 20px;color:#fff;cursor:pointer" onclick="cupSoundAndOverlay(getDayCup(([...savedDays].filter(d=>d.approved).sort((a,b)=>new Date(b.date)-new Date(a.date))[0]?.pts||0))?.id||'none')">
@@ -1038,7 +1038,7 @@ function updateBrainDisplay(){
   if(pts === 0){emoji='😴';msg='Complete puzzles above to earn points!';}
   else if(pts < 20){emoji='🙂';msg='Good start! Keep going, more pts await!';}
   else if(pts < 40){emoji='😊';msg='Nice work! You are warming up!';}
-  else if(pts < 60){emoji='😄';msg='Brilliant brain work, Vaanya! 💪';}
+  else if(pts < 60){emoji='😄';msg='Brilliant brain work, '+_childName()+'! 💪';}
   else if(pts < 70){emoji='🤩';msg='Outstanding!! Your brain is on fire! 🔥';}
   else{emoji='🥳';msg='GENIUS MODE!! Maximum brain pts! 🧠👑';}
   if(moodEl) moodEl.textContent = emoji;
@@ -1082,7 +1082,7 @@ function unfreezeSudoku(){
   // Generate a fresh puzzle at easy (parent can pick difficulty after)
   genSudoku('easy');
   updateBrainDisplay(); calcDayPts();
-  toast('🔓 Sudoku unlocked! Vaanya gets one more attempt. It will lock again after she checks.');
+  toast('🔓 Sudoku unlocked! '+_childName()+' gets one more attempt. It will lock again after they check.');
 }
 
 function freezeLogic(){
