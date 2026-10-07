@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-08-21 · A3.3 · script-tag guard';
+  window.NIYAM_BUILD = '2026-10-07 · P1 · WordBook always on + editor rework';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   // Startup self-check: shout early if a required script tag is missing from
@@ -288,12 +288,13 @@
   window.niyamSaveRewards = saveFamilyRewards;
 
   // Hides the tabs a family switched off on the "What's included" screen.
-  // Always-on features (timetable, approval, rewards, Geeta) are never hidden.
+  // Always-on features (timetable, approval, rewards, Geeta, WordBook) are never
+  // hidden. WordBook used to be optional: an older profile may still carry
+  // wordbook:false, which is now simply ignored.
   function applyFeatureToggles(feats){
     if(!feats) return;
     var MAP = {
       brainlab: ["showTab('brain'"],
-      wordbook: ["showTab('wordbook'"],
       creative: ["showTab('creative'", "showTab('gallery'"],
       progress: ["showTab('graphs'"]
       // sudoku lives inside Brain Lab; handled by the brainlab toggle
@@ -306,8 +307,7 @@
     // (Geeta) is deliberately not in here — Geeta is an always-on feature.
     var SECTION_MAP = {
       brainlab: ['pr-acc-2'],
-      creative: ['pr-acc-4'],
-      wordbook: ['pr-acc-5']
+      creative: ['pr-acc-4']
     };
     try{
       var buttons = document.querySelectorAll('button.nb');
@@ -471,10 +471,10 @@
        desc:'Earn, save and spend on rewards you set yourself.', locked:true},
       {key:'geeta',     icon:'\uD83D\uDCFF', name:'Values & Wisdom',
        desc:'One short verse from the Bhagavad Geeta each day with its meaning in simple language \u2014 timeless wisdom about honesty, effort and self-control. NIYAM is rooted in Indian tradition and open to every family.', locked:true},
+      {key:'wordbook',  icon:'\uD83D\uDCD6', name:'Reading & WordBook',
+       desc:'Daily book reading, with three new words added to their own WordBook \u2014 meaning, sentence and a quiz.', locked:true},
       {key:'brainlab',  icon:'\uD83E\uDDE0', name:'Brain Lab',
        desc:'A daily logical-reasoning set, sudoku and maths practice, new every day.'},
-      {key:'wordbook',  icon:'\uD83D\uDCD6', name:'WordBook',
-       desc:'New words with meanings and sentences, plus a quiz.'},
       {key:'creative',  icon:'\uD83C\uDFA8', name:'Creative Moments & Gallery',
        desc:'Drawings, poems and stories \u2014 saved into their own gallery.'},
       {key:'progress',  icon:'\uD83D\uDCC8', name:'Progress',
