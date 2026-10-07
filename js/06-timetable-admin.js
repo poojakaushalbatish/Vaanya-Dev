@@ -6,7 +6,8 @@
 //
 // How it behaves: only one block is open at a time. Tapping a block shows its
 // tasks read-only; the pencil opens the edit form. New blocks start with no
-// name and no time, and overlapping times are flagged (and confirmed on Save).
+// name and no time, and overlapping times block Save until they are fixed.
+// Blocks and tasks of switched-off features are hidden here but kept on Save.
 //
 // Reads:  window.TT_CUSTOM (set by 00-shell.js) or the built-in TT_WEEKDAY /
 //         TT_WEEKEND defaults.
@@ -19,7 +20,8 @@
 
   // sel    = the one block that is open: { id, mode:'view'|'edit' } or null
   // follow = ids of tasks still named after their block (screen-only, never saved)
-  var TTA = { weekday: [], weekend: [], tab: 'weekday', sel: null, follow: {}, scrollTo: null, focus: null };
+  var TTA = { weekday: [], weekend: [], tab: 'weekday', sel: null, follow: {}, scrollTo: null, focus: null,
+              hidden: {} };   // per tab: blocks/tasks of switched-off features, kept aside
 
   // ---- helpers -------------------------------------------------------------
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
@@ -97,10 +99,55 @@
     return clone(src);
   }
 
+  // ---- features that are switched off --------------------------------------
+  // The editor shows what the child sees. Blocks and tasks that belong to a
+  // switched-off feature are kept aside here, untouched, and put back on Save,
+  // so nothing is lost if the feature is switched on again later.
+  function splitHidden(which, blocks){
+    var H = { blocks:[], acts:{} };
+    TTA.hidden[which] = H;
+    if(typeof window.niyamFilterSchedule !== 'function') return blocks;
+    blocks.forEach(function(b){ b.id = b.id || uid('cblk'); });
+    var shown = window.niyamFilterSchedule(blocks, window.niyamFeatures || {});
+    var byId = {}; shown.forEach(function(b){ byId[b.id] = b; });
+    blocks.forEach(function(b){
+      var s = byId[b.id];
+      if(!s){ H.blocks.push(b); return; }
+      var gone = [];
+      (b.activities||[]).forEach(function(a, i){ if((s.activities||[]).indexOf(a) === -1) gone.push({ at:i, act:a }); });
+      if(gone.length) H.acts[b.id] = gone;
+    });
+    return shown;
+  }
+  // The full list to save: what is on screen plus what was kept aside.
+  function withHidden(which){
+    var H = TTA.hidden[which] || { blocks:[], acts:{} };
+    return TTA[which].map(function(b){
+      var extra = H.acts[b.id];
+      if(!extra || b.type==='break' || b.type==='locked-until-3pm') return b;
+      var c = clone(b); c.activities = c.activities || [];
+      extra.forEach(function(g){ c.activities.splice(Math.min(g.at, c.activities.length), 0, clone(g.act)); });   // back where it was
+      return c;
+    }).concat(clone(H.blocks));
+  }
+  function hiddenNote(){
+    var H = TTA.hidden[TTA.tab] || { blocks:[], acts:{} };
+    var nB = H.blocks.length, nT = Object.keys(H.acts).reduce(function(n,k){ return n + H.acts[k].length; }, 0);
+    if(!nB && !nT) return '';
+    var f = window.niyamFeatures || {}, off = [];
+    if(f.brainlab === false) off.push('Brain Lab');
+    if(f.creative === false) off.push('Creative Moments');
+    var parts = [];
+    if(nB) parts.push(nB + (nB===1 ? ' block' : ' blocks'));
+    if(nT) parts.push(nT + (nT===1 ? ' task' : ' tasks'));
+    return 'Not shown: ' + parts.join(' and ') + ' that belong to ' + (off.join(' and ') || 'a feature')
+      + ', which ' + (off.length>1 ? 'are' : 'is') + ' switched off.';
+  }
+
   function loadIntoEditor(){
     var C = window.TT_CUSTOM || {};
-    TTA.weekday = sortByTime((C.weekday && C.weekday.length) ? clone(C.weekday) : defaults('weekday'));
-    TTA.weekend = sortByTime((C.weekend && C.weekend.length) ? clone(C.weekend) : defaults('weekend'));
+    TTA.weekday = sortByTime(splitHidden('weekday', (C.weekday && C.weekday.length) ? clone(C.weekday) : defaults('weekday')));
+    TTA.weekend = sortByTime(splitHidden('weekend', (C.weekend && C.weekend.length) ? clone(C.weekend) : defaults('weekend')));
   }
 
   function list(){ return TTA.tab==='weekend' ? TTA.weekend : TTA.weekday; }
@@ -202,6 +249,7 @@
       +     'time order automatically. <b>Already-approved past reports never change</b> \u2014 '
       +     'edits apply to days going forward.</div>'
       +   '<div id="tta-list"></div>'
+      +   '<div id="tta-hidnote" class="tta-hint"></div>'
       +   '<button class="tta-btn tta-soft" id="tta-addblock" style="width:100%;padding:13px;margin-top:6px">'
       +     '\u2795 Add a new time block</button>'
       + '</div>';
@@ -291,12 +339,20 @@
   }
 
   // ---- overlaps -----------------------------------------------------------
-  // A block's start/end as decimals, or null when it has no usable range
-  // (e.g. "Sleep" has only a start time).
+  // A block's start/end as decimals. A block with only a start time (e.g.
+  // "Sleep") is a single point in the day; a block that runs across it clashes.
   function range(b){
     var t = splitTime(b), s = hhmmToDec(t.start), e = hhmmToDec(t.end);
-    if(s===null || e===null || e<=s) return null;
+    if(s===null) return null;
+    if(e===null || e<=s) return { s:s, e:s, point:true };
     return { s:s, e:e };
+  }
+  function clash(ra, rb){
+    var EPS = 1e-6;
+    if(ra.point && rb.point) return false;
+    if(ra.point) return rb.s < ra.s - EPS && ra.s < rb.e - EPS;   // rb runs across ra's start
+    if(rb.point) return ra.s < rb.s - EPS && rb.s < ra.e - EPS;
+    return ra.s < rb.e - EPS && rb.s < ra.e - EPS;
   }
   // blockId -> [blocks it overlaps]
   function findOverlaps(L){
@@ -305,7 +361,7 @@
       var ra = range(L[i]); if(!ra) continue;
       for(var j=i+1;j<L.length;j++){
         var rb = range(L[j]); if(!rb) continue;
-        if(ra.s < rb.e - 1e-6 && rb.s < ra.e - 1e-6){
+        if(clash(ra, rb)){
           (map[L[i].id] = map[L[i].id] || []).push(L[j]);
           (map[L[j].id] = map[L[j].id] || []).push(L[i]);
         }
@@ -396,7 +452,7 @@
       +     '<input data-f="end" data-i="'+i+'" type="time" value="'+esc(tm.end)+'"></div>'
       + '</div>'
       + (ov ? '<div class="tta-warnbox">⚠️ This time overlaps with <b>'+esc(overlapNames(ov))+'</b>. '
-            + 'Change the time here, or shorten the other block.</div>' : '')
+            + 'Change the time here, or change the other block. The timetable cannot be saved while blocks overlap.</div>' : '')
       + '<div class="tta-row"><div class="tta-f"><label>Block type</label>'
       +   '<select data-f="type" data-i="'+i+'">'+opts(TYPES, b.type||'normal')+'</select></div></div>';
 
@@ -450,6 +506,7 @@
   function render(){
     var L = list(), host = $('tta-list');
     if(!host) return;
+    if($('tta-hidnote')) $('tta-hidnote').textContent = hiddenNote();
     if(!L.length){
       host.innerHTML = '<div class="tta-empty">No blocks yet — tap “Add a new time block” below.</div>';
       return;
@@ -598,7 +655,7 @@
     var label = TTA.tab==='weekend' ? 'Weekend' : 'Weekday';
     if(!confirm('Reset the '+label+' timetable back to the built-in NIYAM default?\n\n'
                 + 'Your other tab is not affected. Nothing is saved until you press Save.')) return;
-    if(TTA.tab==='weekend') TTA.weekend = defaults('weekend'); else TTA.weekday = defaults('weekday');
+    TTA[TTA.tab] = sortByTime(splitHidden(TTA.tab, defaults(TTA.tab)));
     TTA.sel = null; render();
     toast(label + ' timetable reset to default \u2014 press Save to keep it');
   }
@@ -618,34 +675,41 @@
     });
   }
 
-  // Every block needs a name and a start time before it can be saved.
+  // Before saving: every block needs a name and a start time, an end time
+  // must come after its start, and no two blocks may overlap.
   function firstProblem(){
-    var tabs = ['weekday','weekend'];
-    for(var t=0;t<tabs.length;t++){
-      var L = TTA[tabs[t]];
-      for(var i=0;i<L.length;i++){
-        var b = L[i];
+    var tabs = [['weekday','Weekdays'],['weekend','Weekends']], t, i, L, b;
+    for(t=0;t<tabs.length;t++){
+      L = TTA[tabs[t][0]];
+      for(i=0;i<L.length;i++){
+        b = L[i];
         if(!String(b.name||'').trim())
-          return { tab:tabs[t], id:b.id, focus:'[data-f="name"]', msg:'One block has no name yet. Please give it a name.' };
-        if(!splitTime(b).start)
-          return { tab:tabs[t], id:b.id, focus:'[data-f="start"]',
+          return { tab:tabs[t][0], id:b.id, focus:'[data-f="name"]', msg:'One block has no name yet. Please give it a name.' };
+        var tm = splitTime(b);
+        if(!tm.start)
+          return { tab:tabs[t][0], id:b.id, focus:'[data-f="start"]',
                    msg:'Please set a start time for \u201C'+b.name+'\u201D \u2014 it decides where the block sits in the day.' };
+        if(tm.end && hhmmToDec(tm.end) <= hhmmToDec(tm.start))
+          return { tab:tabs[t][0], id:b.id, focus:'[data-f="end"]',
+                   msg:'\u201C'+b.name+'\u201D ends before it starts. Please correct its end time.' };
+      }
+    }
+    for(t=0;t<tabs.length;t++){
+      L = TTA[tabs[t][0]];
+      var map = findOverlaps(L);
+      for(i=0;i<L.length;i++){
+        var ov = map[L[i].id];
+        if(!ov) continue;
+        // open the block the parent added themselves, if one of the two is theirs
+        var mine = function(x){ return String(x.id).indexOf('cblk-') === 0; };
+        var show = (mine(ov[0]) && !mine(L[i])) ? ov[0] : L[i], other = (show === L[i]) ? ov[0] : L[i];
+        return { tab:tabs[t][0], id:show.id, focus:'[data-f="start"]',
+                 msg: tabs[t][1] + ': \u201C' + blockLabel(show) + '\u201D (' + show.time + ') overlaps with \u201C'
+                    + blockLabel(other) + '\u201D (' + other.time + ').\n\nPlease change the time of one of them. '
+                    + 'The timetable can be saved once no blocks overlap.' };
       }
     }
     return null;
-  }
-  function overlapSummary(){
-    var out = [];
-    [['weekday','Weekdays'],['weekend','Weekends']].forEach(function(t){
-      var L = TTA[t[0]], map = findOverlaps(L), seen = {};
-      L.forEach(function(b){
-        (map[b.id]||[]).forEach(function(o){
-          var key = [b.id,o.id].sort().join('|'); if(seen[key]) return; seen[key] = 1;
-          out.push(t[1] + ': ' + blockLabel(b) + ' and ' + blockLabel(o));
-        });
-      });
-    });
-    return out.join('\n');
   }
 
   async function save(){
@@ -665,12 +729,9 @@
       alert(bad.msg);
       return;
     }
-    var ov = overlapSummary();
-    if(ov && !confirm('Some blocks overlap in time:\n\n' + ov + '\n\nYour child will see the earlier block as '
-        + '\u201Ctime has passed\u201D as soon as the later one starts.\n\nSave anyway?')) return;
     var btn = $('tta-save'); btn.disabled = true; btn.textContent = 'Saving\u2026';
     try{
-      await window.niyamSaveTimetable(tidy(TTA.weekday), tidy(TTA.weekend));
+      await window.niyamSaveTimetable(tidy(withHidden('weekday')), tidy(withHidden('weekend')));
       if(typeof window.niyamRefreshPlan === 'function') window.niyamRefreshPlan();
       $('tta-ask').style.display = 'flex';
     }catch(e){
