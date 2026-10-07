@@ -421,7 +421,6 @@ function _niyamExpand(defs, startHour, prefix, bedtime){
 function niyamActivityFeature(act){
   if(!act) return null;
   if(act.premium === true) return 'creative';                       // photo/gallery work
-  if(act.type === 'wordbook') return 'wordbook';
   if(act.type === 'link' && act.tab === 'brain') return 'brainlab';  // covers Sudoku too — same tab
   return null;
 }
