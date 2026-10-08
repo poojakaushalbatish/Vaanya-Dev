@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-10-07 · P1 · WordBook always on + editor rework';
+  window.NIYAM_BUILD = '2026-10-07 · Parent review page';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   // Startup self-check: shout early if a required script tag is missing from
@@ -18,6 +18,7 @@
     if(typeof window.niyamBuildTimetable !== 'function') missing.push('data/timetable-bands.js');
     if(typeof window.niyamOpenTimetableEditor !== 'function') missing.push('js/06-timetable-admin.js');
     if(typeof window.niyamOpenTomorrowsPlan !== 'function') missing.push('js/07-tomorrows-plan.js');
+    if(typeof window.niyamOpenReview !== 'function') missing.push('js/09-parent-review.js');
     if(missing.length){
       console.error('%cNIYAM: missing script tag(s) in index.html \u2192 ' + missing.join(', '),
         'color:#fff;background:#c0392b;padding:2px 6px;border-radius:3px;font-weight:bold');
@@ -69,7 +70,7 @@
   #ns-parent-btn{background:#191a2f;color:var(--gold);border:1px solid rgba(244,183,64,.4);border-radius:10px;padding:7px 14px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(25,26,47,.3)}
   #ns-pz-logout{background:rgba(255,255,255,.16);color:#fff;border:0;border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer}
   #ns-parent-zone{position:fixed;inset:0;background:#0f1020;z-index:99997;overflow:auto;display:none}
-  #ns-pz-bar{position:sticky;top:0;background:#191a2f;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  #ns-pz-bar{position:sticky;top:0;z-index:5;background:#191a2f;color:#fff;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
   #ns-pz-bar h1{font-size:18px;margin:0;color:#fff;letter-spacing:normal;text-shadow:none}
   #ns-pz-back{background:rgba(255,255,255,.16);color:#fff;border:0;border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer}
   #ns-pz-body{padding:14px;max-width:900px;margin:0 auto}
@@ -196,7 +197,7 @@
    </div>
   </div>
   <div id="ns-parent-zone">
-   <div id="ns-pz-bar"><h1>Parent Zone</h1><div style="display:flex;gap:8px"><button id="ns-pz-logout">Log out</button><button id="ns-pz-back">&#8592; Back to <span id="ns-pz-name">child</span></button></div></div>
+   <div id="ns-pz-bar"><h1>Parent Zone</h1><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button id="ns-pz-logout">Log out</button><button id="ns-pz-back">&#8592; Back to <span id="ns-pz-name">child</span></button></div></div>
    <div id="ns-pz-body"></div>
   </div>
   `;
@@ -752,6 +753,8 @@
     if(typeof renderPendingQueue==='function')      try{ renderPendingQueue(); }catch(e){}
     if(typeof renderParentTab==='function')         try{ renderParentTab(); }catch(e){}
     if(typeof renderParentShlokaMgmt==='function')  try{ renderParentShlokaMgmt(); }catch(e){}
+    // The review page itself (js/09-parent-review.js) sits above the older tools.
+    if(typeof window.niyamOpenReview==='function')  try{ window.niyamOpenReview(); }catch(e){ console.error('[shell] review page:', e); }
     $('ns-topbtns').style.display='none';
     $('ns-parent-zone').style.display='block';
     window.scrollTo(0,0);
