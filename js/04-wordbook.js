@@ -507,6 +507,12 @@ function unlockForm(){
 }
 
 function loadApprovedDay(d){
+  // Show the child the day as it was approved — their ticks, with anything the
+  // parent changed or awarded on the review page.
+  if(d.ttBlockStatesJSON){
+    try{ ttBlockStates = JSON.parse(d.ttBlockStatesJSON)||{}; }catch(e){ ttBlockStates = {}; }
+    if(typeof ttRender==='function') ttRender();
+  }
 
   if(d.parentComment){ const e=document.getElementById('parent-comment');if(e)e.value=d.parentComment; }
   const appSec=document.getElementById('approved-section');
