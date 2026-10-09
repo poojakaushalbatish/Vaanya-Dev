@@ -268,6 +268,7 @@ function ttRender(){
   const container = document.getElementById('tt-blocks-container');
   if(!container) return;
   const schedule = ttGetSchedule();
+  const brainTasks = ttBrainTasks(schedule);
   const nowH = ttNowHour();
   container.innerHTML = '';
 
@@ -452,11 +453,12 @@ function ttRender(){
                 </div>`;
               }
 
-              // For brain-linked activities: read live pts from global variable
+              // A Brain Lab task shows the points earned in that game today
               let displayPts = act.pts;
               let displayChecked = isChecked;
-              if(act.type==='link' && typeof _TT_BRAIN_MAP!=='undefined' && _TT_BRAIN_MAP[act.id]){
-                displayPts = _TT_BRAIN_MAP[act.id]();
+              const isBrainLink = act.type==='link' && (act.tab||'brain')==='brain';
+              if(isBrainLink){
+                displayPts = brainTasks[act.id] ? brainTasks[act.id].pts() : 0;
                 displayChecked = displayPts > 0;
               }
 
@@ -471,7 +473,7 @@ function ttRender(){
                       ${act.note?`<div class="tt-act-sub">${act.note}</div>`:''}
                     </div>
                   </div>
-                  <div class="tt-act-pts" style="color:${displayPts>0?block.color:'#9CA3AF'}" id="ttact-pts-${act.id}">${act.type==='parent' ? ttParentLabel(bState, act, displayChecked) : '+'+displayPts+' pts'+(act.type==='link'?' 🔗':'')}</div>
+                  <div class="tt-act-pts" style="color:${displayPts>0?block.color:'#9CA3AF'}" id="ttact-pts-${act.id}">${act.type==='parent' ? ttParentLabel(bState, act, displayChecked) : isBrainLink ? ttLinkLabel(brainTasks[act.id], displayPts) : '+'+displayPts+' pts'+(act.type==='link'?' 🔗':'')}</div>
                 </div>`;
             }).join('')}
           </div>
@@ -486,25 +488,15 @@ function ttRender(){
       </div>`;
     container.appendChild(wrapper);
   });
+  // The blocks were just rebuilt — often because a saved day was loaded — so
+  // bring the score in step with what is now on the page.
+  calcDayPts();
 }
 
-// ── Collect timetable pts for calcDayPts ──────────────────────
+// ── Timetable points, without Brain Lab ───────────────────────
 function ttGetTotalPts(){
-  // Only sum the ACTIVE schedule's blocks to prevent cross-contamination
-  const activeSchedule = ttGetSchedule();
-  const activeIds = new Set(activeSchedule.map(b=>b.id));
-  let total = 0;
-  Object.keys(ttBlockStates).forEach(id=>{
-    if(!activeIds.has(id)) return;
-    const bst = ttBlockStates[id];
-    let blockPts = bst.pts||0;
-    // Brain-lab activity points are counted once via brainPtsToday in calcDayPts().
-    // They are synced into timetable blocks for DISPLAY only, so subtract them here
-    // to avoid double-counting them in the day total.
-    if(bst.linkPts) Object.values(bst.linkPts).forEach(v => blockPts -= (v||0));
-    total += blockPts;
-  });
-  return total;
+  const s = ttDayScore();
+  return s.tasks + s.parent;
 }
 
 // ── Override timetable select with full points on rpt-tt ──────
@@ -900,85 +892,280 @@ async function ttSaveTextEntryToGallery(blockId, actId, galleryKey, actName){
   }
 }
 
-// ── Brain Lab → Timetable point sync ──────────────────────────
-let _ttSyncing = false;
-// Maps timetable activity IDs to their brain lab global variable
-const _TT_BRAIN_MAP = {
-  // Holiday: Maths Deep Practice block
-  'we-ma3': ()=>mathsPtsToday,   // Brain Lab Maths Sprint
-  'we-ma4': ()=>logicPtsTotal,   // Brain Lab Logic
-  // Holiday: Brain Lab + Focus block
-  'we-br1': ()=>sudokuPts,       // Sudoku
-  'we-br2': ()=>riddlePtsTotal,  // Riddles
-  // Weekday: Homework & Study block
-  'wd-st2': ()=>mathsPtsToday,   // Brain Lab Maths Sprint
-  'wd-st3': ()=>logicPtsTotal,   // Brain Lab Logic
-  'wd-st4': ()=>sudokuPts,       // Sudoku
-};
+// ════════════════════════════════════════════════════════════════
+// THE DAY'S SCORE
+// One count of the day, used by the child's page: the big number, the
+// daily maximum, the score panel and each block's footer.
+//
+// It follows the same rules as the Parent's Review page
+// (js/09-parent-review.js, model()), so what the child sees is what the
+// parent will approve:
+//     day's points = timetable tasks + Brain Lab + points a parent awarded
+//     daily maximum = everything today's timetable can give
+//
+// calcDayPts() and calcMaxPts() below REPLACE the functions of the same name
+// in js/02-report.js (this file loads later, so these win). The old ones
+// added up a fixed form — Tuition, Odda, Gym — that no longer exists, which
+// is why the child's page showed a maximum of 430 for every family.
+// ════════════════════════════════════════════════════════════════
 
-function ttSyncBrainLabPts(){
-  if(_ttSyncing) return; _ttSyncing=true;
+// ── Brain Lab tasks in the timetable ──────────────────────────
+// A timetable task of type 'link' points at a Brain Lab game. Which game is
+// read from the task's NAME ("Brain Lab — Sudoku"), so it works for every
+// class timetable and for tasks a parent adds. Same order and patterns as
+// BRAIN in js/09-parent-review.js — keep the two in step.
+const TT_BRAIN_GAMES = [
+  { key:'sudoku',     re:/sudoku/i,         max:40, pts:()=>sudokuPts },       // hard puzzle: 30 + 10
+  { key:'maths',      re:/maths\s*sprint/i, max:25, pts:()=>mathsPtsToday },   // 5 of 5
+  { key:'logic',      re:/logic/i,          max:15, pts:()=>logicPtsTotal },   // 10 of 10
+  { key:'riddles',    re:/riddle/i,         max:30, pts:()=>riddlePtsTotal },  // 3 riddles x 10
+  { key:'worksheets', re:/worksheet/i,      max:0,  pts:()=>worksheetPts },    // no fixed number a day
+];
 
+// taskId -> game, for the FIRST task that names each game. A second task for
+// the same game shows no points, or the same points would be shown twice.
+function ttBrainTasks(schedule){
+  const out = {}, used = {};
+  (schedule||[]).forEach(b => (b.activities||[]).forEach(a => {
+    if(a.type !== 'link' || (a.tab||'brain') !== 'brain') return;
+    const g = TT_BRAIN_GAMES.find(x => x.re.test(a.name||''));
+    if(g && !used[g.key]){ used[g.key] = true; out[a.id] = g; }
+  }));
+  return out;
+}
+
+// What a Brain Lab task shows on the right of its row.
+function ttLinkLabel(game, pts){
+  if(pts > 0) return '+' + pts + ' pts 🔗';
+  return (game && game.max) ? 'up to ' + game.max + ' pts 🔗' : 'Open 🔗';
+}
+
+// ── Count the day ─────────────────────────────────────────────
+// Reads the timetable and the child's ticks; changes nothing.
+function ttDayScore(){
+  const n = v => parseInt(v, 10) || 0;
   const schedule = ttGetSchedule();
-
+  const games = ttBrainTasks(schedule);
+  const s = {
+    tasks:0, tasksMax:0,                         // tasks the child scores
+    brain:(typeof brainPtsToday === 'number' ? brainPtsToday : 0), brainMax:0,
+    parent:0, parentMax:0,                       // tasks a parent scores
+    parentTasks:0, ready:0, scored:0,
+    bonus:0, blocks:{}
+  };
   schedule.forEach(block => {
-    const acts = block.activities || [];
-    const brainActs = acts.filter(a => a.type==='link' && _TT_BRAIN_MAP && _TT_BRAIN_MAP[a.id]);
-    if(!brainActs.length) return;
-
-    // Ensure block state exists
-    if(!ttBlockStates[block.id])
-      ttBlockStates[block.id] = {pts:0, checkedActs:{}, markedDone:false, linkPts:{}};
-    if(!ttBlockStates[block.id].linkPts)
-      ttBlockStates[block.id].linkPts = {};
-
-    const bst = ttBlockStates[block.id];
-
-    // Recalculate block pts from scratch: self + pct-calc + dropdown + brain
-    let selfPts = 0;
-    acts.forEach(act => {
-      if(act.type==='self' && bst.checkedActs[act.id]) selfPts += (act.pts||0);
-      if(act.type==='pct-calc' && bst.calcPts && bst.calcPts[act.id]) selfPts += bst.calcPts[act.id];
-      if(act.type==='dropdown' && bst.ddPts && bst.ddPts[act.id]) selfPts += bst.ddPts[act.id];
-      if(act.type==='text-entry' && bst.checkedActs[act.id]) selfPts += (act.pts||0);
-    });
-
-    // Sum all live brain lab pts
-    let brainTotal = 0;
-    brainActs.forEach(act => {
-      const livePts = _TT_BRAIN_MAP[act.id]();
-      bst.linkPts[act.id] = livePts;
-      if(livePts > 0) bst.checkedActs[act.id] = true;
-      else delete bst.checkedActs[act.id];
-      brainTotal += livePts;
-
-      // Update pts display
-      const ptsEl = document.getElementById('ttact-pts-'+act.id);
-      if(ptsEl){
-        ptsEl.textContent = '+'+livePts+' pts';
-        ptsEl.style.color = livePts > 0 ? block.color : '#9CA3AF';
+    if(block.type === 'break' || block.type === 'locked-until-3pm') return;
+    const st = ttBlockStates[block.id] || {}, chk = st.checkedActs || {};
+    const b = { own:0, link:0, given:0, linkPts:{} };
+    (block.activities||[]).forEach(act => {
+      const t = act.type || 'self';
+      if(t === 'parent' || t === 'parent-select'){
+        s.parentMax += (t === 'parent') ? n(act.pts) : n(act.maxCalcPts);
+        s.parentTasks++;
+        const got = st.parentPts ? st.parentPts[act.id] : undefined;
+        if(got !== undefined){ b.given += n(got); s.scored++; }
+        else if(chk[act.id]) s.ready++;
       }
-      // Update checkbox
-      const actEl = document.getElementById('ttact-'+act.id);
-      if(actEl){
-        if(livePts > 0) actEl.classList.add('checked');
-        else actEl.classList.remove('checked');
-        const cb = actEl.querySelector('.tt-act-cb');
-        if(cb) cb.textContent = livePts > 0 ? '\u2713' : '';
+      else if(t === 'link'){
+        const g = games[act.id];
+        if(g){ b.linkPts[act.id] = n(g.pts()); b.link += b.linkPts[act.id]; s.brainMax += g.max; }
+      }
+      else if(t === 'pct-calc'){
+        s.tasksMax += n(act.maxCalcPts);
+        b.own += n((st.calcPts||{})[act.id]);
+      }
+      else if(t === 'dropdown'){
+        const opts = (act.options && act.options.length) ? act.options : [3,5,7,10];
+        s.tasksMax += Math.max.apply(null, opts);
+        b.own += n((st.ddPts||{})[act.id]);
+      }
+      else {                                      // a tick worth fixed points
+        s.tasksMax += n(act.pts);
+        if(chk[act.id]) b.own += n(act.pts);
       }
     });
-
-    // Set block total
-    bst.pts = selfPts + brainTotal;
-
-    // Update footer
-    const footerEl = document.getElementById('ttpts-'+block.id);
-    if(footerEl) footerEl.textContent = bst.pts + ' pts earned';
+    s.tasks += b.own; s.parent += b.given;
+    s.blocks[block.id] = b;
   });
 
-  _ttSyncing = false;
-  // calcDayPts is NOT called here — it reads ttBlockStates directly via ttGetTotalPts()
-  // The caller (brain lab check fn) calls calcDayPts after this sync
+  // Work in a block the parent has since removed from the timetable still counts.
+  const C = window.TT_CUSTOM || {}, known = {};
+  [ (C.weekday && C.weekday.length) ? C.weekday : TT_WEEKDAY,
+    (C.weekend && C.weekend.length) ? C.weekend : TT_WEEKEND ].forEach(list => (list||[]).forEach(x => known[x.id] = 1));
+  Object.keys(ttBlockStates).forEach(id => {
+    if(known[id]) return;
+    const st = ttBlockStates[id] || {};
+    let link = 0; Object.values(st.linkPts||{}).forEach(v => link += n(v));
+    const p = n(st.pts) - link;
+    if(p > 0) s.tasks += p;
+  });
+
+  s.total = s.tasks + s.brain + s.parent;
+  s.max   = s.tasksMax + s.brainMax + s.parentMax;
+  return s;
+}
+
+// Writes the count back into each block (its saved points, its Brain Lab rows
+// and its footer), so the timetable, the saved day and the total always agree.
+function ttApplyScore(s){
+  const schedule = ttGetSchedule(), games = ttBrainTasks(schedule);
+  schedule.forEach(block => {
+    const b = s.blocks[block.id]; if(!b) return;
+    const hasLink = Object.keys(b.linkPts).length > 0;
+    if(!ttBlockStates[block.id]){
+      if(!b.link) return;                         // nothing done here yet
+      ttBlockStates[block.id] = {pts:0, checkedActs:{}, markedDone:false};
+    }
+    const st = ttBlockStates[block.id];
+    if(!st.checkedActs) st.checkedActs = {};
+    if(hasLink){
+      st.linkPts = b.linkPts;
+      Object.keys(b.linkPts).forEach(id => {
+        const pts = b.linkPts[id];
+        if(pts > 0) st.checkedActs[id] = true; else delete st.checkedActs[id];
+        const ptsEl = document.getElementById('ttact-pts-'+id);
+        if(ptsEl){ ptsEl.textContent = ttLinkLabel(games[id], pts); ptsEl.style.color = pts > 0 ? block.color : '#9CA3AF'; }
+        const actEl = document.getElementById('ttact-'+id);
+        if(actEl){
+          actEl.classList.toggle('checked', pts > 0);
+          const cb = actEl.querySelector('.tt-act-cb');
+          if(cb) cb.textContent = pts > 0 ? '✓' : '';
+        }
+      });
+    }
+    st.pts = b.own + b.link + b.given;
+    const footer = document.getElementById('ttpts-'+block.id);
+    if(footer) footer.textContent = st.pts + ' pts earned';
+  });
+}
+
+// Called by the Brain Lab after every puzzle, just before calcDayPts().
+function ttSyncBrainLabPts(){
+  ttApplyScore(ttDayScore());
+}
+
+// ── The day's points ──────────────────────────────────────────
+// Replaces calcDayPts() in js/02-report.js. Returns the total, which is also
+// what gets saved with the day.
+function calcDayPts(){
+  const s = ttDayScore();
+  ttApplyScore(s);
+
+  // An approved day shows exactly what was approved, whatever happens on the
+  // page afterwards (Brain Lab stays open after approval).
+  const date = document.getElementById('rpt-date')?.value;
+  const rec = (date && typeof savedDays !== 'undefined') ? savedDays.find(d => d.date === date) : null;
+  if(rec && rec.approved === true){
+    s.approved = true;
+    s.grade = rec.parentGrade || '';
+    s.total = parseInt(rec.pts, 10) || 0;
+    let rv = null; try{ rv = rec.reviewJSON ? JSON.parse(rec.reviewJSON) : null; }catch(e){}
+    if(rv){
+      s.tasks = parseInt(rv.tt, 10) || 0;
+      s.brain = parseInt(rv.brain, 10) || 0;
+      s.parent = Object.values(rv.awards||{}).reduce((a, v) => a + (parseInt(v, 10) || 0), 0);
+      s.bonus = parseInt(rv.bonus, 10) || 0;
+      s.later = (rv.later||[]).length;
+    }
+    if(s.grade === 'A'){
+      // A's in a row up to this day, counting only days that were given a grade
+      const graded = savedDays.filter(d => d.approved === true && d.parentGrade && d.date <= date)
+                              .sort((a, b) => a.date < b.date ? 1 : -1);
+      s.aRun = 0;
+      for(const d of graded){ if(d.parentGrade === 'A') s.aRun++; else break; }
+    }
+  }
+
+  ttPaintScore(s);
+  if(typeof updateBrainDisplay === 'function') updateBrainDisplay();
+  if(typeof updateSidePanels === 'function') updateSidePanels(s.total);
+  return s.total;
+}
+
+// Replaces calcMaxPts() in js/02-report.js: the most today's timetable can give.
+function calcMaxPts(){
+  const s = ttDayScore();
+  return { daily:s.tasksMax, brain:s.brainMax, geeta:s.parentMax, parent:0, total:s.max };
+}
+
+// ── Show the score ────────────────────────────────────────────
+// Fills the header, the score panel on the right and the phone's points sheet.
+// The rows of the two panels are built here: the ones written in index.html
+// belong to the old fixed form.
+function ttPaintScore(s){
+  const el  = id => document.getElementById(id);
+  const set = (id, v) => { const e = el(id); if(e) e.textContent = v; };
+  const pct = s.max > 0 ? Math.min(100, Math.max(0, Math.round(s.total / s.max * 100))) : 0;
+  const cheer = s.approved ? '✅ Approved' + (s.grade ? ' · Grade ' + s.grade : '')
+              : pct >= 95 ? '🌟 Outstanding!'
+              : pct >= 80 ? '🎉 Excellent!'
+              : pct >= 60 ? '👍 Great going!'
+              : pct >= 40 ? '💪 Keep going!'
+              : pct >= 20 ? '📚 Good start!'
+              : s.total > 0 ? '🙂 You have begun!'
+              : '✏️ Tick your first task';
+
+  // header + desktop panel
+  set('day-pts-live', s.total);
+  set('xp-lbl', s.total + ' / ' + s.max + ' pts earned today');
+  if(el('xp-bar')) el('xp-bar').style.width = pct + '%';
+  set('lpp-total', s.total); set('lpp-max', s.max); set('lpp-pct', pct + '%'); set('lpp-grade', cheer);
+  if(el('lpp-ring')) el('lpp-ring').style.strokeDashoffset = 175.9 - 175.9 * pct / 100;
+  // phone
+  set('mob-pill-num', s.total); set('mob-total', s.total); set('mob-max', s.max);
+  set('mob-pct', pct + '%'); set('mob-grade', cheer);
+  if(el('mob-bar')) el('mob-bar').style.width = pct + '%';
+
+  // rows
+  const rows = [{ icon:'📅', name:'My tasks', got:s.tasks, max:s.tasksMax, go:"lppScroll('sec-daily')" }];
+  if(s.brainMax > 0 || s.brain > 0)
+    rows.push({ icon:'🧠', name:'Brain Lab', got:s.brain, max:s.brainMax, go:"lppScroll('sec-brain')" });
+  if(s.parentTasks > 0 || s.parent > 0){
+    let note = '';
+    if(s.approved) note = s.later ? s.later + ' still to be checked' : '';
+    else if(s.ready > 0) note = s.ready + ' ready for your parent';
+    else if(s.scored < s.parentTasks) note = 'Your parent gives these';
+    rows.push({ icon:'👨‍👩‍👧', name:'From my parents', got:s.parent, max:s.parentMax, note:note });
+  }
+  if(s.bonus > 0) rows.push({ icon:'⭐', name:'5 A grades in a row', got:s.bonus, max:0, plus:true });
+  let streak = '';
+  if(s.approved && s.grade === 'A' && s.aRun % 5 !== 0)
+    streak = '⭐ ' + (s.aRun % 5) + ' A grade' + (s.aRun % 5 > 1 ? 's' : '') + ' in a row — ' + (5 - s.aRun % 5) + ' more for +100 bonus';
+  const num = r => (r.plus ? '+' : '') + r.got + ((r.max > 0 && r.got <= r.max) ? '<span style="font-size:10px;font-weight:800;opacity:.55"> / ' + r.max + '</span>' : '');
+
+  // desktop: the part of the panel under the dark header
+  let box = el('tt-score-rows');
+  if(!box){
+    box = document.querySelector('#live-pts-panel > div:nth-of-type(2)');
+    if(box) box.id = 'tt-score-rows';
+  }
+  if(box){
+    box.innerHTML = rows.map(r => `
+      <div ${r.go ? `onclick="${r.go}"` : ''} style="background:#fff;border:1.5px solid #B2DFDB;border-radius:13px;padding:9px 12px;margin-bottom:7px;${r.go ? 'cursor:pointer' : ''}">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <span style="font-size:10px;font-weight:900;color:#072227">${r.icon} ${r.name}</span>
+          <span style="font-size:18px;font-weight:900;color:#045D56;white-space:nowrap">${num(r)}</span>
+        </div>
+        ${r.note ? `<div style="font-size:9px;font-weight:800;color:#B45309;margin-top:3px">${r.note}</div>` : ''}
+      </div>`).join('')
+      + (streak ? `<div style="font-size:10px;font-weight:800;color:#92400E;background:#FEF3C7;border-radius:10px;padding:7px 10px;text-align:center">${streak}</div>` : '');
+  }
+
+  // phone: the grid of cards in the points sheet
+  let grid = el('tt-score-mob');
+  if(!grid){
+    grid = el('mob-daily') ? el('mob-daily').closest('div[style*="grid"]') : null;
+    if(grid) grid.id = 'tt-score-mob';
+  }
+  if(grid){
+    grid.innerHTML = rows.map(r => `
+      <div ${r.go ? `onclick="toggleMobPtsPanel();${r.go}"` : ''} style="background:#F5F3FF;border-radius:12px;padding:10px 12px;${r.go ? 'cursor:pointer' : ''}">
+        <div style="font-size:11px;color:#6B7280;font-weight:700">${r.icon} ${r.name}</div>
+        <div style="font-size:20px;font-weight:900;color:#7C3AED">${num(r)}</div>
+        ${r.note ? `<div style="font-size:10px;font-weight:800;color:#B45309;margin-top:2px">${r.note}</div>` : ''}
+      </div>`).join('')
+      + (streak ? `<div style="grid-column:1/-1;font-size:11px;font-weight:800;color:#92400E;background:#FEF3C7;border-radius:10px;padding:8px 10px;text-align:center">${streak}</div>` : '');
+  }
 }
 
 // ── Poem text formatting (Bold/Italic/Underline via markdown-style markers) ──
