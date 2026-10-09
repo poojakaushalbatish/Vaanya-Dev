@@ -37,8 +37,22 @@ function ttGetSchedule(){
     : raw;
 }
 
+// Time lock: each block opens at its own start time. That makes the app
+// impossible to test outside the afternoon, so on the TESTING site only
+// (vaanya-dev, or a local copy) every block is open all day. Real families
+// always get the time lock. To see the real lock on the testing site, add
+// ?lock=on to the address (and ?lock=off to go back); it lasts until the tab closes.
+const TT_TEST_MODE = (function(){
+  try{
+    const testingSite = /vaanya-dev|localhost|127\.0\.0\.1/.test(location.hostname);
+    const q = new URLSearchParams(location.search).get('lock');
+    if(q === 'on')  sessionStorage.setItem('tt_lock', 'on');
+    if(q === 'off') sessionStorage.removeItem('tt_lock');
+    return testingSite && sessionStorage.getItem('tt_lock') !== 'on';
+  }catch(e){ return false; }
+})();
+
 // ── Get current hour (0-23) ────────────────────────────────────
-const TT_TEST_MODE = false; // LIVE — time-based locking active (set true to unlock all blocks for testing)
 function ttNowHour(){
   return new Date().getHours() + new Date().getMinutes()/60;
 }
@@ -263,8 +277,8 @@ function ttRender(){
     banner.innerHTML = `<div style="background:linear-gradient(135deg,#FEF3C7,#FFFBEB);border:2px solid #FCD34D;border-radius:12px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span style="font-size:18px">🧪</span>
       <div style="flex:1">
-        <div style="font-size:12px;font-weight:900;color:#92400E">TEST MODE is ON — all blocks are unlocked</div>
-        <div style="font-size:10px;color:#78350F;margin-top:1px">Set <code>TT_TEST_MODE = false</code> in the code to restore live time-based locking</div>
+        <div style="font-size:12px;font-weight:900;color:#92400E">Testing site — every block is open all day</div>
+        <div style="font-size:10px;color:#78350F;margin-top:1px">Real families get the time lock. To see it here, add <code>?lock=on</code> to the address.</div>
       </div>
     </div>`;
     container.appendChild(banner);
