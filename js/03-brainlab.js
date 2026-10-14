@@ -466,7 +466,7 @@ function toast(msg){
 // SUDOKU ENGINE
 // ════════════════════════════════════════════
 function genSudoku(diff){
-  if(sudokuFrozen){ toast('🔒 Sudoku is locked for today! Ask Mamma or Papa to unlock one more attempt.'); return; }
+  if(sudokuFrozen){ toast('🔒 Sudoku is locked for today! Ask your parent to unlock one more attempt.'); return; }
   sudokuDifficulty=diff;
   document.getElementById('sudoku-msg').textContent='';
   const base=generateSudokuPuzzle(diff);
@@ -1067,7 +1067,7 @@ function freezeSudoku(){
         ✅ Sudoku (${diffLabel}) checked &amp; locked for today! ${sudokuPts>0?'🏆 '+sudokuPts+' pts earned!':'Come back tomorrow!'} 🔒
       </span>
       <span style="color:#9CA3AF;font-size:11px;font-weight:700">
-        🔐 Mamma or Papa can unlock one more attempt from the Parents Review tab.
+        🔐 Your parent can unlock one more attempt from the Parent Zone.
       </span>
     </div>`;
 }
