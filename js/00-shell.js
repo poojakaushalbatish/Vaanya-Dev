@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-10-14 · No time lock';
+  window.NIYAM_BUILD = '2026-10-14 · Wording + Creative off';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   // Startup self-check: shout early if a required script tag is missing from
@@ -211,6 +211,7 @@
   window.addEventListener('error', function(e){ if(!booted) console.warn('[shell] pre-boot error:', e.message||e); });
 
   var currentUser=null, profile=null, booted=false;
+  var NOT_IN_V1 = { creative:false };
 
   async function loadProfile(){
     var r = await window.sb.from('profiles').select('*').maybeSingle();
@@ -372,10 +373,15 @@
     try{
       var _pd = (profile && profile.profile_data) || {};
       if(typeof _pd === 'string'){ try{ _pd = JSON.parse(_pd); }catch(e){ _pd = {}; } }
-      applyFeatureToggles(_pd.features);
+      // Features that are not in version 1 are off for every family, whatever
+      // their profile says. Creative Moments & Gallery return with the Premium
+      // plan in version 2 (decided 14 Oct 2026) — remove it from this list then,
+      // and put its card back in FEATURES below.
+      var feats = Object.assign({}, _pd.features || {}, NOT_IN_V1);
+      applyFeatureToggles(feats);
       // A4.5: exposed so ttGetSchedule() (05-timetable-boot.js) and Tomorrow's
       // Plan (07-tomorrows-plan.js) can filter out tasks for switched-off features.
-      window.niyamFeatures = _pd.features || {};
+      window.niyamFeatures = feats;
     }catch(e){}
     $('ns-login').style.display='none';
     $('ns-onboard').style.display='none';
@@ -476,8 +482,6 @@
        desc:'Daily book reading, with three new words added to their own WordBook \u2014 meaning, sentence and a quiz.', locked:true},
       {key:'brainlab',  icon:'\uD83E\uDDE0', name:'Brain Lab',
        desc:'A daily logical-reasoning set, sudoku and maths practice, new every day.'},
-      {key:'creative',  icon:'\uD83C\uDFA8', name:'Creative Moments & Gallery',
-       desc:'Drawings, poems and stories \u2014 saved into their own gallery.'},
       {key:'progress',  icon:'\uD83D\uDCC8', name:'Progress',
        desc:'Streaks, points over time, and how the week went.'}
     ];
