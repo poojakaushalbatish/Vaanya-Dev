@@ -71,7 +71,7 @@ const REWARDS=[
   {id:'r-dnd',     pts:800,  icon:'🌱', strip:'#FFBE0B', title:'1 Hour Do Not Disturb — anything you want', items:['No interruptions! 100% your time!','Read, draw, play, relax — you decide!','Parents will not disturb 🤐']},
   {id:'r-theater', pts:1000, icon:'🍿', strip:'#FB5607', title:'Movie in a Theater with Parents',         items:['Big screen experience!','Popcorn + cold drink included!','You pick the film!']},
   {id:'r-gift',    pts:1200, icon:'🎁', strip:'#FF006E', title:'Surprise Gift by Parents',                items:['Mystery wrapped gift!','Could be ANYTHING amazing! 🌟']},
-  {id:'r-halfyes', pts:1500, icon:'🌟', strip:'#8338EC', title:'Half Yes Day',                            items:['Half a day — you decide everything!','Morning or afternoon — your call!','Mamma & Papa say YES to your ideas!']},
+  {id:'r-halfyes', pts:1500, icon:'🌟', strip:'#8338EC', title:'Half Yes Day',                            items:['Half a day — you decide everything!','Morning or afternoon — your call!','Your parents say YES to your ideas!']},
   {id:'r-fullyes', pts:2700, icon:'👑', strip:'#FF006E', title:'Full Yes Day',                            items:['You rule for a FULL day!','One magical day — YOU decide EVERYTHING!','👑 The most epic reward EVER!']},
 ];
 
@@ -83,7 +83,7 @@ const SPEND_ITEMS=[
   {id:'game_par', icon:'🎮', title:'Play Game with Parents',       cost:90,  col:'#7C3AED', strip:'#8338EC', desc:'Board game or outdoor — parents play with you!'},
   {id:'chess',    icon:'♟️', title:'Play Chess for 20 Mins',     cost:100, col:'#059669', strip:'#06D6A0', desc:'20 minutes of chess — sharpen your brain!'},
   {id:'tv60',     icon:'📺', title:'1 Hour Screen Time',           cost:200, col:'#8B5CF6', strip:'#8338EC', desc:'A full extra hour of screen time today!'},
-  {id:'gift_s',   icon:'🎁', title:'Small Surprise Gift by Parents', cost:250, col:'#DB2777', strip:'#FF006E', desc:'A small surprise gift from Mamma or Papa!'},
+  {id:'gift_s',   icon:'🎁', title:'Small Surprise Gift by Parents', cost:250, col:'#DB2777', strip:'#FF006E', desc:'A small surprise gift from your parents!'},
   {id:'date',     icon:'❤️', title:'Date with Mom or Dad',       cost:250, col:'#E11D48', strip:'#FB5607', desc:'Special 1-on-1 time — your choice of activity!'},
 ];
 
@@ -131,7 +131,7 @@ const RIDDLES=[
   {q:'The more you have of it, the less you see. What is it?',a:'Darkness',hint:'Turn off the lights.'},
   {q:'I run but never walk, have a mouth but never talk. What am I?',a:'A river',hint:'Ganga, Yamuna...'},
   {q:'What can travel around the world while staying in a corner?',a:'A stamp',hint:'Letters need me.'},
-  {q:'I have one eye but cannot see. What am I?',a:'A needle',hint:'Mamma uses it for stitching.'},
+  {q:'I have one eye but cannot see. What am I?',a:'A needle',hint:'It is used for stitching.'},
 ];
 
 // ════════════════════════════════════════════
@@ -901,7 +901,7 @@ function _buildPhotoPanel(key, opt){
     <!-- Parents note -->
     <div style="background:linear-gradient(135deg,${colors.bg},#fff);border:1.5px solid ${colors.bdr};border-radius:12px;padding:11px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px">
       <div style="font-size:20px">\U0001f469\u200d\U0001f467\u200d\U0001f466</div>
-      <div style="font-size:12px;color:#374151;font-weight:700;line-height:1.5">Mamma &amp; Papa will see this photo and award your points! \U0001f3a8</div>
+      <div style="font-size:12px;color:#374151;font-weight:700;line-height:1.5">Your parents will see this photo and award your points! \U0001f3a8</div>
     </div>
     <!-- Action buttons -->
     <div id="cm-action-btns" style="display:none;display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -1211,7 +1211,7 @@ async function saveCreativeWork(){
   _creativeSaved=true;
   if(status){
     status.innerHTML=cloudOk
-      ?'<span style="color:#10B981;font-size:13px">\u2705 Saved! Mamma &amp; Papa can now see your beautiful work \U0001f3a8</span>'
+      ?'<span style="color:#10B981;font-size:13px">\u2705 Saved! Your parents can now see your beautiful work \U0001f3a8</span>'
       :'<span style="color:#F59E0B">\U0001f4be Saved locally! (Cloud sync pending)</span>';
   }
   if(btn){btn.disabled=false;btn.textContent='\u2705 Saved!';}
@@ -1476,9 +1476,9 @@ function _showLockedMsg(){
   const relearningIds=_geetaReLearningIds();
   const activeId=_geetaActiveInProgressId();
   if(relearningIds.length>0){
-    toast('🔒 Re-master your Relearning shloka(s) first before starting a new one! Ask Mamma or Papa to approve. 🙏');
+    toast('🔒 Re-master your Relearning shloka(s) first before starting a new one! Ask your parent to approve. 🙏');
   }else if(activeId){
-    toast('🔒 Finish your current shloka first! Recite it to Mamma or Papa to unlock the next one. 🙏');
+    toast('🔒 Finish your current shloka first! Recite it to your parent to unlock the next one. 🙏');
   }else{
     toast('🔒 Complete your current shloka to unlock the next one. 🙏');
   }
@@ -1499,11 +1499,11 @@ function _openShloka(shlokaId){
   if(status==='new'&&!hasBlocker){ _geetaStartLearn(s.id,true); }
   let actionHtml='';
   if(status==='new'){
-    actionHtml='<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#92400E">📖 You are now learning this shloka!</div><div style="font-size:12px;color:#78350F;margin-top:6px;line-height:1.6">Recite it to Mamma or Papa. When they approve → Mastered! Earning 10 pts now ✨</div></div>';
+    actionHtml='<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#92400E">📖 You are now learning this shloka!</div><div style="font-size:12px;color:#78350F;margin-top:6px;line-height:1.6">Recite it to your parent. When they approve → Mastered! Earning 10 pts now ✨</div></div>';
   }else if(status==='inprogress'){
-    actionHtml='<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#92400E">📖 You are learning this shloka!</div><div style="font-size:12px;color:#78350F;margin-top:6px;line-height:1.6">Recite it to Mamma or Papa. When they approve → Mastered! Earning 10 pts now ✨</div></div>';
+    actionHtml='<div style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#92400E">📖 You are learning this shloka!</div><div style="font-size:12px;color:#78350F;margin-top:6px;line-height:1.6">Recite it to your parent. When they approve → Mastered! Earning 10 pts now ✨</div></div>';
   }else if(status==='relearning'){
-    actionHtml='<div style="background:#EFF6FF;border:1.5px solid #93C5FD;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#1D4ED8">🔄 You are re-learning this shloka!</div><div style="font-size:12px;color:#1E3A8A;margin-top:6px;line-height:1.6">Mamma or Papa moved this back for practice. Recite it to them again. When they approve → Re-Mastered! ✨</div></div>';
+    actionHtml='<div style="background:#EFF6FF;border:1.5px solid #93C5FD;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#1D4ED8">🔄 You are re-learning this shloka!</div><div style="font-size:12px;color:#1E3A8A;margin-top:6px;line-height:1.6">Your parent moved this back for practice. Recite it to them again. When they approve → Re-Mastered! ✨</div></div>';
   }else{
     actionHtml='<div style="background:#ECFDF5;border:1.5px solid #6EE7B7;border-radius:14px;padding:14px;margin-top:20px;text-align:center"><div style="font-size:14px;font-weight:900;color:#065F46">✅ You have mastered this shloka!</div><div style="font-size:12px;color:#047857;margin-top:4px">Mastered on '+(prog?prog.date:'')+'. You earned 25 pts! 🎉</div></div>';
   }
@@ -1533,7 +1533,7 @@ function _geetaStartLearn(shlokaId, silent){
   _persistGeetaToLocalStorage();
   if(!silent){
     closeShloka(null,true);
-    toast('\uD83D\uDCD6 Learning started! Recite to Mamma or Papa for 25 pts! \uD83D\uDE4F');
+    toast('\uD83D\uDCD6 Learning started! Recite it to your parent to earn points! \uD83D\uDE4F');
   }
 }
 
