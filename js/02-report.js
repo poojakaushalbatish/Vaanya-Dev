@@ -934,7 +934,7 @@ async function rejectReport(){
 const VAANYA_QUOTES = [
   {icon:'\u{1F31F}',title:"You're a Superstar, Vaanya!",msg:"Every point you earn is a step closer to your dreams. Keep shining, beta!"},
   {icon:'\u{1F525}',title:"On Fire Today!",msg:"Look at those points adding up! Consistency is your superpower, Vaanya!"},
-  {icon:'\u{1F3C6}',title:"Champion in the Making!",msg:"Champions dont give up - and you never do. Mamma and Papa are SO proud!"},
+  {icon:'\u{1F3C6}',title:"Champion in the Making!",msg:"Champions dont give up - and you never do. Your parents are SO proud!"},
   {icon:'\u{1F4AB}',title:"Almost There!",msg:"You are getting closer to your reward with every task. Keep going, you have got this!"},
   {icon:'\u{1F308}',title:"Brilliant, Vaanya!",msg:"Hard work today = amazing rewards tomorrow. You are building an incredible future!"},
   {icon:'\u{1F451}',title:"The Star of the House!",msg:"Every effort you make today makes tomorrow better. You ARE amazing, Vaanya!"},
@@ -977,7 +977,7 @@ function claimReward(rewardId, pts){
   const _r=_rData.find(x=>x.id===rewardId)||{};
   const title=_r.title||'Reward';
   if(availablePts() < pts){ toast('Not enough points yet! Keep earning! 💪'); return; }
-  if(!confirm('Claim "'+title+'" for '+pts.toLocaleString()+' pts?\n\nTell Mamma or Papa!\nDeducts '+pts.toLocaleString()+' pts from your bank.')) return;
+  if(!confirm('Claim "'+title+'" for '+pts.toLocaleString()+' pts?\n\nTell your parent!\nDeducts '+pts.toLocaleString()+' pts from your bank.')) return;
   // Reuse spendPts mechanism to deduct pts + log to Supabase
   const key = 'reward_'+rewardId;
   totalSpent += pts;
@@ -988,7 +988,7 @@ function claimReward(rewardId, pts){
   saveSpendToSupabase(spendItem);
   markRewardClaimed(key, pts, title);
   updateTopBar();
-  showPop('🎉', 'Reward Claimed! 🌟', 'You claimed "'+title+'"! Tell Mamma & Papa to make it happen! 🏆');
+  showPop('🎉', 'Reward Claimed! 🌟', 'You claimed "'+title+'"! Tell your parents to make it happen! 🏆');
   renderRewards();
   renderSpend();
 }
@@ -1076,7 +1076,7 @@ const SPEND_MESSAGES={
   canteen:'🏫 ₹30 canteen money approved! Treat yourself at school today! 🎉',
   snack:  '🍟 Snack time! Go pick your favourite — you deserve it! 🎊',
   game:   '🎮 Game on! Enjoy your game — have fun! 🏆',
-  buy50:  '🛒 ₹50 shopping approved! Pick something nice — tell Mamma/Papa what you buy! 🌟',
+  buy50:  '🛒 ₹50 shopping approved! Pick something nice — tell your parent what you buy! 🌟',
 };
 const SPEND_USED_KEY='vaanya_spend_used_today';
 
@@ -1101,12 +1101,12 @@ function markUsedToday(id){
 // ════════════════════════════════════════════
 const SPEND_QUOTES = [
   {q:"The best rewards are the ones you earned yourself!", attr:"— Your Hard Work", grad:"linear-gradient(135deg,#FF006E,#FF8E53)", emoji:"🌟"},
-  {q:"Spend your points with joy — you worked hard for every single one!", attr:"— Mamma & Papa", grad:"linear-gradient(135deg,#8338EC,#3A86FF)", emoji:"🎉"},
+  {q:"Spend your points with joy — you worked hard for every single one!", attr:"— Your parents", grad:"linear-gradient(135deg,#8338EC,#3A86FF)", emoji:"🎉"},
   {q:"Earning is beautiful. Spending wisely is an art!", attr:"— A lesson for life", grad:"linear-gradient(135deg,#06D6A0,#1B9AAA)", emoji:"💎"},
   {q:"Every treat you enjoy today is a trophy from your effort!", attr:"— Your Daily Star", grad:"linear-gradient(135deg,#FFBE0B,#FB5607)", emoji:"🏆"},
   {q:"When you earn it yourself, even a simple sweet tastes like a victory!", attr:"— Vaanya's motto", grad:"linear-gradient(135deg,#FF9A3C,#FF006E)", emoji:"🍬"},
   {q:"Fun is sweeter when you know you deserve it!", attr:"— The feeling of achievement", grad:"linear-gradient(135deg,#3A86FF,#8338EC)", emoji:"✨"},
-  {q:"Your points, your rules, your joy. This is YOUR reward shelf!", attr:"— Mamma & Papa", grad:"linear-gradient(135deg,#06D6A0,#FFBE0B)", emoji:"🌈"},
+  {q:"Your points, your rules, your joy. This is YOUR reward shelf!", attr:"— Your parents", grad:"linear-gradient(135deg,#06D6A0,#FFBE0B)", emoji:"🌈"},
   {q:"The satisfaction of performing well is the real reward. Points are just the bonus!", attr:"— A wise thought", grad:"linear-gradient(135deg,#FF006E,#8338EC)", emoji:"💫"},
 ];
 let _spendQIdx = 0;
@@ -1198,10 +1198,10 @@ function spendPts(id,cost,title,col){
     canteen:'🏫 ₹30 canteen money approved! Treat yourself at school today! 🎉',
     snack:  '🍟 Snack time! Go pick your favourite — you deserve it! 🎊',
     game:   '🎮 Game on! Enjoy your game — have fun! 🏆',
-    buy50:  '🛒 ₹50 shopping approved! Pick something nice — tell Mamma/Papa! 🌟',
+    buy50:  '🛒 ₹50 shopping approved! Pick something nice — tell your parent! 🌟',
   };
   const msg=MSGS[id]||'You spent '+cost+' points for: '+title+'! Enjoy! 🌟';
-  if(!confirm('Spend '+cost+' points for: '+title+'?\n\n⚠️ Always tell Mamma or Papa before using!\n\nThis option will be locked for the rest of today.'))return;
+  if(!confirm('Spend '+cost+' points for: '+title+'?\n\n⚠️ Always tell your parent before using!\n\nThis option will be locked for the rest of today.'))return;
   totalSpent+=cost;
   const spendItem={id,cost,title,date:new Date().toISOString().split('T')[0]};
   spendHist.unshift(spendItem);
