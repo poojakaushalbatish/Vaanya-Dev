@@ -37,20 +37,9 @@ function ttGetSchedule(){
     : raw;
 }
 
-// Time lock: each block opens at its own start time. That makes the app
-// impossible to test outside the afternoon, so on the TESTING site only
-// (vaanya-dev, or a local copy) every block is open all day. Real families
-// always get the time lock. To see the real lock on the testing site, add
-// ?lock=on to the address (and ?lock=off to go back); it lasts until the tab closes.
-const TT_TEST_MODE = (function(){
-  try{
-    const testingSite = /vaanya-dev|localhost|127\.0\.0\.1/.test(location.hostname);
-    const q = new URLSearchParams(location.search).get('lock');
-    if(q === 'on')  sessionStorage.setItem('tt_lock', 'on');
-    if(q === 'off') sessionStorage.removeItem('tt_lock');
-    return testingSite && sessionStorage.getItem('tt_lock') !== 'on';
-  }catch(e){ return false; }
-})();
+// There is no time lock (decided 14 Oct 2026): every block can be ticked at
+// any time of day. The clock only decides which block is highlighted as
+// "now", which ones are "coming up" and which are "earlier".
 
 // ── Get current hour (0-23) ────────────────────────────────────
 function ttNowHour(){
@@ -58,14 +47,13 @@ function ttNowHour(){
 }
 
 // ── Determine block state ──────────────────────────────────────
+// 'done' (school, or marked done by the child), 'break', 'current' (its time
+// is now), 'upcoming' or 'passed'. Only 'done' stops ticking.
 function ttBlockState(block, nowH){
   if(block.type==='locked-until-3pm') return 'done';
   if(block.type==='break') return 'break';
   const bState = ttBlockStates[block.id];
   if(bState && bState.markedDone) return 'done';
-
-  // TEST MODE: every block is fully editable — no time restrictions
-  if(typeof TT_TEST_MODE !== 'undefined' && TT_TEST_MODE) return 'current';
 
   const schedule = ttGetSchedule();
   const thisIdx  = schedule.findIndex(b => b.id === block.id);
@@ -80,9 +68,9 @@ function ttBlockState(block, nowH){
     }
   }
 
-  if(nowH < unlockH)            return 'locked';
+  if(nowH < unlockH)            return 'upcoming';
   if(nowH >= unlockH && nowH < endH) return 'current';
-  return 'normal'; // past its window — unlocked but no longer active
+  return 'passed';
 }
 
 // ── Toggle holiday mode ────────────────────────────────────────
@@ -160,13 +148,29 @@ function lp_updateDateCard(){
   if(dayEl) dayEl.textContent = dayNames[day];
   if(noteEl){
     if(holidayActive){
-      noteEl.textContent = '☀️ Holiday / Weekend schedule · Full day from 7:00 AM';
+      noteEl.textContent = '☀️ Holiday / Weekend schedule · from ' + ttStartLabel('weekend');
       noteEl.style.color='#92400E'; noteEl.style.background='#FEF3C7';
     } else {
-      noteEl.textContent = '🏫 School day · Timetable unlocks at 3:00 PM';
+      noteEl.textContent = '🏫 School day · Timetable from ' + ttStartLabel('weekday');
       noteEl.style.color='#1E3A8A'; noteEl.style.background='#EFF6FF';
     }
   }
+  // the two schedule buttons in the left panel
+  const sub = id => document.querySelector('#'+id+' > div > div:nth-child(2)');
+  const wdSub = sub('lp-tab-weekday'), weSub = sub('lp-tab-holiday');
+  if(wdSub) wdSub.textContent = 'Mon – Fri · from ' + ttStartLabel('weekday');
+  if(weSub) weSub.textContent = 'Sat · Sun · Holidays · from ' + ttStartLabel('weekend');
+}
+
+// When this family's weekday or weekend timetable starts, e.g. "3:00 PM"
+// (the first block after school).
+function ttStartLabel(which){
+  const C = window.TT_CUSTOM || {};
+  const list = (C[which] && C[which].length) ? C[which] : (which === 'weekend' ? TT_WEEKEND : TT_WEEKDAY);
+  const first = (list||[]).find(b => b.type !== 'locked-until-3pm' && typeof b.unlockHour === 'number');
+  if(!first) return which === 'weekend' ? '7:00 AM' : '3:00 PM';
+  const h = Math.floor(first.unlockHour), m = Math.round((first.unlockHour - h) * 60);
+  return (h % 12 || 12) + ':' + (m < 10 ? '0' : '') + m + (h >= 12 ? ' PM' : ' AM');
 }
 
 // ── Initialise day (called on date change too) ─────────────────
@@ -243,6 +247,13 @@ function ttMarkDone(blockId){
   ttRender();
   calcDayPts();
 }
+// A finished block can be opened again, e.g. to tick a task the child forgot.
+function ttReopen(blockId){
+  if(ttBlockStates[blockId]) ttBlockStates[blockId].markedDone = false;
+  ttRender();
+  const el = document.getElementById('ttb-'+blockId);
+  if(el) el.classList.add('open');
+}
 
 // ── Update pts badge on a block ────────────────────────────────
 function ttUpdateBlockPts(blockId){
@@ -272,19 +283,6 @@ function ttRender(){
   const nowH = ttNowHour();
   container.innerHTML = '';
 
-  // Test mode banner
-  if(typeof TT_TEST_MODE !== 'undefined' && TT_TEST_MODE){
-    const banner = document.createElement('div');
-    banner.innerHTML = `<div style="background:linear-gradient(135deg,#FEF3C7,#FFFBEB);border:2px solid #FCD34D;border-radius:12px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span style="font-size:18px">🧪</span>
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:900;color:#92400E">Testing site — every block is open all day</div>
-        <div style="font-size:10px;color:#78350F;margin-top:1px">Real families get the time lock. To see it here, add <code>?lock=on</code> to the address.</div>
-      </div>
-    </div>`;
-    container.appendChild(banner);
-  }
-
   schedule.forEach(block => {
     const state = ttBlockState(block, nowH);
     const bState = ttBlockStates[block.id]||{pts:0,checkedActs:{},markedDone:false};
@@ -292,20 +290,18 @@ function ttRender(){
     const wrapper = document.createElement('div');
     wrapper.className = 'tt-block';
     wrapper.id = 'ttb-'+block.id;
-    // In test mode only auto-open the first current block, not all
+    // only the first block whose time is now opens by itself
     const isFirstCurrent = (state==='current' && !_ttFirstCurrentOpened);
     if(state==='current'){
       wrapper.classList.add('state-current');
       if(isFirstCurrent){ wrapper.classList.add('open'); _ttFirstCurrentOpened=true; }
     }
     else if(state==='done') wrapper.classList.add('state-done');
-    else if(state==='locked')  wrapper.classList.add('state-locked');
-    else if(state==='normal')  wrapper.classList.add('state-past');
     else if(state==='break') wrapper.classList.add('state-break');
 
     // Status badge text
-    const statusMap = {current:'🔴 CURRENT',done:'✅ COMPLETED',locked:'👁 UPCOMING',normal:'👁 VIEW ONLY',break:'☕ BREAK'};
-    const statusColors = {current:'background:#DBEAFE;color:#1D4ED8',done:'background:#DCFCE7;color:#166534',locked:'background:#F3F4F6;color:#6B7280',normal:'background:#F3F4F6;color:#6B7280',break:'background:#F9FAFB;color:#9CA3AF'};
+    const statusMap = {current:'🔴 NOW',done:'✅ COMPLETED',upcoming:'🕒 COMING UP',passed:'⏪ EARLIER',break:'☕ BREAK'};
+    const statusColors = {current:'background:#DBEAFE;color:#1D4ED8',done:'background:#DCFCE7;color:#166534',upcoming:'background:#F3F4F6;color:#6B7280',passed:'background:#F3F4F6;color:#6B7280',break:'background:#F9FAFB;color:#9CA3AF'};
 
     const earnedPts = bState.pts || 0;
 
@@ -317,14 +313,13 @@ function ttRender(){
           <div class="tt-block-name" style="color:${block.color}">${block.name}</div>
         </div>
         <div class="tt-block-right">
-          <span class="tt-status-badge" style="${statusColors[state]||statusColors.normal}">${statusMap[state]||'UPCOMING'}</span>
+          <span class="tt-status-badge" style="${statusColors[state]||statusColors.upcoming}">${statusMap[state]||''}</span>
           <span class="tt-chevron">▼</span>
         </div>
       </div>
       <div class="tt-block-body" id="ttbody-${block.id}">
         ${state==='current'?'<div class="tt-current-indicator"><span class="tt-current-dot"></span>You are here right now!</div>':''}
-        ${state==='locked'?'<div style="font-size:11px;font-weight:800;color:#6B7280;background:#F3F4F6;border-radius:8px;padding:6px 10px;margin-bottom:10px;display:flex;align-items:center;gap:6px"><span style=\"font-size:14px\">🔒</span> This block is coming up later — you can see what\'s inside but it will unlock at the right time!</div>':''}
-        ${state==='normal'?'<div style="font-size:11px;font-weight:800;color:#6B7280;background:#F3F4F6;border-radius:8px;padding:6px 10px;margin-bottom:10px;display:flex;align-items:center;gap:6px"><span style=\"font-size:14px\">⏰</span> This block\'s time has passed. Tap Mark Done above if you completed it.</div>':''}
+        ${state==='done' && block.type!=='locked-until-3pm' && block.maxPts>0 ? `<button onclick="ttReopen('${block.id}')" style="background:none;border:none;color:#059669;font-size:11px;font-weight:800;cursor:pointer;padding:0 0 8px;font-family:'Nunito',sans-serif">↩ Reopen this block to change a tick</button>` : ''}
         ${block.type==='break'?'<div style="font-size:12px;color:#6B7280;padding:4px 0">Free time — relax, no tasks required.</div>':''}
         ${block.activities && block.activities.length>0 ? `
           <div class="tt-activities">
@@ -481,7 +476,7 @@ function ttRender(){
             <span style="font-size:11px;font-weight:800;color:#6B7280">Points earned this block</span>
             <span style="font-size:14px;font-weight:900;color:${block.color}" id="ttpts-${block.id}">${earnedPts} pts</span>
           </div>
-          ${(state==='current'||state==='normal') && state!=='break' && block.maxPts>0 ? `
+          ${(state==='current'||state==='upcoming'||state==='passed') && block.maxPts>0 ? `
             <button class="tt-mark-done-btn ${bState.markedDone?'done':'primary'}" onclick="ttMarkDone('${block.id}')">
               ${bState.markedDone?'✅ Block completed!':'✅ Mark this block as done'}
             </button>`:''}`:''}
