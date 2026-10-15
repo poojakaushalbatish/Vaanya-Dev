@@ -49,7 +49,7 @@ var NIYAM_BAND_DEFS = {
         { name:'Went outside and played', pts:10, type:'self' }
       ]},
       { key:'hw', name:'Homework with a Parent', icon:'✏️', mins:30, type:'normal', pal:'blue', acts:[
-        { name:'Homework done (with Mumma or Papa)', pts:15, type:'self' },
+        { name:'Homework done (with a parent)', pts:15, type:'self' },
         { name:'Packed the school bag for tomorrow', pts:5, type:'self' }
       ]},
       { key:'story', name:'Story Time', icon:'📖', mins:20, type:'normal', pal:'teal', acts:[
@@ -420,7 +420,9 @@ function _niyamExpand(defs, startHour, prefix, bedtime){
 // activities that are never feature-gated (self, parent/Geeta, pct-calc…).
 function niyamActivityFeature(act){
   if(!act) return null;
-  if(act.premium === true) return 'creative';                       // photo/gallery work
+  // photo/gallery work. A written task (text-entry) stays even without the
+  // Gallery: what the child writes is kept with the day for the parent to read.
+  if(act.premium === true && act.type !== 'text-entry') return 'creative';
   if(act.type === 'link' && act.tab === 'brain') return 'brainlab';  // covers Sudoku too — same tab
   return null;
 }
