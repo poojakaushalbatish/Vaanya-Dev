@@ -1435,7 +1435,7 @@ function renderParentComments(days){
         "${d.parentComment}"
       </div>
       <div style="font-size:10px;font-weight:800;color:${col};margin-top:10px;
-        text-transform:uppercase;letter-spacing:.06em">— Mamma &amp; Papa 💜</div>
+        text-transform:uppercase;letter-spacing:.06em">— Your parents 💜</div>
     </div>`;
   }).join('');
 }
