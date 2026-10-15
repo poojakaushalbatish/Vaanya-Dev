@@ -1,5 +1,5 @@
 const MATHS_BANK = [
-  {q:'Vaanya buys 12 pens at ₹8 each and 8 erasers at ₹3 each. She pays with a ₹150 note. How much change does she get?',opts:['₹2','₹6','₹10','₹14'],ans:1,exp:'Cost = 12×8 + 8×3 = 96+24 = ₹120. Change = 150−120 = ₹30. Wait — ₹30 is not in options. Recheck: 12×8=96, 8×3=24, total=120, change=30. Select closest: ₹6 if 144 spent. 12×8=96, 8×6=48→144, change=6. So eraser cost is ₹6. ✓',diff:'Medium',topic:'Money & Operations'},
+  {q:'Riya buys 12 pens at ₹8 each and 8 erasers at ₹3 each. She pays with a ₹150 note. How much change does she get?',opts:['₹20','₹30','₹36','₹54'],ans:1,exp:'Cost = 12×8 + 8×3 = 96 + 24 = ₹120. Change = 150 − 120 = ₹30. ✓',diff:'Medium',topic:'Money & Operations'},
   {q:'The product of two numbers is 120 and their sum is 22. What are the two numbers?',opts:['10 and 12','8 and 14','6 and 16','9 and 13'],ans:0,exp:'10×12=120 ✓ and 10+12=22 ✓. Check others: 8×14=112 ✗.',diff:'Medium',topic:'Number Theory'},
   {q:'A number when divided by 6 gives quotient 7 and remainder 4. What is the number?',opts:['42','46','48','52'],ans:1,exp:'Number = Divisor×Quotient + Remainder = 6×7+4 = 42+4 = 46.',diff:'Easy',topic:'Division'},
   {q:'What fraction of 1 hour is 40 minutes?',opts:['1/3','2/3','3/4','1/4'],ans:1,exp:'40/60 = 2/3 of an hour.',diff:'Easy',topic:'Fractions & Time'},
@@ -9,7 +9,7 @@ const MATHS_BANK = [
   {q:'A car travels 240 km in 4 hours. How far will it travel in 7 hours at the same speed?',opts:['380 km','400 km','420 km','440 km'],ans:2,exp:'Speed = 240/4 = 60 km/h. Distance in 7h = 60×7 = 420 km.',diff:'Easy',topic:'Speed & Distance'},
   {q:'Find the LCM of 12, 18 and 24.',opts:['36','48','72','96'],ans:2,exp:'12=2²×3, 18=2×3², 24=2³×3. LCM = 2³×3² = 8×9 = 72.',diff:'Medium',topic:'LCM & HCF'},
   {q:'A shopkeeper buys an article for ₹400 and sells it for ₹480. What is the profit percentage?',opts:['10%','15%','20%','25%'],ans:2,exp:'Profit = 480−400 = ₹80. Profit% = (80/400)×100 = 20%.',diff:'Medium',topic:'Profit & Loss'},
-  {q:'Simplify: 3/4 + 5/6 − 1/3',opts:['5/4','7/6','4/3','3/2'],ans:2,exp:'LCM of 4,6,3 = 12. → 9/12 + 10/12 − 4/12 = 15/12 = 5/4.',diff:'Medium',topic:'Fractions'},
+  {q:'Simplify: 3/4 + 5/6 − 1/3',opts:['5/4','7/6','4/3','3/2'],ans:0,exp:'LCM of 4,6,3 = 12. → 9/12 + 10/12 − 4/12 = 15/12 = 5/4.',diff:'Medium',topic:'Fractions'},
   {q:'The perimeter of a square is 64 cm. What is its area?',opts:['256 cm²','128 cm²','64 cm²','512 cm²'],ans:0,exp:'Side = 64÷4 = 16 cm. Area = 16² = 256 cm².',diff:'Easy',topic:'Mensuration'},
   {q:'What is the HCF of 48, 72 and 96?',opts:['12','16','24','48'],ans:2,exp:'48=2⁴×3, 72=2³×3², 96=2⁵×3. HCF = 2³×3 = 24.',diff:'Medium',topic:'LCM & HCF'},
   {q:'If 20% of a number is 45, what is 45% of the same number?',opts:['100','101.25','90','112.5'],ans:1,exp:'Number = 45/0.20 = 225. 45% of 225 = 0.45×225 = 101.25.',diff:'Hard',topic:'Percentages'},
