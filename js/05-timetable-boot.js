@@ -371,13 +371,13 @@ function ttRender(){
                         onfocus="this.style.borderColor='#F59E0B'" onblur="this.style.borderColor='#FDE68A'"
                         oninput="ttSaveTextEntry('${block.id}','${act.id}')"
                         >${savedText}</textarea>
-                      <button id="te-save-btn-${act.id}"
+                      ${window.niyamFeatures && window.niyamFeatures.creative === false ? '' : `<button id="te-save-btn-${act.id}"
                         onclick="ttSaveTextEntryToGallery('${block.id}','${act.id}','${act.galleryKey||act.entryKey||act.id}','${act.name}')"
                         style="margin-top:6px;padding:6px 16px;border-radius:8px;border:none;
                           background:${block.color};color:#fff;font-size:11px;font-weight:900;
                           cursor:pointer;font-family:'Nunito',sans-serif">
                         Save to Gallery
-                      </button>
+                      </button>`}
                     </div>
                   </div>`;
               }
