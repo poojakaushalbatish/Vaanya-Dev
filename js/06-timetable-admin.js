@@ -10,7 +10,8 @@
 // Blocks and tasks of switched-off features are hidden here but kept on Save.
 //
 // Reads:  window.TT_CUSTOM (set by 00-shell.js) or the built-in TT_WEEKDAY /
-//         TT_WEEKEND defaults.
+//         TT_WEEKEND, which 00-shell.js fills with the child's class timetable.
+//         "Use suggested timetable" goes back to that class timetable.
 // Writes: window.niyamSaveTimetable(weekday, weekend)  [defined in 00-shell.js]
 //
 // Approval / points / report logic is NOT touched anywhere in this file.
@@ -92,6 +93,42 @@
     if(d!==null) b.unlockHour = d; else delete b.unlockHour;
   }
 
+  // Hour, minutes and AM/PM as three lists that always hold a real value.
+  // The browser's own time box showed grey sample numbers that looked filled
+  // in but were not saved until every part was typed, so parents kept getting
+  // "time not set". canBeEmpty adds a "—" hour for "no time" (an end time is
+  // optional; a start time is only shown empty when it is still missing).
+  function pickerHtml(f, i, hhmm, canBeEmpty){
+    var d = hhmmToDec(hhmm), h12 = '', mi = 0, ap = 'PM';
+    if(d !== null){
+      var H = Math.floor(d); mi = Math.round((d - H) * 60);
+      if(mi === 60){ H += 1; mi = 0; }
+      ap = (H % 24) >= 12 ? 'PM' : 'AM'; h12 = String(H % 12 || 12);
+    }
+    var hours = canBeEmpty ? [['', '\u2014']] : [];
+    [12,1,2,3,4,5,6,7,8,9,10,11].forEach(function(h){ hours.push([String(h), String(h)]); });
+    var mins = [];
+    for(var m = 0; m < 60; m += 5) mins.push(m);
+    if(mins.indexOf(mi) === -1){ mins.push(mi); mins.sort(function(a,b){ return a-b; }); }
+    return '<div class="tta-tp" data-f="'+f+'" data-i="'+i+'">'
+      + '<select data-tp="h" aria-label="Hour">'+opts(hours, h12)+'</select>'
+      + '<b>:</b>'
+      + '<select data-tp="m" aria-label="Minutes">'
+      +   opts(mins.map(function(x){ return [String(x), ('0'+x).slice(-2)]; }), String(mi))+'</select>'
+      + '<select data-tp="ap" aria-label="AM or PM">'+opts([['AM','AM'],['PM','PM']], ap)+'</select>'
+      + '</div>';
+  }
+  // "HH:MM" (24h) from a picker, or '' when its hour is "—".
+  function pickerValue(wrap){
+    if(!wrap) return '';
+    var h = wrap.querySelector('[data-tp="h"]').value;
+    if(h === '') return '';
+    var H = parseInt(h, 10) % 12;
+    if(wrap.querySelector('[data-tp="ap"]').value === 'PM') H += 12;
+    var m = parseInt(wrap.querySelector('[data-tp="m"]').value, 10) || 0;
+    return ('0'+H).slice(-2) + ':' + ('0'+m).slice(-2);
+  }
+
   function defaults(which){
     var src = (which==='weekend')
       ? (typeof TT_WEEKEND!=='undefined' ? TT_WEEKEND : [])
@@ -134,14 +171,13 @@
     var H = TTA.hidden[TTA.tab] || { blocks:[], acts:{} };
     var nB = H.blocks.length, nT = Object.keys(H.acts).reduce(function(n,k){ return n + H.acts[k].length; }, 0);
     if(!nB && !nT) return '';
-    var f = window.niyamFeatures || {}, off = [];
-    if(f.brainlab === false) off.push('Brain Lab');
-    if(f.creative === false) off.push('Creative Moments');
+    var f = window.niyamFeatures || {}, why = [];
+    if(f.brainlab === false) why.push('Brain Lab (switched off)');
+    if(f.creative === false) why.push('Creative Moments (coming in a later version of NIYAM)');
     var parts = [];
     if(nB) parts.push(nB + (nB===1 ? ' block' : ' blocks'));
     if(nT) parts.push(nT + (nT===1 ? ' task' : ' tasks'));
-    return 'Not shown: ' + parts.join(' and ') + ' that belong to ' + (off.join(' and ') || 'a feature')
-      + ', which ' + (off.length>1 ? 'are' : 'is') + ' switched off.';
+    return 'Not shown: ' + parts.join(' and ') + ' for ' + (why.join(' and ') || 'a feature that is switched off') + '.';
   }
 
   function loadIntoEditor(){
@@ -222,7 +258,15 @@
   + '.tta-ro{padding:9px 10px;border:1.5px dashed #e6e2da;border-radius:10px;font-size:13.5px;'
   +   'background:#f6f7fa;color:#4b5563}'
   + '.tta-sub{font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.06em}'
-  + '.tta-hint{font-size:12px;color:#8a8f9c;line-height:1.5;margin:4px 0 8px}';
+  + '.tta-hint{font-size:12px;color:#8a8f9c;line-height:1.5;margin:4px 0 8px}'
+  + '.tta-tpf{min-width:220px}'
+  + '.tta-tp{display:flex;align-items:center;gap:5px}'
+  + '#tta-screen .tta-tp select{flex:1;min-width:0;padding:9px 6px}'
+  + '.tta-tp b{color:#8a8f9c}'
+  + '.tta-about{font-size:12.5px;color:#4b5563;line-height:1.55;background:#f6f7fa;border-radius:10px;'
+  +   'padding:9px 11px;margin-bottom:8px}'
+  + '#tta-screen textarea{width:100%;padding:9px 10px;border:1.5px solid #e6e2da;border-radius:10px;font-size:14px;'
+  +   'background:#fcfbf8;box-sizing:border-box;font-family:inherit;color:#1f2433;resize:vertical;min-height:56px}';
 
   // ---- build DOM once ------------------------------------------------------
   function build(){
@@ -235,7 +279,7 @@
       '<div id="tta-bar">'
       + '<h2>\uD83D\uDDD3\uFE0F Timetable Setup</h2>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
-      +   '<button class="tta-btn tta-warn" id="tta-default">\u21BA Go Default</button>'
+      +   '<button class="tta-btn tta-warn" id="tta-default">\u21BA Use suggested timetable</button>'
       +   '<button class="tta-btn tta-ghost" id="tta-close">\u2715 Close</button>'
       +   '<button class="tta-btn tta-gold" id="tta-save">\uD83D\uDCBE Save</button>'
       + '</div></div>'
@@ -421,6 +465,7 @@
   // Read-only list of the tasks in a block.
   function viewHtml(b, i){
     var h = '<div class="tta-open">';
+    if(b.about) h += '<div class="tta-about">'+esc(b.about)+'</div>';
     if(b.type === 'break' || b.type === 'locked-until-3pm'){ h += noTasksNote(b); }
     else if(!(b.activities||[]).length){ h += '<div class="tta-empty">No tasks in this block yet.</div>'; }
     else {
@@ -446,11 +491,13 @@
       +     '<input data-f="name" data-i="'+i+'" value="'+esc(b.name||'')+'" placeholder="e.g. Olympiad practice"></div>'
       + '</div>'
       + '<div class="tta-row">'
-      +   '<div class="tta-f"><label>Starts at</label>'
-      +     '<input data-f="start" data-i="'+i+'" type="time" value="'+esc(tm.start)+'"></div>'
-      +   '<div class="tta-f"><label>Ends at</label>'
-      +     '<input data-f="end" data-i="'+i+'" type="time" value="'+esc(tm.end)+'"></div>'
+      +   '<div class="tta-f tta-tpf"><label>Starts at</label>'+pickerHtml('start', i, tm.start, !tm.start)+'</div>'
+      +   '<div class="tta-f tta-tpf"><label>Ends at</label>'+pickerHtml('end', i, tm.end, true)+'</div>'
       + '</div>'
+      + '<div class="tta-row"><div class="tta-f"><label>What this block is for (you and your child see this)</label>'
+      +   '<textarea data-f="about" data-i="'+i+'" rows="2" maxlength="220" '
+      +   'placeholder="e.g. Finish today\u2019s homework first, then revise what was taught in class.">'
+      +   esc(b.about||'')+'</textarea></div></div>'
       + (ov ? '<div class="tta-warnbox">⚠️ This time overlaps with <b>'+esc(overlapNames(ov))+'</b>. '
             + 'Change the time here, or change the other block. The timetable cannot be saved while blocks overlap.</div>' : '')
       + '<div class="tta-row"><div class="tta-f"><label>Block type</label>'
@@ -577,17 +624,18 @@
         var b = list()[+el.getAttribute('data-i')];
         if(f==='start' || f==='end'){
           var card = el.closest('.tta-card');
-          applyTimes(b, card.querySelector('[data-f="start"]').value, card.querySelector('[data-f="end"]').value);
+          applyTimes(b, pickerValue(card.querySelector('[data-f="start"]')), pickerValue(card.querySelector('[data-f="end"]')));
           // Re-sort so the block jumps straight to its correct place in the day.
           if(TTA.tab==='weekend') TTA.weekend = sortByTime(TTA.weekend);
           else TTA.weekday = sortByTime(TTA.weekday);
           TTA.scrollTo = b.id;
           // after a start time, move straight on to the end time if it is still empty
-          if(f==='start' && !splitTime(b).end) TTA.focus = '[data-f="end"]';
+          if(f==='start' && !splitTime(b).end) TTA.focus = '[data-f="end"] select';
           render();
           return;
         }
         if(f==='name'){ setBlockName(b, el.value.trim()); return; }
+        if(f==='about'){ b.about = el.value.trim(); return; }
         b[f] = el.value;
         if(f==='type'){
           // Moving to break/school clears tasks; moving back gives a fresh one.
@@ -635,16 +683,39 @@
   }
 
   // ---- actions -------------------------------------------------------------
-  // A new block starts with an empty name and no time. The built-in day has no
-  // free gaps, so any default time would land on top of another block.
+  // A new block starts where the day's last block ends, for 30 minutes, so the
+  // parent can see a time at once and only needs to adjust it. If that lands on
+  // another block, the overlap warning shows straight away.
+  function nextFreeStart(){
+    var latest = null;
+    list().forEach(function(b){
+      var r = range(b); if(!r) return;
+      if(r.point) return;                        // Sleep and other start-only blocks
+      if(latest === null || r.e > latest) latest = r.e;
+    });
+    if(latest === null){
+      var sh = window.niyamDayStartHour;
+      latest = (typeof sh === 'number') ? sh : 15;
+    }
+    return Math.round(latest * 12) / 12;         // to the nearest 5 minutes
+  }
   function addBlock(){
+    var st = nextFreeStart(), en = Math.min(st + 0.5, 23 + 55/60);
+    // stop where a start-only block such as Sleep begins, if that comes first
+    list().forEach(function(b){
+      var r = range(b);
+      if(r && r.point && r.s > st && r.s < en) en = r.s;
+    });
     var nb = {
       id: uid('cblk'), time:'', name:'', icon:'⭐',
       iconBg:'#FFF7ED', iconColor:'#EA580C', color:'#EA580C', lightBg:'#FFF7ED',
       type:'normal', maxPts:0, activities:[]
     };
     nb.activities.push(newTask(nb, true));
+    applyTimes(nb, decToHHMM(st), decToHHMM(en));
     list().push(nb);
+    if(TTA.tab==='weekend') TTA.weekend = sortByTime(TTA.weekend);
+    else TTA.weekday = sortByTime(TTA.weekday);
     TTA.sel = { id: nb.id, mode:'edit' };
     TTA.scrollTo = nb.id;
     TTA.focus = '[data-f="name"]';
@@ -652,12 +723,17 @@
   }
 
   function goDefault(){
-    var label = TTA.tab==='weekend' ? 'Weekend' : 'Weekday';
-    if(!confirm('Reset the '+label+' timetable back to the built-in NIYAM default?\n\n'
-                + 'Your other tab is not affected. Nothing is saved until you press Save.')) return;
+    var label = TTA.tab==='weekend' ? 'Weekends' : 'Weekdays';
+    var other = TTA.tab==='weekend' ? 'Weekdays' : 'Weekends';
+    var cls = window.niyamChildClass ? ' for ' + window.niyamChildClass : '';
+    var child = window.niyamChildName || 'your child';
+    if(!confirm('Use the timetable NIYAM suggests' + cls + ' on the ' + label + ' tab?\n\n'
+                + 'The blocks on this tab will be replaced by the suggested ones. '
+                + 'The ' + other + ' tab stays as it is.\n\n'
+                + 'Nothing changes for ' + child + ' until you press Save.')) return;
     TTA[TTA.tab] = sortByTime(splitHidden(TTA.tab, defaults(TTA.tab)));
     TTA.sel = null; render();
-    toast(label + ' timetable reset to default \u2014 press Save to keep it');
+    toast('Suggested ' + label.toLowerCase() + ' timetable shown \u2014 press Save to keep it');
   }
 
   function tidy(arr){
@@ -687,10 +763,10 @@
           return { tab:tabs[t][0], id:b.id, focus:'[data-f="name"]', msg:'One block has no name yet. Please give it a name.' };
         var tm = splitTime(b);
         if(!tm.start)
-          return { tab:tabs[t][0], id:b.id, focus:'[data-f="start"]',
+          return { tab:tabs[t][0], id:b.id, focus:'[data-f="start"] select',
                    msg:'Please set a start time for \u201C'+b.name+'\u201D \u2014 it decides where the block sits in the day.' };
         if(tm.end && hhmmToDec(tm.end) <= hhmmToDec(tm.start))
-          return { tab:tabs[t][0], id:b.id, focus:'[data-f="end"]',
+          return { tab:tabs[t][0], id:b.id, focus:'[data-f="end"] select',
                    msg:'\u201C'+b.name+'\u201D ends before it starts. Please correct its end time.' };
       }
     }
@@ -703,7 +779,7 @@
         // open the block the parent added themselves, if one of the two is theirs
         var mine = function(x){ return String(x.id).indexOf('cblk-') === 0; };
         var show = (mine(ov[0]) && !mine(L[i])) ? ov[0] : L[i], other = (show === L[i]) ? ov[0] : L[i];
-        return { tab:tabs[t][0], id:show.id, focus:'[data-f="start"]',
+        return { tab:tabs[t][0], id:show.id, focus:'[data-f="start"] select',
                  msg: tabs[t][1] + ': \u201C' + blockLabel(show) + '\u201D (' + show.time + ') overlaps with \u201C'
                     + blockLabel(other) + '\u201D (' + other.time + ').\n\nPlease change the time of one of them. '
                     + 'The timetable can be saved once no blocks overlap.' };
