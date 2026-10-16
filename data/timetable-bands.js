@@ -342,6 +342,39 @@ var NIYAM_BAND_DEFS = {
 };
 
 // ---------------------------------------------------------------------------
+// What each block is for, in one line. Shown to the parent in Timetable Setup
+// and to the child under the block's name. A block definition can carry its
+// own `about`; otherwise the line for its key is used.
+// ---------------------------------------------------------------------------
+var NIYAM_BLOCK_ABOUT = {
+  school:   'School hours. Nothing to tick here \u2014 the tasks begin after school.',
+  lunch:    'Eat, rest and relax after school. No tasks in this block.',
+  break1:   'A short break. No tasks.',
+  reading:  'Read any book, then add 3 new words you found to your WordBook \u2014 with the meaning and a sentence.',
+  study:    'Finish today\u2019s homework first, then revise what was taught in class.',
+  hw:       'Homework, with a parent close by to help.',
+  play:     'Time outdoors \u2014 a sport, cycling or running around. Moving the body keeps the mind fresh.',
+  play1:    'Time outdoors \u2014 a sport, cycling or running around. Moving the body keeps the mind fresh.',
+  brain:    'Short puzzles in the Brain Lab tab. The points come from there automatically.',
+  sudoku:   'Sudoku in the Brain Lab, plus a little maths practice from the school book.',
+  maths:    'Longer maths practice on a holiday \u2014 chapter questions and Olympiad-style problems.',
+  papers:   'Practice papers and writing, to build exam confidence.',
+  shloka:   'Learn one Geeta shloka and what it means, then say it to a parent. The parent gives the points.',
+  creative: 'Make something with your own hands \u2014 drawing, craft or music.',
+  enrich:   'Learn one new thing beyond school and write a line about it.',
+  help:     'Do one job at home without being asked \u2014 lay the table, fold clothes, water the plants.',
+  dinner:   'Family dinner. No tasks \u2014 just eat together.',
+  values:   'A few quiet minutes on good values: read or talk about one, and think about your day.',
+  wind:     'Get ready for bed: pack your bag for tomorrow, brush your teeth, and say \u201cThank you God\u201d for the day.',
+  sleep:    'Lights out. Good sleep helps you grow and remember what you learned.',
+  rise:     'Wake up, freshen up, make your bed and get ready for the day.',
+  puja:     'Morning prayer, a little yoga or stretching, and a healthy breakfast.',
+  family:   'Time with family or grandparents \u2014 talk, play a game, or listen to a story.',
+  story:    'A parent reads a story, or the child reads one aloud.',
+  learn:    'Fun learning \u2014 letters, numbers, or a game that teaches.'
+};
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 function niyamBandForClass(cls){
@@ -394,6 +427,7 @@ function _niyamExpand(defs, startHour, prefix, bedtime){
       id: prefix + '-' + d.key,
       time: timeTxt,
       name: d.name,
+      about: d.about || NIYAM_BLOCK_ABOUT[d.key] || '',
       icon: d.icon,
       iconBg: pal.iconBg, iconColor: pal.iconColor, color: pal.color, lightBg: pal.lightBg,
       type: d.type,
@@ -470,6 +504,7 @@ function niyamBuildTimetable(cls, startHour){
   // School block runs from the morning up to the family's chosen start time.
   var school = {
     id: 'wd-school', time: '6:00 AM – ' + _niyamFmt(start), name: 'School Time', icon: '🏫',
+    about: NIYAM_BLOCK_ABOUT.school,
     iconBg: NIYAM_PAL.indigo.iconBg, iconColor: NIYAM_PAL.indigo.iconColor,
     color: NIYAM_PAL.indigo.color, lightBg: NIYAM_PAL.indigo.lightBg,
     type: 'locked-until-3pm', maxPts: 0, unlockHour: 6, activities: []
@@ -486,6 +521,17 @@ function niyamBuildTimetable(cls, startHour){
 // Total points a perfect day is worth — used by the preview screen.
 function niyamDayMax(blocks){
   return (blocks || []).reduce(function(s, b){ return s + (parseInt(b.maxPts) || 0); }, 0);
+}
+
+// The built-in timetable (data/timetable.js) starts empty. Until the family's
+// profile is loaded, it holds a general Class 6 day; js/00-shell.js then
+// replaces it with the child's own class.
+if(typeof TT_WEEKDAY !== 'undefined' && !TT_WEEKDAY.length){
+  (function(){
+    var g = niyamBuildTimetable('Class 6', 15);
+    Array.prototype.push.apply(TT_WEEKDAY, g.weekday);
+    Array.prototype.push.apply(TT_WEEKEND, g.weekend);
+  })();
 }
 
 if(typeof window !== 'undefined'){
