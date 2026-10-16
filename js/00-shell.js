@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-10-14 · Wording + Creative off';
+  window.NIYAM_BUILD = '2026-10-15 · Timetable Setup fixes';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   // Startup self-check: shout early if a required script tag is missing from
@@ -382,6 +382,18 @@
       // A4.5: exposed so ttGetSchedule() (05-timetable-boot.js) and Tomorrow's
       // Plan (07-tomorrows-plan.js) can filter out tasks for switched-off features.
       window.niyamFeatures = feats;
+      // The child's class and day start. The built-in timetable (TT_WEEKDAY /
+      // TT_WEEKEND) becomes the timetable NIYAM suggests for this class, so a
+      // family without a saved timetable, and "Use suggested timetable" in
+      // Timetable Setup, both get the child's class \u2014 never another family's day.
+      window.niyamChildClass = (profile && profile.child_class) || _pd.grade || '';
+      window.niyamDayStartHour = (typeof _pd.day_start_hour === 'number') ? _pd.day_start_hour : null;
+      if(window.niyamChildClass && typeof window.niyamBuildTimetable === 'function'){
+        var _sug = window.niyamBuildTimetable(window.niyamChildClass,
+                     window.niyamDayStartHour === null ? undefined : window.niyamDayStartHour);
+        TT_WEEKDAY.length = 0; Array.prototype.push.apply(TT_WEEKDAY, _sug.weekday);
+        TT_WEEKEND.length = 0; Array.prototype.push.apply(TT_WEEKEND, _sug.weekend);
+      }
     }catch(e){}
     $('ns-login').style.display='none';
     $('ns-onboard').style.display='none';
