@@ -319,6 +319,7 @@ function ttRender(){
       </div>
       <div class="tt-block-body" id="ttbody-${block.id}">
         ${state==='current'?'<div class="tt-current-indicator"><span class="tt-current-dot"></span>You are here right now!</div>':''}
+        ${block.about ? `<div style="font-size:12px;color:#4B5563;line-height:1.55;background:#F9FAFB;border-radius:8px;padding:7px 10px;margin-bottom:10px">${_ttEsc(block.about)}</div>` : ''}
         ${state==='done' && block.type!=='locked-until-3pm' && block.maxPts>0 ? `<button onclick="ttReopen('${block.id}')" style="background:none;border:none;color:#059669;font-size:11px;font-weight:800;cursor:pointer;padding:0 0 8px;font-family:'Nunito',sans-serif">↩ Reopen this block to change a tick</button>` : ''}
         ${block.type==='break'?'<div style="font-size:12px;color:#6B7280;padding:4px 0">Free time — relax, no tasks required.</div>':''}
         ${block.activities && block.activities.length>0 ? `
