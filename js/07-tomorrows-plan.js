@@ -106,8 +106,8 @@
       +     'or keep it as it is \u2014 you can always change it later.</p>'
       + '</div>'
       + '<div class="tp-tabs">'
-      +   '<button class="tp-tab on" id="tp-t-wd">\uD83C\uDFEB School day</button>'
-      +   '<button class="tp-tab" id="tp-t-we">\u2600\uFE0F Weekend</button>'
+      +   '<button class="tp-tab on" id="tp-t-wd">\uD83C\uDFEB School days timetable</button>'
+      +   '<button class="tp-tab" id="tp-t-we">\u2600\uFE0F Weekend timetable</button>'
       + '</div>'
       + '<div class="tp-day" id="tp-list"></div>'
       + '<div id="tp-total"></div>'
@@ -187,6 +187,11 @@
     TP.tab  = tomorrowIsWeekend() ? 'weekend' : 'weekday';
 
     $('tp-title').textContent = 'This is what ' + TP.name + ' will see on ' + tomorrowLabel() + '.';
+    var cls = window.__niyamClass || window.niyamChildClass || '';
+    $('tp-sub').innerHTML = 'NIYAM has made two timetables for ' + esc(TP.name)
+      + (cls ? ' (' + esc(cls) + ')' : '') + ': one for <b>school days</b> and one for <b>weekends</b>. '
+      + 'Look through both. Tap <b>Customise the day</b> to change any block now, '
+      + 'or change it later from the Parent Zone.';
     $('tp-done-h').textContent = TP.name + '\u2019s first day is ready';
     $('tp-screen').style.display = 'block';
     render();
