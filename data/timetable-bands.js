@@ -128,8 +128,8 @@ var NIYAM_BAND_DEFS = {
     weekday: [
       { key:'lunch', name:'Lunch & Screen Time', icon:'🍱', mins:30, type:'break', pal:'grey', acts:[] },
       { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:30, type:'wordbook-inline', pal:'green', acts:[
-        { name:'Book reading + add 3 new words to WordBook', pts:20, type:'wordbook',
-          note:'20 pts when all 3 words are added with meaning & sentence' }
+        { name:'Book reading + new words in your WordBook', pts:10, type:'wordbook',
+          note:'10 pts for every 3 words, up to 9 words a day' }
       ]},
       { key:'study', name:'Homework & Self Study', icon:'✏️', mins:60, type:'normal', pal:'blue', acts:[
         { name:'Homework', pts:0, type:'self', note:'No pts — must be done every day 📚' },
@@ -195,8 +195,8 @@ var NIYAM_BAND_DEFS = {
           note:'Parents award up to 30 pts on review' }
       ]},
       { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:30, type:'wordbook-inline', pal:'green', acts:[
-        { name:'Book reading + add 3 new words to WordBook', pts:20, type:'wordbook',
-          note:'20 pts when all 3 words are added with meaning & sentence' }
+        { name:'Book reading + new words in your WordBook', pts:10, type:'wordbook',
+          note:'10 pts for every 3 words, up to 9 words a day' }
       ]},
       { key:'family', name:'Family & Grandparents Time', icon:'👴', mins:60, type:'normal', pal:'teal', acts:[
         { name:'Spent time with grandparents (or called them)', pts:15, type:'self' },
@@ -230,8 +230,8 @@ var NIYAM_BAND_DEFS = {
     weekday: [
       { key:'lunch', name:'Lunch & Screen Time', icon:'🍱', mins:30, type:'break', pal:'grey', acts:[] },
       { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:30, type:'wordbook-inline', pal:'green', acts:[
-        { name:'Book reading + add 3 new words to WordBook', pts:25, type:'wordbook',
-          note:'25 pts when all 3 words are added with meaning & sentence' }
+        { name:'Book reading + new words in your WordBook', pts:10, type:'wordbook',
+          note:'10 pts for every 3 words, up to 9 words a day' }
       ]},
       { key:'study', name:'Homework & Self Study', icon:'✏️', mins:120, type:'normal', pal:'blue', acts:[
         { name:'Homework', pts:0, type:'self', note:'No pts — must be done every day 📚' },
@@ -315,8 +315,8 @@ var NIYAM_BAND_DEFS = {
         { name:'Spoken English & debate practice', pts:0, type:'dropdown', options:[3,5,7,10], note:'Select points based on quality' }
       ]},
       { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:30, type:'wordbook-inline', pal:'green', acts:[
-        { name:'Book reading + add 3 new words to WordBook', pts:25, type:'wordbook',
-          note:'25 pts when all 3 words are added with meaning & sentence' }
+        { name:'Book reading + new words in your WordBook', pts:10, type:'wordbook',
+          note:'10 pts for every 3 words, up to 9 words a day' }
       ]},
       { key:'shloka', name:'Geeta — Shloka & Wisdom', icon:'🕉️', mins:30, type:'normal', pal:'amber', acts:[
         { name:'Shloka learning & writing in copy', pts:25, type:'parent',
@@ -357,31 +357,33 @@ var NIYAM_CLASS_DEFS = {
     defaultStart: 15,           // school ends 3:00 PM (the parent's choice moves it)
     lunchUntil: 15.75,          // Lunch & Rest runs from school end until 3:45 PM
     bedtime: 21,                // 9:00 PM
+    lateFrom: 15.5,             // school ending at 3:30 PM or later…
+    lateBedtime: 21.5,          // …moves bedtime to 9:30 PM, never later (Pooja, 21 Oct 2026)
     weekendStart: 7,            // 7:00 AM
     weekendBedtime: 21,         // 9:00 PM
     weekday: [
       { key:'lunch', name:'Lunch & Rest', icon:'🍱', mins:45, type:'break', pal:'grey',
         about:'Eat your lunch, rest and relax after school. No tasks in this block.', acts:[] },
-      { key:'homework', name:'Homework', icon:'✏️', mins:75, type:'normal', pal:'blue',
+      { key:'homework', name:'Homework', icon:'✏️', mins:75, min:60, type:'normal', pal:'blue',
         about:'Finish today’s school homework first, then spend a little time on self-study.', acts:[
         { name:'Finish today’s school homework', pts:15, type:'self' },
         { name:'Self-study: read over today’s lessons', pts:10, type:'self' }
       ]},
-      { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:30, type:'wordbook-inline', pal:'green',
-        about:'Read any book you like, then add 3 new words you found to your WordBook — with the meaning and a sentence.', acts:[
-        { name:'Read a book and add 3 new words to your WordBook', pts:20, type:'wordbook',
-          note:'20 pts when all 3 words have a meaning and a sentence' }
+      { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:30, min:20, type:'wordbook-inline', pal:'green',
+        about:'Read any book you like and add the new words you find to your WordBook — with the meaning and a sentence. You can add words any time of the day: every 3 words earn 10 points.', acts:[
+        { name:'Read a book and add new words to your WordBook', pts:10, type:'wordbook',
+          note:'10 pts for every 3 words, up to 9 words a day' }
       ]},
-      { key:'play', name:'Outdoor Play', icon:'⚽', mins:60, type:'normal', pal:'green',
+      { key:'play', name:'Outdoor Play', icon:'⚽', mins:60, min:30, type:'normal', pal:'green',
         about:'Time outdoors — a sport, cycling or running around. Moving your body keeps your mind fresh.', acts:[
         { name:'Play outside or a sport for 30 minutes', pts:10, type:'self' }
       ]},
-      { key:'brain', name:'Brain Lab', icon:'🧠', mins:30, type:'normal', pal:'violet',
+      { key:'brain', name:'Brain Lab', icon:'🧠', mins:30, min:20, type:'normal', pal:'violet',
         about:'The puzzles are in the Brain Lab tab of this app. Tap a task below to open it — the points come in automatically.', acts:[
         { name:'Brain Lab — Riddle of the day', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' },
         { name:'Brain Lab — Maths Sprint', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' }
       ]},
-      { key:'shloka', name:'Geeta — Shloka & Meaning', icon:'🕉️', mins:30, type:'normal', pal:'amber',
+      { key:'shloka', name:'Geeta — Shloka & Meaning', icon:'🕉️', mins:30, min:20, type:'normal', pal:'amber',
         about:'Your shlokas are in the Geeta — Soul Work tab of this app. Learn one and what it means, then say it to a parent. Your parent gives the points.', acts:[
         { name:'Learn a shloka and its meaning, then say it to a parent', pts:15, type:'parent',
           note:'Find it in the Geeta — Soul Work tab · your parent gives the points' }
@@ -394,7 +396,7 @@ var NIYAM_CLASS_DEFS = {
         about:'Family dinner. When you finish, put your plate away and clean your place at the table.', acts:[
         { name:'Finish your dinner, put your plate away and clean your table', pts:10, type:'self' }
       ]},
-      { key:'values', name:'Values & Family Talk', icon:'📿', mins:30, type:'normal', pal:'violet',
+      { key:'values', name:'Values & Family Talk', icon:'📿', mins:30, min:15, type:'normal', pal:'violet',
         about:'Time with a parent: share one good thing from your day and talk about one good value.', acts:[
         { name:'Tell a parent one good thing you did today', pts:5, type:'self' },
         { name:'Talk about one good value — honesty, kindness or patience', pts:5, type:'self' }
@@ -448,9 +450,9 @@ var NIYAM_CLASS_DEFS = {
         { name:'Finish your lunch, put your plate away and clean your table', pts:20, type:'self' }
       ]},
       { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:45, type:'wordbook-inline', pal:'green',
-        about:'Read any book you like, then add 3 new words you found to your WordBook — with the meaning and a sentence.', acts:[
-        { name:'Read a book and add 3 new words to your WordBook', pts:20, type:'wordbook',
-          note:'20 pts when all 3 words have a meaning and a sentence' }
+        about:'Read any book you like and add the new words you find to your WordBook — with the meaning and a sentence. You can add words any time of the day: every 3 words earn 10 points.', acts:[
+        { name:'Read a book and add new words to your WordBook', pts:10, type:'wordbook',
+          note:'10 pts for every 3 words, up to 9 words a day' }
       ]},
       { key:'olympiad', name:'Study Time / Olympiad Practice', icon:'🏅', mins:75, type:'normal', pal:'indigo',
         about:'Go a step beyond school: solve Olympiad practice questions or study something more advanced.', acts:[
@@ -510,7 +512,7 @@ var NIYAM_BLOCK_ABOUT = {
   school:   'School hours. Nothing to tick here \u2014 the tasks begin after school.',
   lunch:    'Eat, rest and relax after school. No tasks in this block.',
   break1:   'A short break. No tasks.',
-  reading:  'Read any book, then add 3 new words you found to your WordBook \u2014 with the meaning and a sentence.',
+  reading:  'Read any book and add the new words you find to your WordBook \u2014 with the meaning and a sentence. You can add words any time of the day: every 3 words earn 10 points.',
   study:    'Finish today\u2019s homework first, then revise what was taught in class.',
   hw:       'Homework, with a parent close by to help.',
   play:     'Time outdoors \u2014 a sport, cycling or running around. Moving the body keeps the mind fresh.',
@@ -555,6 +557,7 @@ function _niyamFmt(dec){
 
 function _niyamBlockMax(acts){
   return (acts || []).reduce(function(s, a){
+    if(a.type === 'wordbook') return s + (parseInt(a.pts) || 0) * 3;   // per 3 words, up to 9 words
     return s + (parseInt(a.pts) || 0) + (parseInt(a.maxCalcPts) || 0);
   }, 0);
 }
@@ -680,7 +683,10 @@ function niyamBuildTimetable(cls, startHour){
   return {
     band: own ? ('class' + n) : bandKey,
     label: band.label,
-    weekday: [school].concat(_niyamExpand(_niyamLunchToAnchor(band, start), start, 'wd', band.bedtime, !!own)),
+    weekday: [school].concat(own
+      ? _niyamExpand(_niyamFitDay(_niyamLunchToAnchor(band, start), start, _niyamWeekdayBedtime(band, start)),
+                     start, 'wd', _niyamWeekdayBedtime(band, start), true)
+      : _niyamExpand(band.weekday, start, 'wd', band.bedtime)),
     weekend: _niyamExpand(band.weekend, band.weekendStart, 'we', band.weekendBedtime, !!own)
   };
 }
@@ -696,6 +702,31 @@ function _niyamLunchToAnchor(def, start){
   var copy = list.slice();
   copy[0] = Object.assign({}, list[0], { mins: mins });
   return copy;
+}
+
+// When the day after school is longer than the time to bedtime, shorten the
+// blocks that can be shorter (those with a `min`), five minutes at a time from
+// the one with most room, until it fits. Blocks without a `min` never shrink.
+function _niyamFitDay(list, start, bedtime){
+  var avail = Math.round((bedtime - start) * 60);
+  var copy = list.map(function(d){ return Object.assign({}, d); });
+  var total = function(){ return copy.reduce(function(s, d){ return s + (d.mins || 0); }, 0); };
+  var guard = 500;
+  while(total() > avail && guard-- > 0){
+    var best = null;
+    copy.forEach(function(d){
+      if(typeof d.min !== 'number' || d.mins - 5 < d.min) return;
+      if(!best || (d.mins - d.min) > (best.mins - best.min)) best = d;
+    });
+    if(!best) break;                             // nothing left to shorten
+    best.mins -= 5;
+  }
+  return copy;
+}
+// Bedtime for a school day: later (never beyond lateBedtime) when school ends late.
+function _niyamWeekdayBedtime(def, start){
+  if(typeof def.lateFrom === 'number' && typeof def.lateBedtime === 'number' && start >= def.lateFrom) return def.lateBedtime;
+  return def.bedtime;
 }
 
 // Total points a perfect day is worth — used by the preview screen.
