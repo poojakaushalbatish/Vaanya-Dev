@@ -34,6 +34,7 @@
   // Points a block can award = sum of fixed pts + any calculated maxima.
   function blockMax(b){
     return (b.activities||[]).reduce(function(sum,a){
+      if(a.type==='wordbook') return sum + (parseInt(a.pts)||0) * 3;   // per 3 words, up to 9 words
       return sum + (parseInt(a.pts)||0) + (parseInt(a.maxCalcPts)||0);
     }, 0);
   }
@@ -357,7 +358,7 @@
     'parent':        'Parent awards points',
     'pct-calc':      'Score out of 100% → points',
     'text-entry':    'Child writes an answer',
-    'wordbook':      'Child adds 3 new words to WordBook',
+    'wordbook':      'Points for every 3 words in the WordBook (up to 9 words a day)',
     'link':          'Points come from Brain Lab',
     'parent-select': 'Parent awards points, up to the maximum',
     'dropdown':      'Child picks points for quality'
@@ -367,6 +368,7 @@
   function usesMax(a){ return a.type==='pct-calc' || a.type==='parent-select'; }
   function ptsText(a){
     if(a.type==='link') return 'from Brain Lab';
+    if(a.type==='wordbook') return (parseInt(a.pts)||0) + ' pts per 3 words';
     if(a.type==='dropdown'){
       var o = (a.options && a.options.length) ? a.options : [3,5,7,10];
       return Math.min.apply(null,o) + '–' + Math.max.apply(null,o) + ' pts';
@@ -531,7 +533,7 @@
         + '<div class="tta-row"><div class="tta-f" style="flex:3"><label>Task name</label>'
         +   '<input data-af="name" data-i="'+i+'" data-j="'+j+'" value="'+esc(a.name||'')+'" '
         +   'placeholder="'+(TTA.follow[a.id] ? 'Same as the block name' : 'e.g. Revise chapter 3')+'"></div>'
-        +   '<div class="tta-f" style="flex:0 0 100px"><label>'+(usesMax(a)?'Max pts':'Points')+'</label>'+ptsCell+'</div>'
+        +   '<div class="tta-f" style="flex:0 0 100px"><label>'+(usesMax(a)?'Max pts':a.type==='wordbook'?'Pts per 3 words':'Points')+'</label>'+ptsCell+'</div>'
         + '</div>'
         + '<div class="tta-row"><div class="tta-f"><label>How it is scored</label>'
         +   (fixed
