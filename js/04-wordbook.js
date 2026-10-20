@@ -659,6 +659,9 @@ function loadDraftDay(d){
   if(d.savedSudokuPts    !== undefined) sudokuPts       = d.savedSudokuPts;
   if(d.savedLogicPts !== undefined){ logicPtsTotal = d.savedLogicPts; if(d.savedLogicPts > 0){ logicFrozen = true; } }
   if(d.savedMathsPts     !== undefined){ mathsPtsToday = d.savedMathsPts; if(d.savedMathsPts>0){ mathsFrozen=true; mathsChecked=true; } }
+  // played today with a score of 0 still counts as played (see js/05, "Brain Lab: each game once a day")
+  if(d.savedLogicDone === true) logicFrozen = true;
+  if(d.savedMathsDone === true){ mathsFrozen = true; mathsChecked = true; }
   if(d.savedRiddlePts    !== undefined) riddlePtsTotal  = d.savedRiddlePts;
   if(d.savedWorksheetPts !== undefined) worksheetPts    = d.savedWorksheetPts;
   if(d.savedWsAnswered){
