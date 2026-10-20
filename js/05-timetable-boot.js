@@ -202,6 +202,39 @@ function _ttTyping(){
   return !!(el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && el.closest && el.closest('#tt-blocks-container'));
 }
 
+// ── Ticks wait for the block's time ──────────────────────────
+// Every block can be opened and read all day, and nothing is greyed out, but a
+// task cannot be ticked before its block's start time (Pooja, 20 Oct 2026) —
+// otherwise a child could tick the evening's tasks at 4 PM. After the start
+// time a block stays open for the rest of the day. The Book Reading + New
+// Words task is open all day. Days other than today are never locked.
+// On the testing site, add ?lock=off to the address to open everything.
+function ttLockOn(){
+  try{
+    const q = new URLSearchParams(location.search).get('lock');
+    if(q === 'off') sessionStorage.setItem('tt_lock', 'off');
+    if(q === 'on')  sessionStorage.removeItem('tt_lock');
+    const testing = /vaanya-dev|localhost|127\.0\.0\.1/.test(location.hostname);
+    if(testing && sessionStorage.getItem('tt_lock') === 'off') return false;
+  }catch(e){}
+  const shown = document.getElementById('rpt-date')?.value;
+  const today = new Date().toLocaleDateString('en-CA');
+  return !shown || shown === today;
+}
+function ttBlockLocked(block){
+  return !!block && ttLockOn() && ttBlockState(block, ttNowHour()) === 'upcoming';
+}
+function ttBlockOpensAt(block){
+  return String(block.time || '').split(/\s*[–-]\s*/)[0] || 'its time';
+}
+// Used by every tick handler: true (and a friendly message) when it must wait.
+function ttTickWaits(blockId){
+  const block = ttGetSchedule().find(b => b.id === blockId);
+  if(!ttBlockLocked(block)) return false;
+  if(typeof toast === 'function') toast('🔒 You can tick this from ' + ttBlockOpensAt(block) + ' — have a look at what’s coming!');
+  return true;
+}
+
 // ── Toggle block open/close ────────────────────────────────────
 function ttToggleBlock(blockId){
   const el = document.getElementById('ttb-'+blockId);
@@ -213,6 +246,7 @@ function ttToggleBlock(blockId){
 // A parent-scored task ('parent') can be ticked too: the tick means "ready for
 // you" and adds no points — the parent awards them on the review page.
 function ttToggleAct(blockId, actId, pts, type){
+  if(ttTickWaits(blockId)) return;
   if(!ttBlockStates[blockId]) ttBlockStates[blockId]={pts:0,checkedActs:{},markedDone:false};
   const state = ttBlockStates[blockId];
   const wasChecked = state.checkedActs[actId]||false;
@@ -322,6 +356,8 @@ function ttRender(){
     const statusColors = {current:'background:#DBEAFE;color:#1D4ED8',done:'background:#DCFCE7;color:#166534',upcoming:'background:#F3F4F6;color:#6B7280',passed:'background:#F3F4F6;color:#6B7280',break:'background:#F9FAFB;color:#9CA3AF'};
 
     const earnedPts = bState.pts || 0;
+    const waits = ttBlockLocked(block) && (block.activities||[]).some(a => a.type !== 'wordbook' && a.type !== 'link');
+    const lockCb = '<span style="font-size:10px">🔒</span>';
 
     wrapper.innerHTML = `
       <div class="tt-block-hdr" onclick="ttToggleBlock('${block.id}')">
@@ -338,6 +374,7 @@ function ttRender(){
       <div class="tt-block-body" id="ttbody-${block.id}">
         ${state==='current'?'<div class="tt-current-indicator"><span class="tt-current-dot"></span>You are here right now!</div>':''}
         ${block.about ? `<div style="font-size:12px;color:#4B5563;line-height:1.55;background:#F9FAFB;border-radius:8px;padding:7px 10px;margin-bottom:10px">${_ttEsc(block.about)}</div>` : ''}
+        ${waits ? `<div style="font-size:11px;font-weight:800;color:#92400E;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:6px 10px;margin-bottom:10px">🔒 You can tick these tasks from ${_ttEsc(ttBlockOpensAt(block))}. Have a look at what’s coming!${block.activities.some(a=>a.type==='wordbook') ? ' New words can be added any time.' : ''}</div>` : ''}
         ${ttTabLink(block)}
         ${block.type==='break'?'<div style="font-size:12px;color:#6B7280;padding:4px 0">Free time — relax, no tasks required.</div>':''}
         ${block.activities && block.activities.length>0 ? `
@@ -353,7 +390,7 @@ function ttRender(){
                   <div class="tt-act parent-pending ${isCheckedPs?'checked':''}" id="ttact-${act.id}"
                     style="cursor:pointer" onclick="ttToggleAct('${block.id}','${act.id}',0,'parent-select')">
                     <div class="tt-act-left">
-                      <div class="tt-act-cb">${isCheckedPs?'\u2713':''}</div>
+                      <div class="tt-act-cb">${isCheckedPs?'\u2713':(waits?lockCb:'')}</div>
                       <div>
                         <div class="tt-act-name">${act.name}</div>
                         <div class="tt-act-sub">${act.note||''}</div>
@@ -374,7 +411,7 @@ function ttRender(){
                     style="flex-direction:column;align-items:flex-start;gap:8px;cursor:default">
                     <div style="display:flex;align-items:center;gap:10px;width:100%;cursor:pointer"
                       onclick="ttToggleTextEntry('${block.id}','${act.id}',${act.pts})">
-                      <div class="tt-act-cb">${isCheckedTe?'\u2713':''}</div>
+                      <div class="tt-act-cb">${isCheckedTe?'\u2713':(waits?lockCb:'')}</div>
                       <div style="flex:1">
                         <div class="tt-act-name">${act.name}</div>
                         <div class="tt-act-sub">${act.note||''}</div>
@@ -438,7 +475,7 @@ function ttRender(){
                   style="flex-direction:column;align-items:flex-start;gap:0;cursor:default;padding:0;border:none;background:transparent">
                   <div style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid #E5E7EB;background:${isCheckedPct?'#ECFDF5':'#FAFAFA'};cursor:pointer;box-sizing:border-box;transition:all .15s"
                     onclick="ttTogglePctCalc('${block.id}','${act.id}')">
-                    <div class="tt-act-cb" style="display:flex">${isCheckedPct?'✓':''}</div>
+                    <div class="tt-act-cb" style="display:flex">${isCheckedPct?'✓':(waits?lockCb:'')}</div>
                     <div style="flex:1">
                       <div class="tt-act-name">${act.name}</div>
                       <div class="tt-act-sub">Tap to enter marks · auto-calculates pts · max ${act.maxCalcPts} pts</div>
@@ -461,7 +498,7 @@ function ttRender(){
                       <div class="tt-act-name">📖 ${act.name}</div>
                       <div class="tt-act-sub">${act.note||''}</div>
                     </div>
-                    <div class="tt-act-pts" style="color:${block.color}" id="ttact-pts-${act.id}">${isChecked?'+'+act.pts+' pts ✅':'+'+act.pts+' pts 📖'}</div>
+                    <div class="tt-act-pts" style="color:${block.color}" id="ttact-pts-${act.id}">${ttWordLabel(ttWordEarned((bState.words||{})[act.id], act.pts), act.pts)}</div>
                   </div>
                   ${ttWordEntryHTML(block.id, act.id, act.pts)}
                 </div>`;
@@ -481,7 +518,7 @@ function ttRender(){
                   ${act.type==='parent'?'style="cursor:pointer"':''}
                   onclick="${act.type==='link'?`ttGoToTab('${act.tab||'brain'}')`:`ttToggleAct('${block.id}','${act.id}',${act.pts},'${act.type}')`}">
                   <div class="tt-act-left">
-                    <div class="tt-act-cb">${displayChecked?'✓':''}</div>
+                    <div class="tt-act-cb">${displayChecked?'✓':(waits && act.type!=='link'?lockCb:'')}</div>
                     <div>
                       <div class="tt-act-name">${act.name}</div>
                       ${act.note?`<div class="tt-act-sub">${act.note}</div>`:''}
@@ -573,27 +610,47 @@ function ttRenderMiniSchedule(){
 }
 
 // ── Wordbook inline entry (inside the Book Reading block) ─────────
-// The three words live in the block's saved state (bst.words[actId]) so they
-// survive a re-render and a reload. The task's points are earned once all three
-// have a word, a meaning and a sentence. The boxes have their own ids (ttw-…):
-// index.html also holds hidden word1/mean1/exam1 fields from the old report
-// form, and saveWordsToWordBook() + the saved report still read those, so every
-// change is mirrored into them.
+// Open all day — the child can add words at any time (Pooja, 20 Oct 2026).
+// The task's points (act.pts) are earned for EVERY 3 complete words (word,
+// meaning and a sentence), up to TT_WORD_SETS sets a day: with 10 pts,
+// 3 words = 10, 6 = 20, 9 = 30. The words live in the block's saved state
+// (bst.words[actId]); the points earned are kept in bst.wordPts[actId].
+// The boxes have their own ids (ttw-…); index.html also holds hidden
+// word1/mean1/exam1 fields from the old report form, which the saved report
+// still reads, so the first three words are mirrored into them.
+const TT_WORD_SETS = 3;                 // up to 9 words (3 sets) earn points each day
+
 function _ttEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function ttWordsComplete(words){ return (words||[]).filter(x => x && x.w && x.m && x.e).length; }
+function ttWordEarned(words, pts){
+  return Math.min(Math.floor(ttWordsComplete(words) / 3), TT_WORD_SETS) * (parseInt(pts,10) || 0);
+}
+// what the task shows on the right
+function ttWordLabel(earned, pts){
+  return earned > 0 ? '+' + earned + ' pts ✅' : pts + ' pts for every 3 words 📖';
+}
 
 function ttWordEntryHTML(blockId, actId, pts){
   const bst = ttBlockStates[blockId] || {};
   const W = (bst.words && bst.words[actId]) || [];
+  const asked = (bst.wordRows && bst.wordRows[actId]) || 3;
+  const rows = Math.min(TT_WORD_SETS * 3, Math.max(3, asked, Math.ceil(W.length / 3) * 3));
+  const done = ttWordsComplete(W), earned = ttWordEarned(W, pts);
   const box = 'padding:7px 10px;border-radius:8px;border:1.5px solid #D1FAE5;font-size:12px;font-family:\'Nunito\',sans-serif;background:#F0FDF4;color:#065F46;outline:none;box-sizing:border-box';
   const inp = (kind, n, ph, extra) => `<input type="text" id="ttw-${kind}${n}" placeholder="${ph}" value="${_ttEsc((W[n-1]||{})[kind]||'')}"
           style="${box};${extra||''}"
           oninput="ttWordInput('${blockId}','${actId}',${pts})" onfocus="this.style.borderColor='#059669'" onblur="this.style.borderColor='#D1FAE5'">`;
-  return `
-  <div style="width:100%;background:#F0FDF4;border-radius:12px;padding:14px;border:1.5px solid #A7F3D0">
-    <div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#065F46;margin-bottom:10px">
-      📝 Write 3 new words — Word, Meaning and an Example Sentence:
+  let h = `
+  <div id="ttw-panel-${actId}" style="width:100%;background:#F0FDF4;border-radius:12px;padding:14px;border:1.5px solid #A7F3D0">
+    <div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#065F46;margin-bottom:4px">
+      📝 Your new words — word, meaning and an example sentence
     </div>
-    ${[1,2,3].map(n=>`
+    <div style="font-size:11px;font-weight:800;color:#047857;margin-bottom:10px" id="ttw-score">
+      ${pts} points for every 3 words, up to ${TT_WORD_SETS * 3} words a day · You have ${done} complete word${done===1?'':'s'}${earned ? ' → +' + earned + ' pts' : ''}
+    </div>`;
+  for(let n = 1; n <= rows; n++){
+    h += `
     <div style="margin-bottom:10px;background:#fff;border-radius:10px;padding:10px 12px;border:1.5px solid #D1FAE5">
       <div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#059669;margin-bottom:6px">Word ${n}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
@@ -601,55 +658,96 @@ function ttWordEntryHTML(blockId, actId, pts){
         ${inp('m', n, 'Meaning')}
       </div>
       ${inp('e', n, 'Example sentence', 'width:100%')}
-    </div>`).join('')}
-    <div style="margin-top:4px">
-      <button id="ttw-save-btn" onclick="ttWordSave('${blockId}','${actId}',${pts})"
-        style="width:100%;padding:10px;border-radius:10px;border:none;
-          background:linear-gradient(135deg,#059669,#047857);color:#fff;
-          font-size:13px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;
-          box-shadow:0 4px 12px rgba(5,150,105,.3)">
-        💾 Save to My Wordbook
-      </button>
-      <div id="ttw-status" style="font-size:11px;font-weight:800;color:#059669;margin-top:6px;text-align:center;min-height:16px"></div>
-    </div>
+    </div>`;
+  }
+  if(rows < TT_WORD_SETS * 3){
+    h += `<button onclick="ttWordMore('${blockId}','${actId}',${pts})"
+        style="width:100%;padding:9px;border-radius:10px;border:1.5px dashed #059669;background:#fff;color:#047857;
+          font-size:12px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:8px">
+        ➕ Add 3 more words (+${pts} pts)</button>`;
+  }
+  h += `
+    <button id="ttw-save-btn" onclick="ttWordSave('${blockId}','${actId}',${pts})"
+      style="width:100%;padding:10px;border-radius:10px;border:none;
+        background:linear-gradient(135deg,#059669,#047857);color:#fff;
+        font-size:13px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;
+        box-shadow:0 4px 12px rgba(5,150,105,.3)">
+      💾 Save to My WordBook
+    </button>
+    <div id="ttw-status" style="font-size:11px;font-weight:800;color:#059669;margin-top:6px;text-align:center;min-height:16px"></div>
   </div>`;
+  return h;
 }
 
-// Reads the nine boxes into the block state, awards or removes the task's
-// points, and mirrors the words into the hidden report fields.
+// Three more rows, without rebuilding the whole timetable (which would close the block).
+function ttWordMore(blockId, actId, pts){
+  if(!ttBlockStates[blockId]) ttBlockStates[blockId]={pts:0,checkedActs:{},markedDone:false};
+  const st = ttBlockStates[blockId];
+  if(!st.wordRows) st.wordRows = {};
+  const now = document.querySelectorAll('#ttw-panel-'+actId+' input[id^="ttw-w"]').length || 3;
+  st.wordRows[actId] = Math.min(TT_WORD_SETS * 3, now + 3);
+  ttWordInput(blockId, actId, pts);                          // keep what is typed so far
+  const panel = document.getElementById('ttw-panel-'+actId);
+  if(panel) panel.outerHTML = ttWordEntryHTML(blockId, actId, pts);
+  const next = document.getElementById('ttw-w' + (now + 1));
+  if(next) next.focus();
+}
+
+// Reads all the boxes into the block state, works out the points, and mirrors
+// the first three words into the hidden report fields.
 function ttWordInput(blockId, actId, pts){
   if(!ttBlockStates[blockId]) ttBlockStates[blockId]={pts:0,checkedActs:{},markedDone:false};
   const state = ttBlockStates[blockId];
   if(!state.checkedActs) state.checkedActs = {};
   if(!state.words) state.words = {};
+  if(!state.wordPts) state.wordPts = {};
   const val = id => (document.getElementById(id)?.value || '').trim();
-  const words = [1,2,3].map(n => ({ w:val('ttw-w'+n), m:val('ttw-m'+n), e:val('ttw-e'+n) }));
+  const rows = document.querySelectorAll('#ttw-panel-'+actId+' input[id^="ttw-w"]').length || 3;
+  const words = [];
+  for(let n = 1; n <= rows; n++) words.push({ w:val('ttw-w'+n), m:val('ttw-m'+n), e:val('ttw-e'+n) });
+  while(words.length > 3 && !words[words.length-1].w && !words[words.length-1].m && !words[words.length-1].e) words.pop();
   state.words[actId] = words;
-  const complete = words.every(x => x.w && x.m && x.e);
-  const was = !!state.checkedActs[actId];
-  if(complete && !was){ state.checkedActs[actId] = true;  state.pts = (state.pts||0) + pts; }
-  if(!complete && was){ state.checkedActs[actId] = false; state.pts = Math.max(0, (state.pts||0) - pts); }
-  words.forEach((x, i) => {
+  const earned = ttWordEarned(words, pts);
+  state.wordPts[actId] = earned;
+  state.checkedActs[actId] = earned > 0;
+  const full = words.filter(x => x.w && x.m && x.e);
+  for(let i = 0; i < 3; i++){
+    const x = full[i] || { w:'', m:'', e:'' };
     const set = (id, v) => { const el = document.getElementById(id); if(el) el.value = v; };
     set('word'+(i+1), x.w); set('mean'+(i+1), x.m); set('exam'+(i+1), x.e);
-  });
+  }
   const actEl = document.getElementById('ttact-'+actId);
-  if(actEl) actEl.classList.toggle('checked', complete);
+  if(actEl) actEl.classList.toggle('checked', earned > 0);
   const ptsEl = document.getElementById('ttact-pts-'+actId);
-  if(ptsEl) ptsEl.textContent = '+' + pts + (complete ? ' pts ✅' : ' pts 📖');
+  if(ptsEl) ptsEl.textContent = ttWordLabel(earned, pts);
+  const sc = document.getElementById('ttw-score');
+  if(sc){
+    const done = full.length;
+    sc.textContent = pts + ' points for every 3 words, up to ' + (TT_WORD_SETS * 3) + ' words a day · You have '
+      + done + ' complete word' + (done===1?'':'s') + (earned ? ' → +' + earned + ' pts' : '');
+  }
   ttUpdateBlockPts(blockId);
   calcDayPts(); ttQueueSave();
 }
 
+// Adds every complete word that is not in the WordBook yet.
 async function ttWordSave(blockId, actId, pts){
   ttWordInput(blockId, actId, pts);
   const status = document.getElementById('ttw-status');
-  const ready = (ttBlockStates[blockId].words[actId] || []).filter(x => x.w && x.m && x.e).length;
-  if(!ready){ if(status) status.textContent = 'Fill in the word, its meaning and a sentence first.'; return; }
-  if(typeof saveWordsToWordBook !== 'function') return;
+  const ready = ((ttBlockStates[blockId].words || {})[actId] || []).filter(x => x.w && x.m && x.e);
+  if(!ready.length){ if(status) status.textContent = 'Fill in the word, its meaning and a sentence first.'; return; }
+  if(typeof wbSaveToSupabase !== 'function') return;
   if(status) status.textContent = 'Saving…';
-  await saveWordsToWordBook();
-  if(status) status.textContent = ready + ' word' + (ready>1?'s':'') + ' saved to your WordBook ✅';
+  let saved = 0, already = 0;
+  for(const x of ready){
+    const have = (typeof wbWords !== 'undefined' ? wbWords : []).some(w => (w.word||'').toLowerCase() === x.w.toLowerCase());
+    if(have){ already++; continue; }
+    const row = await wbSaveToSupabase(x.w, x.m, x.e, 'daily_report');
+    if(row){ if(typeof wbWords !== 'undefined') wbWords.unshift(row); saved++; }
+  }
+  try{ if(typeof wbRender === 'function') wbRender(); if(typeof wbUpdateGamification === 'function') wbUpdateGamification(); }catch(e){}
+  if(status) status.textContent = (saved ? saved + ' word' + (saved>1?'s':'') + ' saved to your WordBook ✅' : '')
+    + (already ? (saved ? ' · ' : '') + already + ' already in your WordBook' : '');
 }
 
 // ── Percentage Calculator for Maths blocks ────────────────────
@@ -708,6 +806,7 @@ function _ttGradeInfo(pct){
 
 // ── Toggle pct-calc section open/close ─────────────────────────
 function ttTogglePctCalc(blockId, actId){
+  if(ttTickWaits(blockId)) return;
   if(!ttBlockStates[blockId]) ttBlockStates[blockId]={pts:0,checkedActs:{},markedDone:false,calcPts:{},calcObt:{},calcTot:{}};
   const bState = ttBlockStates[blockId];
   const wasChecked = bState.checkedActs[actId]||false;
@@ -805,6 +904,7 @@ function ttCalcPct(actId, maxPts, color){
 
 // ── Dropdown points selector ───────────────────────────────────
 function ttSelectDropdownPts(blockId, actId, selectedPts){
+  if(ttTickWaits(blockId)) return;
   if(!ttBlockStates[blockId]) ttBlockStates[blockId]={pts:0,checkedActs:{},markedDone:false};
   const bState = ttBlockStates[blockId];
   if(!bState.ddPts) bState.ddPts = {};
@@ -852,6 +952,7 @@ function ttSelectDropdownPts(blockId, actId, selectedPts){
 
 // ── Text Entry (moral values, proverbs) ───────────────────────
 function ttToggleTextEntry(blockId, actId, pts){
+  if(ttTickWaits(blockId)) return;
   if(!ttBlockStates[blockId]) ttBlockStates[blockId]={pts:0,checkedActs:{},markedDone:false};
   const bState = ttBlockStates[blockId];
   const wasChecked = bState.checkedActs[actId]||false;
@@ -991,6 +1092,11 @@ function ttDayScore(){
         s.tasksMax += n(act.maxCalcPts);
         b.own += n((st.calcPts||{})[act.id]);
       }
+      else if(t === 'wordbook'){                    // act.pts for every 3 words, up to TT_WORD_SETS sets
+        s.tasksMax += n(act.pts) * TT_WORD_SETS;
+        const wp = (st.wordPts||{})[act.id];
+        b.own += (wp !== undefined) ? n(wp) : (chk[act.id] ? n(act.pts) : 0);   // days saved before 20 Oct
+      }
       else if(t === 'dropdown'){
         const opts = (act.options && act.options.length) ? act.options : [3,5,7,10];
         s.tasksMax += Math.max.apply(null, opts);
@@ -1064,6 +1170,35 @@ function ttApplyScore(s){
     badge.setAttribute('style', all ? 'background:#DCFCE7;color:#166534' : badge.dataset.style);
   });
 }
+
+// ── Brain Lab: each game once a day ──────────────────────────
+// Brain Lab games are never time-locked; each one locks for the rest of the
+// day once played (Sudoku and Maths Sprint already did). Two gaps closed here:
+// Logic is now saved the moment it is checked, and a game played with a score
+// of 0 is remembered as played, so a refresh cannot open it again. The day
+// record carries savedLogicDone / savedMathsDone; js/04-wordbook.js reads them.
+(function(){
+  if(typeof checkLogicAnswers === 'function'){
+    const check = checkLogicAnswers;
+    checkLogicAnswers = function(){
+      const was = (typeof logicFrozen !== 'undefined') && logicFrozen;
+      const r = check.apply(this, arguments);
+      if(!was && typeof saveBrainDraft === 'function') saveBrainDraft().catch(e => console.warn('[brain] logic save:', e));
+      return r;
+    };
+  }
+  if(typeof collectFormData === 'function'){
+    const collect = collectFormData;
+    collectFormData = function(date, pts){
+      const d = collect(date, pts);
+      try{
+        d.savedLogicDone = (typeof logicFrozen !== 'undefined') && !!logicFrozen;
+        d.savedMathsDone = (typeof mathsFrozen !== 'undefined') && !!mathsFrozen;
+      }catch(e){}
+      return d;
+    };
+  }
+})();
 
 // ── Saving as the child goes ─────────────────────────────────
 // Every tick, untick, mark or word is saved by itself a moment later — the
