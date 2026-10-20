@@ -376,14 +376,14 @@ var NIYAM_CLASS_DEFS = {
         { name:'Play outside or a sport for 30 minutes', pts:10, type:'self' }
       ]},
       { key:'brain', name:'Brain Lab', icon:'🧠', mins:30, type:'normal', pal:'violet',
-        about:'Short puzzles in the Brain Lab tab. The points come from there automatically.', acts:[
-        { name:'Brain Lab — Riddle of the day', pts:0, type:'link', tab:'brain', note:'Play it in the Brain Lab tab' },
-        { name:'Brain Lab — Maths Sprint', pts:0, type:'link', tab:'brain', note:'Play it in the Brain Lab tab' }
+        about:'The puzzles are in the Brain Lab tab of this app. Tap a task below to open it — the points come in automatically.', acts:[
+        { name:'Brain Lab — Riddle of the day', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' },
+        { name:'Brain Lab — Maths Sprint', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' }
       ]},
       { key:'shloka', name:'Geeta — Shloka & Meaning', icon:'🕉️', mins:30, type:'normal', pal:'amber',
-        about:'Learn one Geeta shloka and what it means, then say it to a parent. Your parent gives the points.', acts:[
+        about:'Your shlokas are in the Geeta — Soul Work tab of this app. Learn one and what it means, then say it to a parent. Your parent gives the points.', acts:[
         { name:'Learn a shloka and its meaning, then say it to a parent', pts:15, type:'parent',
-          note:'Your parent gives the points' }
+          note:'Find it in the Geeta — Soul Work tab · your parent gives the points' }
       ]},
       { key:'help', name:'Help at Home', icon:'🏠', mins:15, type:'normal', pal:'green',
         about:'Do one job at home without being asked — lay the table, fold clothes, water the plants.', acts:[
@@ -436,11 +436,11 @@ var NIYAM_CLASS_DEFS = {
       { key:'snack1', name:'Fruit, Snacks & Relax', icon:'🍎', mins:60, type:'break', pal:'grey',
         about:'Have some fruit or a snack and relax as you like — you can watch your favourite cartoons.', acts:[] },
       { key:'brain', name:'Brain Lab', icon:'🧠', mins:60, type:'normal', pal:'violet',
-        about:'Puzzles in the Brain Lab tab. The points come from there automatically.', acts:[
-        { name:'Brain Lab — Riddle of the day', pts:0, type:'link', tab:'brain', note:'Play it in the Brain Lab tab' },
-        { name:'Brain Lab — Logic puzzles', pts:0, type:'link', tab:'brain', note:'Play it in the Brain Lab tab' },
-        { name:'Brain Lab — Maths Sprint', pts:0, type:'link', tab:'brain', note:'Play it in the Brain Lab tab' },
-        { name:'Brain Lab — Sudoku', pts:0, type:'link', tab:'brain', note:'Play it in the Brain Lab tab' }
+        about:'The puzzles are in the Brain Lab tab of this app. Tap a task below to open it — the points come in automatically.', acts:[
+        { name:'Brain Lab — Riddle of the day', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' },
+        { name:'Brain Lab — Logic puzzles', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' },
+        { name:'Brain Lab — Maths Sprint', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' },
+        { name:'Brain Lab — Sudoku', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' }
       ]},
       { key:'wlunch', name:'Lunch', icon:'🍱', mins:30, type:'normal', pal:'grey',
         about:'Lunch time. When you finish, put your plate away and clean your table.', acts:[
@@ -469,9 +469,9 @@ var NIYAM_CLASS_DEFS = {
         { name:'Play outside or a sport for 45 minutes', pts:15, type:'self' }
       ]},
       { key:'shloka', name:'Geeta — Shloka & Wisdom', icon:'🕉️', mins:30, type:'normal', pal:'amber',
-        about:'Learn one Geeta shloka and what it means, then say it to a parent. Your parent gives the points.', acts:[
+        about:'Your shlokas are in the Geeta — Soul Work tab of this app. Learn one and what it means, then say it to a parent. Your parent gives the points.', acts:[
         { name:'Learn a shloka and its meaning, then say it to a parent', pts:15, type:'parent',
-          note:'Your parent gives the points' },
+          note:'Find it in the Geeta — Soul Work tab · your parent gives the points' },
         { name:'Say an old shloka again from memory', pts:5, type:'self' }
       ]},
       { key:'help', name:'Help at Home', icon:'🏠', mins:15, type:'normal', pal:'green',
@@ -514,11 +514,11 @@ var NIYAM_BLOCK_ABOUT = {
   hw:       'Homework, with a parent close by to help.',
   play:     'Time outdoors \u2014 a sport, cycling or running around. Moving the body keeps the mind fresh.',
   play1:    'Time outdoors \u2014 a sport, cycling or running around. Moving the body keeps the mind fresh.',
-  brain:    'Short puzzles in the Brain Lab tab. The points come from there automatically.',
+  brain:    'The puzzles are in the Brain Lab tab of this app. Tap a task below to open it — the points come in automatically.',
   sudoku:   'Sudoku in the Brain Lab, plus a little maths practice from the school book.',
   maths:    'Longer maths practice on a holiday \u2014 chapter questions and Olympiad-style problems.',
   papers:   'Practice papers and writing, to build exam confidence.',
-  shloka:   'Learn one Geeta shloka and what it means, then say it to a parent. The parent gives the points.',
+  shloka:   'Your shlokas are in the Geeta — Soul Work tab of this app. Learn one and what it means, then say it to a parent. Your parent gives the points.',
   creative: 'Make something with your own hands \u2014 drawing, craft or music.',
   enrich:   'Learn one new thing beyond school and write a line about it.',
   help:     'Do one job at home without being asked \u2014 lay the table, fold clothes, water the plants.',
