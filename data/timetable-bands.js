@@ -355,6 +355,7 @@ var NIYAM_CLASS_DEFS = {
   4: {
     label: 'Class 4',
     defaultStart: 15,           // school ends 3:00 PM (the parent's choice moves it)
+    lunchUntil: 15.75,          // Lunch & Rest runs from school end until 3:45 PM
     bedtime: 21,                // 9:00 PM
     weekendStart: 7,            // 7:00 AM
     weekendBedtime: 21,         // 9:00 PM
@@ -679,9 +680,22 @@ function niyamBuildTimetable(cls, startHour){
   return {
     band: own ? ('class' + n) : bandKey,
     label: band.label,
-    weekday: [school].concat(_niyamExpand(band.weekday, start, 'wd', band.bedtime, !!own)),
+    weekday: [school].concat(_niyamExpand(_niyamLunchToAnchor(band, start), start, 'wd', band.bedtime, !!own)),
     weekend: _niyamExpand(band.weekend, band.weekendStart, 'we', band.weekendBedtime, !!own)
   };
+}
+
+// Whatever time school ends, Lunch & Rest lasts until the class's lunchUntil
+// time (3:45 PM for Class 4), so the rest of the afternoon keeps its times
+// (Pooja, 20 Oct 2026). It is never shorter than 30 minutes: a later school
+// end shifts the rest of the day instead.
+function _niyamLunchToAnchor(def, start){
+  var list = def.weekday || [];
+  if(typeof def.lunchUntil !== 'number' || !list.length || list[0].key !== 'lunch') return list;
+  var mins = Math.max(30, Math.round((def.lunchUntil - start) * 60));
+  var copy = list.slice();
+  copy[0] = Object.assign({}, list[0], { mins: mins });
+  return copy;
 }
 
 // Total points a perfect day is worth — used by the preview screen.
