@@ -47,13 +47,14 @@ function ttNowHour(){
 }
 
 // ── Determine block state ──────────────────────────────────────
-// 'done' (school, or marked done by the child), 'break', 'current' (its time
-// is now), 'upcoming' or 'passed'. Only 'done' stops ticking.
+// 'done' (the school block), 'break', 'current' (its time is now),
+// 'upcoming' or 'passed'. A child's block is never locked: "Mark this block as
+// done" was removed (20 Oct 2026) — a mistaken tap locked the block. Ticks are
+// saved as they happen instead, and a block whose tasks are all ticked shows
+// "ALL DONE" (see ttApplyScore). An old saved markedDone is ignored.
 function ttBlockState(block, nowH){
   if(block.type==='locked-until-3pm') return 'done';
   if(block.type==='break') return 'break';
-  const bState = ttBlockStates[block.id];
-  if(bState && bState.markedDone) return 'done';
 
   const schedule = ttGetSchedule();
   const thisIdx  = schedule.findIndex(b => b.id === block.id);
@@ -229,7 +230,7 @@ function ttToggleAct(blockId, actId, pts, type){
   }
   // Update block pts badge
   ttUpdateBlockPts(blockId);
-  calcDayPts();
+  calcDayPts(); ttQueueSave();
 }
 
 // What a parent-scored task shows on the right: the award once given, else
@@ -330,7 +331,7 @@ function ttRender(){
           <div class="tt-block-name" style="color:${block.color}">${block.name}</div>
         </div>
         <div class="tt-block-right">
-          <span class="tt-status-badge" style="${statusColors[state]||statusColors.upcoming}">${statusMap[state]||''}</span>
+          <span class="tt-status-badge" data-label="${statusMap[state]||''}" data-style="${statusColors[state]||statusColors.upcoming}" style="${statusColors[state]||statusColors.upcoming}">${statusMap[state]||''}</span>
           <span class="tt-chevron">▼</span>
         </div>
       </div>
@@ -338,7 +339,6 @@ function ttRender(){
         ${state==='current'?'<div class="tt-current-indicator"><span class="tt-current-dot"></span>You are here right now!</div>':''}
         ${block.about ? `<div style="font-size:12px;color:#4B5563;line-height:1.55;background:#F9FAFB;border-radius:8px;padding:7px 10px;margin-bottom:10px">${_ttEsc(block.about)}</div>` : ''}
         ${ttTabLink(block)}
-        ${state==='done' && block.type!=='locked-until-3pm' && block.maxPts>0 ? `<button onclick="ttReopen('${block.id}')" style="background:none;border:none;color:#059669;font-size:11px;font-weight:800;cursor:pointer;padding:0 0 8px;font-family:'Nunito',sans-serif">↩ Reopen this block to change a tick</button>` : ''}
         ${block.type==='break'?'<div style="font-size:12px;color:#6B7280;padding:4px 0">Free time — relax, no tasks required.</div>':''}
         ${block.activities && block.activities.length>0 ? `
           <div class="tt-activities">
@@ -495,10 +495,7 @@ function ttRender(){
             <span style="font-size:11px;font-weight:800;color:#6B7280">Points earned this block</span>
             <span style="font-size:14px;font-weight:900;color:${block.color}" id="ttpts-${block.id}">${earnedPts} pts</span>
           </div>
-          ${(state==='current'||state==='upcoming'||state==='passed') && block.maxPts>0 ? `
-            <button class="tt-mark-done-btn ${bState.markedDone?'done':'primary'}" onclick="ttMarkDone('${block.id}')">
-              ${bState.markedDone?'✅ Block completed!':'✅ Mark this block as done'}
-            </button>`:''}`:''}
+`:''}
       </div>`;
     container.appendChild(wrapper);
   });
@@ -641,7 +638,7 @@ function ttWordInput(blockId, actId, pts){
   const ptsEl = document.getElementById('ttact-pts-'+actId);
   if(ptsEl) ptsEl.textContent = '+' + pts + (complete ? ' pts ✅' : ' pts 📖');
   ttUpdateBlockPts(blockId);
-  calcDayPts();
+  calcDayPts(); ttQueueSave();
 }
 
 async function ttWordSave(blockId, actId, pts){
@@ -737,7 +734,7 @@ function ttTogglePctCalc(blockId, actId){
   }
   if(ptsEl) ptsEl.textContent = '0 pts';
   ttUpdateBlockPts(blockId);
-  calcDayPts();
+  calcDayPts(); ttQueueSave();
 }
 
 // ── Live percentage calculation ────────────────────────────────
@@ -800,7 +797,7 @@ function ttCalcPct(actId, maxPts, color){
       bst.calcObt[actId] = obt;
       bst.calcTot[actId] = tot;
       ttUpdateBlockPts(block.id);
-      calcDayPts();
+      calcDayPts(); ttQueueSave();
       break;
     }
   }
@@ -850,7 +847,7 @@ function ttSelectDropdownPts(blockId, actId, selectedPts){
   }
 
   ttUpdateBlockPts(blockId);
-  calcDayPts();
+  calcDayPts(); ttQueueSave();
 }
 
 // ── Text Entry (moral values, proverbs) ───────────────────────
@@ -870,7 +867,7 @@ function ttToggleTextEntry(blockId, actId, pts){
     const cb = actEl.querySelector('.tt-act-cb');
     if(cb) cb.textContent = bState.checkedActs[actId] ? '\u2713' : '';
   }
-  ttUpdateBlockPts(blockId); calcDayPts();
+  ttUpdateBlockPts(blockId); calcDayPts(); ttQueueSave();
 }
 
 function ttSaveTextEntry(blockId, actId){
@@ -879,6 +876,7 @@ function ttSaveTextEntry(blockId, actId){
   if(!ta) return;
   if(!ttBlockStates[blockId].textEntries) ttBlockStates[blockId].textEntries = {};
   ttBlockStates[blockId].textEntries[actId] = ta.value;
+  ttQueueSave();
 }
 
 async function ttSaveTextEntryToGallery(blockId, actId, galleryKey, actName){
@@ -970,9 +968,14 @@ function ttDayScore(){
   schedule.forEach(block => {
     if(block.type === 'break' || block.type === 'locked-until-3pm') return;
     const st = ttBlockStates[block.id] || {}, chk = st.checkedActs || {};
-    const b = { own:0, link:0, given:0, linkPts:{} };
+    const b = { own:0, link:0, given:0, linkPts:{}, n:0, d:0 };   // n tasks, d of them done
     (block.activities||[]).forEach(act => {
       const t = act.type || 'self';
+      b.n++;
+      if(chk[act.id] || n((st.calcPts||{})[act.id]) > 0 || n((st.ddPts||{})[act.id]) > 0
+         || (st.parentPts && st.parentPts[act.id] !== undefined)) b.d++;
+      else if(t === 'link' && games[act.id] && n(games[act.id].pts()) > 0) b.d++;
+      else if(t === 'link' && !games[act.id]) b.n--;            // a link with no game to play
       if(t === 'parent' || t === 'parent-select'){
         s.parentMax += (t === 'parent') ? n(act.pts) : n(act.maxCalcPts);
         s.parentTasks++;
@@ -1051,6 +1054,44 @@ function ttApplyScore(s){
     const footer = document.getElementById('ttpts-'+block.id);
     if(footer) footer.textContent = st.pts + ' pts earned';
   });
+  // a block whose tasks are all ticked says so — it never locks
+  schedule.forEach(block => {
+    const b = s.blocks[block.id];
+    const badge = document.querySelector('#ttb-'+block.id+' .tt-status-badge');
+    if(!b || !badge || !badge.dataset.label) return;
+    const all = b.n > 0 && b.d >= b.n;
+    badge.textContent = all ? '✅ ALL DONE' : badge.dataset.label;
+    badge.setAttribute('style', all ? 'background:#DCFCE7;color:#166534' : badge.dataset.style);
+  });
+}
+
+// ── Saving as the child goes ─────────────────────────────────
+// Every tick, untick, mark or word is saved by itself a moment later — the
+// child never has to press anything. Approved days are never touched.
+let _ttSaveTimer = null, _ttSaveWarned = 0;
+function ttQueueSave(){
+  clearTimeout(_ttSaveTimer);
+  _ttSaveTimer = setTimeout(ttSaveNow, 2500);
+}
+async function ttSaveNow(){
+  try{
+    if(typeof dbReady !== 'undefined' && !dbReady) return;
+    if(typeof todayApproved !== 'undefined' && todayApproved) return;
+    const date = document.getElementById('rpt-date')?.value;
+    if(!date) return;
+    const existing = savedDays.find(d => d.date === date);
+    if(existing && existing.approved === true) return;
+    const data = collectFormData(date, calcDayPts());
+    const idx = savedDays.findIndex(d => d.date === date);
+    if(idx >= 0) savedDays[idx] = {...savedDays[idx], ...data}; else savedDays.unshift(data);
+    savedDays.sort((a,b) => new Date(b.date) - new Date(a.date));
+    try{ localStorage.setItem('vaanya_days', JSON.stringify(savedDays)); }catch(e){}
+    const ok = await saveToSupabase(data);
+    if(!ok && Date.now() - _ttSaveWarned > 60000){
+      _ttSaveWarned = Date.now();
+      if(typeof toast === 'function') toast('⚠️ Could not save to the cloud — check the internet. Your ticks are kept on this device.');
+    }
+  }catch(e){ console.warn('[timetable] save:', e); }
 }
 
 // Called by the Brain Lab after every puzzle, just before calcDayPts().
