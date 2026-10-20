@@ -197,6 +197,17 @@
           r.pts = r.done ? picked : 0;
           r.can = r.child ? 'undo' : '';
         }
+        else if(t === 'wordbook'){               // a.pts for every 3 words, up to 9 words a day
+          var wp = (st.wordPts||{})[a.id];
+          var earnedW = (wp !== undefined) ? num(wp) : (chk[a.id] ? num(a.pts) : 0);   // days saved before 20 Oct
+          r.max = num(a.pts) * 3;
+          r.child = earnedW > 0;
+          r.done = r.child && !E.undone[a.id];
+          r.pts = r.done ? earnedW : 0;
+          r.can = r.child ? 'undo' : '';
+          var WW = wordsOf(d, (st.words||{})[a.id]);
+          if(WW.length) m.wrote.push({ title:'New words', text:WW.join(' · ') });
+        }
         else {                                  // a tick worth fixed points
           r.max = num(a.pts);
           r.child = !!chk[a.id];
@@ -581,6 +592,7 @@
         if(!r.done){
           if(st.calcPts) delete st.calcPts[r.id];
           if(st.ddPts && st.ddPts[r.id]) st.ddPts[r.id] = 0;
+          if(st.wordPts && st.wordPts[r.id]) st.wordPts[r.id] = 0;
         }
         sum += r.pts;
       });
