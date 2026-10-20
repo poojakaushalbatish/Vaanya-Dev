@@ -262,11 +262,28 @@ function ttUpdateBlockPts(blockId){
   if(el && state) el.textContent = state.pts + ' pts earned';
 }
 
+// A button inside a block that opens the tab where its work is done:
+// Brain Lab puzzles, or the Geeta shlokas. Worked out from the block's tasks,
+// so it also shows in timetables the family saved before this was added.
+function ttTabLink(block){
+  const acts = block.activities || [];
+  const btn = (tab, label, color) => `<button onclick="event.stopPropagation();ttGoToTab('${tab}')"
+      style="display:block;width:100%;margin:0 0 10px;padding:9px 12px;border-radius:10px;border:1.5px solid ${color}40;
+        background:${color}12;color:${color};font-size:12px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;text-align:left">
+      ${label} →</button>`;
+  if(acts.some(a => a.type === 'link' && (a.tab||'brain') === 'brain'))
+    return btn('brain', '🧠 Open the Brain Lab tab — your puzzles are there', '#7C3AED');
+  if(acts.some(a => /shloka|geeta/i.test(a.name||'')) || /shloka|geeta/i.test(block.name||''))
+    return btn('geeta', '🕉️ Open the Geeta — Soul Work tab — your shlokas are there', '#B45309');
+  return '';
+}
+
 // ── Navigate to linked tab ─────────────────────────────────────
 function ttGoToTab(tabName){
   const map={'brain':'brain','creative':'creative','geeta':'geeta','wordbook':'wordbook','book':'wordbook'};
   const id = map[tabName]||tabName;
-  const btn = document.querySelector('.nb.t'+(id==='brain'?'1':id==='geeta'?'2':id==='creative'?'3':'4'));
+  // the menu button that opens this tab, so it shows as the selected one
+  const btn = [...document.querySelectorAll('.nb')].find(b => (b.getAttribute('onclick')||'').indexOf("showTab('"+id+"'") > -1);
   // Use showTab directly
   showTab(id, btn || document.querySelector('.nb'));
   window.scrollTo({top:0,behavior:'smooth'});
@@ -320,6 +337,7 @@ function ttRender(){
       <div class="tt-block-body" id="ttbody-${block.id}">
         ${state==='current'?'<div class="tt-current-indicator"><span class="tt-current-dot"></span>You are here right now!</div>':''}
         ${block.about ? `<div style="font-size:12px;color:#4B5563;line-height:1.55;background:#F9FAFB;border-radius:8px;padding:7px 10px;margin-bottom:10px">${_ttEsc(block.about)}</div>` : ''}
+        ${ttTabLink(block)}
         ${state==='done' && block.type!=='locked-until-3pm' && block.maxPts>0 ? `<button onclick="ttReopen('${block.id}')" style="background:none;border:none;color:#059669;font-size:11px;font-weight:800;cursor:pointer;padding:0 0 8px;font-family:'Nunito',sans-serif">↩ Reopen this block to change a tick</button>` : ''}
         ${block.type==='break'?'<div style="font-size:12px;color:#6B7280;padding:4px 0">Free time — relax, no tasks required.</div>':''}
         ${block.activities && block.activities.length>0 ? `
