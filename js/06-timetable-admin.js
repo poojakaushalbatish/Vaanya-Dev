@@ -358,7 +358,7 @@
     'parent':        'Parent awards points',
     'pct-calc':      'Score out of 100% → points',
     'text-entry':    'Child writes an answer',
-    'wordbook':      'Points for every 3 words in the WordBook (up to 9 words a day)',
+    'wordbook':      'Points for every 3 words added to My Dictionary (up to 9 words a day)',
     'link':          'Points come from Brain Lab',
     'parent-select': 'Parent awards points, up to the maximum',
     'dropdown':      'Child picks points for quality'
