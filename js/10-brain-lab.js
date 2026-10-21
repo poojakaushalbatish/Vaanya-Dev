@@ -57,7 +57,10 @@
     tenali:   { name:'Tenali Rama', seal:'ते', c:'#7A1F2B', says:'A riddle from King Krishnadevaraya’s court. Don’t let it trick you!' },
     chanakya: { name:'Chanakya',    seal:'चा', c:'#0E6B70', says:['A wise mind looks for the rule hiding inside.', 'Read slowly. Every word is a clue.',
                 'Think one step at a time.', 'Check each answer against the rule.', 'The last one! Stay calm and think it through.'] },
-    ramanujan:{ name:'Ramanujan',   seal:'रा', c:'#33307A', says:'Numbers are friends. Some are fast friends, some are slow friends — take the time you need.' },
+    ramanujan:{ name:'Ramanujan',   seal:'रा', c:'#33307A', says:'Numbers are friends. Some are fast friends, some are slow friends — take the time you need.',
+                tips:['Read every number carefully.', 'Break it into small steps.', 'Make a quick guess first, then check it.', 'Look for a shortcut — there often is one.',
+                'You are doing well. Keep going!', 'Which operation does the question need?', 'Check the units: rupees, minutes, metres?', 'Halfway there — stay calm.',
+                'Write the steps in your head, one by one.', 'The last one! Think it through.'] },
     lilavati: { name:'Lilavati’s puzzle book', seal:'ली', c:'#3D7A3A',
                 says:'Bhaskaracharya wrote a book of maths puzzles more than 850 years ago and named it after his daughter, Lilavati. Here is today’s puzzle!' }
   };
@@ -341,8 +344,9 @@
     TICK = setInterval(function(){
       if(!BL || BL.maths.done){ stopTick(); return; }
       var left = msLeft();
-      var el = $('bl-timer'); if(el) el.textContent = fmtLeft(left);
-      var bar = $('bl-timebar'); if(bar) bar.style.width = Math.max(0, Math.min(100, left / (BL.maths.mins * 600))) + '%';
+      var pct = Math.max(0, Math.min(100, left / (BL.maths.mins * 600)));
+      document.querySelectorAll('#bl-root [data-timer]').forEach(function(el){ el.textContent = fmtLeft(left); });
+      document.querySelectorAll('#bl-root [data-pie]').forEach(function(el){ el.style.background = 'conic-gradient(var(--indigo) ' + pct + '%,#E6E4F4 0)'; });
       if(left <= 0 && !BL.maths.paused) timeUp();
     }, 1000);
   }
@@ -542,10 +546,6 @@
   + '#bl-root .bl-steps{margin:8px 0 0;padding:0;list-style:none;counter-reset:s}'
   + '#bl-root .bl-steps li{counter-increment:s;position:relative;padding-left:30px;margin-top:7px;font-weight:600;line-height:1.45}'
   + '#bl-root .bl-steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:21px;height:21px;border-radius:50%;background:var(--c);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}'
-  + '#bl-root .bl-timers{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:10px}'
-  + '#bl-root .bl-timers button{border:2px solid var(--line);border-radius:14px;background:#fff;text-align:center;padding:8px 2px;font-family:"Rozha One",Georgia,serif;font-size:22px;line-height:1}'
-  + '#bl-root .bl-timers button small{display:block;font-family:Mukta,sans-serif;font-size:11px;font-weight:800;margin-top:3px}'
-  + '#bl-root .bl-timers button.pick{border-color:var(--c);background:#EBEAF6}'
   + '#bl-root .bl-level{display:flex;align-items:center;gap:12px;background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px 14px;width:100%;text-align:left;margin-top:10px}'
   + '#bl-root .bl-level.pick{border-color:var(--c);background:#EEF6EC}'
   + '#bl-root .bl-level .bars{display:flex;gap:3px}'
@@ -569,6 +569,26 @@
   + '#bl-root .bl-summary .bl-seal{width:30px;height:30px;font-size:13px;margin:0;box-shadow:none}'
   + '#bl-root .bl-summary b{margin-left:auto;font-weight:800}'
   + '#bl-root .bl-split>div{min-width:0}'
+  // question screens: one column on a phone (the explanation comes after the answer)
+  + '#bl-root .bl-play{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "mentor" "qa" "next";column-gap:30px}'
+  + '#bl-root .bl-play.answered{grid-template-areas:"head" "qa" "mentor" "next"}'
+  + '#bl-root .pa-head{grid-area:head;min-width:0} #bl-root .pa-mentor{grid-area:mentor;min-width:0} #bl-root .pa-qa{grid-area:qa;min-width:0} #bl-root .pa-next{grid-area:next;min-width:0}'
+  + '#bl-root .bl-pie{display:inline-block;width:20px;height:20px;border-radius:50%;border:2px solid var(--indigo)}'
+  + '#bl-root .bl-pie.big{width:64px;height:64px;border-width:4px;flex:0 0 auto}'
+  + '#bl-root .bl-run{display:flex;align-items:center;gap:14px;margin-top:14px}'
+  + '#bl-root .bl-setup{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:14px}'
+  + '#bl-root .bl-clockcard{text-align:center;padding:18px}'
+  + '#bl-root .bl-clock{display:block;width:100%;max-width:260px;margin:10px auto}'
+  + '#bl-root .bl-notimer{display:block;width:100%;margin-top:12px;border:2px dashed var(--line);border-radius:12px;background:#fff;padding:10px;font-weight:800;color:var(--soft)}'
+  + '#bl-root .bl-notimer.on{border-style:solid;border-color:var(--indigo);color:var(--indigo);background:#EBEAF6}'
+  + '#bl-root .bl-col{max-width:560px;margin:0 auto}'
+  + '#bl-root .bl-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}'
+  + '#bl-root .bl-tabs button{border:2px solid var(--line);border-radius:12px;background:#fff;padding:7px 4px;font-weight:800;font-size:15px;line-height:1.1}'
+  + '#bl-root .bl-tabs button small{display:block;font-size:11px;color:var(--soft)}'
+  + '#bl-root .bl-tabs button.on{border-color:var(--green);background:var(--green);color:#fff}'
+  + '#bl-root .bl-tabs button.on small{color:#E3F1E0}'
+  + '#bl-root .bl-tabs button[disabled]{opacity:.45;cursor:default}'
+  + '#bl-root .bl-levels{display:grid;grid-template-columns:minmax(0,1fr);gap:0}'
   // computers and tablets
   + '@media (min-width:820px){'
   +   '#bl-root{padding:26px 34px 34px}'
@@ -579,7 +599,15 @@
   +   '#bl-root .v-home .bl-side{flex-direction:row}'
   +   '#bl-root .v-home .bl-side>*{flex:1}'
   +   '#bl-root .v-home .bl-halls{margin-top:0}'
-  +   '#bl-root .bl-board,#bl-root .bl-pad{max-width:480px;margin-left:auto;margin-right:auto}'
+  +   '#bl-root .bl-play{grid-template-columns:minmax(0,2fr) minmax(0,3fr);grid-template-areas:"head qa" "mentor qa" "mentor next"!important;align-items:start}'
+  +   '#bl-root .bl-play .pa-qa .bl-q{margin-top:0}'
+  +   '#bl-root .bl-setup{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px;align-items:start}'
+  +   '#bl-root .bl-setup .s-clock{order:2} #bl-root .bl-setup .s-info{order:1}'
+  +   '#bl-root .bl-col{max-width:640px}'
+  +   '#bl-root .bl-col .bl-board,#bl-root .bl-col .bl-pad,#bl-root .bl-col .bl-tabs{max-width:480px;margin-left:auto;margin-right:auto}'
+  +   '#bl-root .bl-levels{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}'
+  +   '#bl-root .bl-levels .bl-level{flex-direction:column;align-items:flex-start;gap:8px}'
+  +   '#bl-root .bl-levels .bl-level .pts{margin-left:0;text-align:left}'
   + '}';
 
   function addStyles(){
@@ -685,6 +713,8 @@
       + (BL.error === 'offline' ? '<button class="bl-btn" data-act="retry">Try again</button>' : '') + '</div>';
   }
 
+  // A question screen. Phone: one column. Computer: the thinker on the left,
+  // the question with its answers underneath on the right.
   function quizHtml(g){
     var L = LOOK[g], Q = list(g), S = BL[g];
     if(!Q.length) return noQuestions(g);
@@ -693,62 +723,105 @@
     var i = S.i, q = Q[i] || Q[0], ans = S.ans[i], answered = ans !== undefined, m = mentorFor(g, i);
     var ok = answered && ans === q.answer;
     var pts = g === 'riddle' && S.hint[i] ? PTS.riddle - PTS.hintCost : PTS[g];
-    var right = g === 'maths' ? icon('clock', 16, 2.4) + ' <span id="bl-timer">' + fmtLeft(msLeft()) + '</span>' : PTS[g] + ' pts · 1 leaf';
-    var sub = L.unit + ' ' + (i + 1) + ' of ' + COUNT[g] + ' · with ' + m.name;
-    var a = '<div style="--c:' + L.c + '">' + top(g, sub, right);
-    if(g === 'maths' && S.mins){
-      var w = Math.max(0, Math.min(100, msLeft() / (S.mins * 600)));
-      a += '<div class="bl-bar" style="height:8px;margin-top:10px;background:#E6E4F4"><i id="bl-timebar" style="width:' + w + '%;background:var(--indigo)"></i></div>';
-    }
-    a += '<div class="bl-progress">';
+    var right = g === 'maths' ? clockChip() : PTS[g] + ' pts · 1 leaf';
+    var head = top(g, L.unit + ' ' + (i + 1) + ' of ' + COUNT[g] + ' · with ' + m.name, right);
+    head += '<div class="bl-progress">';
     for(var k = 0; k < COUNT[g]; k++){
       var ak = S.ans[k];
-      a += '<span class="' + (ak === undefined ? (k === i ? 'cur' : '') : (Q[k] && ak === Q[k].answer ? 'ok' : 'no')) + '"></span>';
+      head += '<span class="' + (ak === undefined ? (k === i ? 'cur' : '') : (Q[k] && ak === Q[k].answer ? 'ok' : 'no')) + '"></span>';
     }
-    a += '</div>';
-    if(!answered && g !== 'maths') a += bubble(m, m.name + ' says', esc(mentorSays(m, i)));
-    a += '<div class="bl-q"><div class="topic">' + esc(q.topic || L.name) + '</div><div class="q">' + esc(q.question) + '</div></div>';
-    if(g === 'riddle' && q.hint){
-      if(S.hint[i]) a += '<div class="bl-hint">' + icon('bulb', 22, 2.2, '#9A6400') + '<div><small>' + esc(m.name) + ' whispers a hint · −' + PTS.hintCost + ' pts</small>' + esc(q.hint) + '</div></div>';
-      else if(!answered) a += '<button class="bl-hint" data-act="hint">' + icon('bulb', 22, 2.2, '#9A6400') + '<div><small>Stuck?</small>Ask ' + esc(m.name) + ' for a hint (costs ' + PTS.hintCost + ' points)</div></button>';
-    }
-    a += '</div>';
+    head += '</div>';
 
+    var mentor = (g === 'maths' && S.mins ? runClock() : '') + (answered ? bubble(m, m.name + ' explains', steps(q.explanation))
+               : bubble(m, m.name + ' says', esc(g === 'maths' ? m.tips[i % m.tips.length] : mentorSays(m, i))));
+
+    var qa = '<div class="bl-q"><div class="topic">' + esc(q.topic || L.name) + '</div><div class="q">' + esc(q.question) + '</div></div>';
+    if(g === 'riddle' && q.hint){
+      if(S.hint[i]) qa += '<div class="bl-hint">' + icon('bulb', 22, 2.2, '#9A6400') + '<div><small>' + esc(m.name) + ' whispers a hint · −' + PTS.hintCost + ' pts</small>' + esc(q.hint) + '</div></div>';
+      else if(!answered) qa += '<button class="bl-hint" data-act="hint">' + icon('bulb', 22, 2.2, '#9A6400') + '<div><small>Stuck?</small>Ask ' + esc(m.name) + ' for a hint (costs ' + PTS.hintCost + ' points)</div></button>';
+    }
     var long = ['A','B','C','D'].some(function(Lt){ return String(opt(q, Lt) || '').length > 22; });
-    var b = '<div style="--c:' + L.c + '"><div class="bl-opts' + (long ? ' one' : '') + '">';
+    qa += '<div class="bl-opts' + (long ? ' one' : '') + '">';
     ['A','B','C','D'].forEach(function(Lt){
       var cls = 'bl-opt';
       if(answered){ cls += Lt === q.answer ? ' right' : Lt === ans ? ' wrong' : ' dim'; }
       else if(S.pick === Lt) cls += ' pick';
-      b += '<button class="' + cls + '" data-act="pick" data-l="' + Lt + '"' + (answered ? ' disabled' : '') + '>'
+      qa += '<button class="' + cls + '" data-act="pick" data-l="' + Lt + '"' + (answered ? ' disabled' : '') + '>'
         + (answered && Lt === q.answer ? '✓ ' : '') + esc(opt(q, Lt)) + '</button>';
     });
-    b += '</div>';
+    qa += '</div>';
     if(answered){
-      b += ok ? '<div class="bl-win"><span class="big">+' + pts + '</span> points <span style="display:flex;align-items:center;gap:4px;margin-left:auto">' + leafIcon(16) + ' +1 leaf on your tree</span></div>'
-              : '<div class="bl-win miss">' + (ans === '-' ? 'Time ran out for this one.' : 'Not this time — and no leaf is lost.') + ' The answer is ' + esc(opt(q, q.answer)) + '.</div>';
-      b += bubble(m, m.name + ' explains', steps(q.explanation));
-      b += '<button class="bl-btn" data-act="next">' + (i >= COUNT[g] - 1 ? 'See how I did' : 'Next ' + L.unit.toLowerCase()) + '</button>';
-    } else {
-      b += '<button class="bl-btn" data-act="check"' + (S.pick ? '' : ' disabled') + '>Give my answer</button>';
-      if(g === 'riddle') b += '<div class="bl-note">No hint used? You get all ' + PTS.riddle + ' points.</div>';
-      else b += '<div class="bl-note">Right or wrong, ' + esc(m.name) + ' explains the answer.</div>';
+      qa += ok ? '<div class="bl-win"><span class="big">+' + pts + '</span> points <span style="display:flex;align-items:center;gap:4px;margin-left:auto">' + leafIcon(16) + ' +1 leaf on your tree</span></div>'
+               : '<div class="bl-win miss">' + (ans === '-' ? 'Time ran out for this one.' : 'Not this time — and no leaf is lost.') + ' The answer is ' + esc(opt(q, q.answer)) + '.</div>';
     }
-    b += '</div>';
-    return '<div class="bl-split"><div>' + a + '</div><div>' + b + '</div></div>';
+    var next = answered
+      ? '<button class="bl-btn" data-act="next">' + (i >= COUNT[g] - 1 ? 'See how I did' : 'Next ' + L.unit.toLowerCase()) + '</button>'
+      : '<button class="bl-btn" data-act="check"' + (S.pick ? '' : ' disabled') + '>Give my answer</button>'
+        + '<div class="bl-note">' + (g === 'riddle' ? 'No hint used? You get all ' + PTS.riddle + ' points.' : 'Right or wrong, ' + esc(m.name) + ' explains the answer.') + '</div>';
+    return '<div class="bl-play' + (answered ? ' answered' : '') + '" style="--c:' + L.c + '">'
+      + '<div class="pa-head">' + head + '</div><div class="pa-mentor">' + mentor + '</div><div class="pa-qa">' + qa + '</div><div class="pa-next">' + next + '</div></div>';
+  }
+
+  // The sprint clock in the corner: a dial that empties as time runs out.
+  function clockChip(){
+    var M = BL.maths, left = msLeft();
+    if(!M.mins) return icon('clock', 16, 2.4) + ' No timer';
+    var pct = Math.max(0, Math.min(100, left / (M.mins * 600)));
+    return '<span data-pie class="bl-pie" style="background:conic-gradient(var(--indigo) ' + pct + '%,#E6E4F4 0)"></span><span data-timer>' + fmtLeft(left) + '</span>';
+  }
+  // The big sprint clock beside the question: the coloured part is the time left.
+  function runClock(){
+    var M = BL.maths, left = msLeft(), pct = Math.max(0, Math.min(100, left / (M.mins * 600)));
+    return '<div class="bl-card bl-run"><span data-pie class="bl-pie big" style="background:conic-gradient(var(--indigo) ' + pct + '%,#E6E4F4 0)"></span>'
+      + '<div><div class="bl-disp" style="font-size:30px;line-height:1;color:var(--indigo)" data-timer>' + fmtLeft(left) + '</div>'
+      + '<div style="font-size:12.5px;font-weight:700;color:var(--soft)">left of your ' + M.mins + ' minutes' + (M.paused ? ' · paused while you read' : '') + '</div></div></div>';
+  }
+  // The timer setting: a clock face. Tap 5, 10, 15 or 20 on the dial.
+  function clockFace(mins){
+    var R = 100, h = ['<svg viewBox="-125 -125 250 250" class="bl-clock" role="group" aria-label="Choose your time">'];
+    h.push('<circle r="' + R + '" fill="#fff" stroke="#33307A" stroke-width="5"/>');
+    if(mins){
+      var a = mins / 60 * 2 * Math.PI, x = (R - 8) * Math.sin(a), y = -(R - 8) * Math.cos(a);
+      h.push('<path d="M0 0 L0 ' + (-(R - 8)) + ' A' + (R - 8) + ' ' + (R - 8) + ' 0 ' + (mins > 30 ? 1 : 0) + ' 1 ' + x.toFixed(1) + ' ' + y.toFixed(1) + ' Z" fill="#D9D7F2"/>');
+    }
+    for(var t = 0; t < 60; t++){
+      var b = t / 60 * 2 * Math.PI, big = t % 5 === 0, r1 = R - (big ? 14 : 8);
+      h.push('<line x1="' + (r1 * Math.sin(b)).toFixed(1) + '" y1="' + (-r1 * Math.cos(b)).toFixed(1) + '" x2="' + ((R - 3) * Math.sin(b)).toFixed(1) + '" y2="' + (-(R - 3) * Math.cos(b)).toFixed(1)
+        + '" stroke="#33307A" stroke-width="' + (big ? 2.5 : 1) + '" opacity="' + (big ? 1 : .45) + '"/>');
+    }
+    [0, 25, 30, 35, 40, 45, 50, 55].forEach(function(n){
+      var c = n / 60 * 2 * Math.PI;
+      h.push('<text x="' + (68 * Math.sin(c)).toFixed(1) + '" y="' + (-68 * Math.cos(c) + 5).toFixed(1) + '" text-anchor="middle" font-size="13" font-weight="700" fill="#9C99C4" font-family="Mukta,sans-serif">' + (n || 60) + '</text>');
+    });
+    if(mins){
+      var e = mins / 60 * 2 * Math.PI;
+      h.push('<line x1="0" y1="0" x2="' + (62 * Math.sin(e)).toFixed(1) + '" y2="' + (-62 * Math.cos(e)).toFixed(1) + '" stroke="#33307A" stroke-width="5" stroke-linecap="round"/>');
+    }
+    h.push('<circle r="7" fill="#33307A"/>');
+    [5, 10, 15, 20].forEach(function(n){
+      var d = n / 60 * 2 * Math.PI, cx = (70 * Math.sin(d)).toFixed(1), cy = (-70 * Math.cos(d)).toFixed(1), on = n === mins;
+      h.push('<g data-act="mins" data-m="' + n + '" style="cursor:pointer"><circle cx="' + cx + '" cy="' + cy + '" r="17" fill="' + (on ? '#33307A' : '#fff') + '" stroke="#33307A" stroke-width="2.5"/>'
+        + '<text x="' + cx + '" y="' + (+cy + 6) + '" text-anchor="middle" font-size="16" font-weight="800" fill="' + (on ? '#fff' : '#33307A') + '" font-family="Mukta,sans-serif">' + n + '</text></g>');
+    });
+    h.push('</svg>');
+    return h.join('');
   }
 
   function sprintSetupHtml(){
     var M = BL.maths, m = MENTOR.ramanujan;
-    var h = '<div style="--c:' + LOOK.maths.c + '">' + top('maths', COUNT.maths + ' questions · with Ramanujan', PTS.maths + ' pts each')
-      + '<div class="bl-split"><div>' + bubble(m, 'Ramanujan says', esc(m.says))
-      + '<div class="bl-disp" style="font-size:22px;margin-top:16px;color:var(--indigo)">How much time do you want?</div><div class="bl-timers">';
-    TIMER_CHOICES.forEach(function(t){
-      h += '<button class="' + (M.mins === t ? 'pick' : '') + '" data-act="mins" data-m="' + t + '">' + (t ? t + '<small>min</small>' : 'No<small>timer</small>') + '</button>';
-    });
-    h += '</div><div class="bl-note" style="text-align:left">Same points whatever you choose. The clock stops while you read each explanation.</div>'
-      + '<button class="bl-btn" data-act="start-sprint">Start the sprint</button></div><div>' + fact() + '</div></div></div>';
-    return h;
+    var left = bubble(m, 'Ramanujan says', esc(m.says))
+      + '<div class="bl-card" style="margin-top:12px"><div style="font-weight:800;margin-bottom:6px">How the sprint works</div>'
+      + '<ol class="bl-steps" style="margin:0"><li>' + COUNT.maths + ' questions, ' + PTS.maths + ' points and 1 leaf for each right answer.</li>'
+      + '<li>Choose your own time on the clock — the points are the same whatever you choose.</li>'
+      + '<li>The clock stops while you read each explanation.</li></ol></div>' + fact();
+    var right = '<div class="bl-card bl-clockcard"><div class="bl-disp" style="font-size:24px;color:var(--indigo)">Set your clock</div>'
+      + '<div style="font-size:13px;font-weight:700;color:var(--soft)">Tap 5, 10, 15 or 20 minutes</div>'
+      + clockFace(M.mins)
+      + '<div class="bl-disp" style="font-size:30px;color:var(--indigo);line-height:1">' + (M.mins ? M.mins + ' minutes' : 'No timer') + '</div>'
+      + '<button class="bl-notimer' + (M.mins ? '' : ' on') + '" data-act="mins" data-m="0">' + (M.mins ? 'No timer — I’ll go at my own pace' : '✓ No timer — going at my own pace') + '</button>'
+      + '<button class="bl-btn" data-act="start-sprint">Start the sprint</button></div>';
+    return '<div style="--c:' + LOOK.maths.c + '">' + top('maths', COUNT.maths + ' questions · with Ramanujan', PTS.maths + ' pts each')
+      + '<div class="bl-setup"><div class="s-clock">' + right + '</div><div class="s-info">' + left + '</div></div></div>';
   }
 
   function summaryHtml(g){
@@ -781,52 +854,65 @@
     return h + '<div>' + cols[0] + '</div><div>' + cols[1] + '</div></div><button class="bl-btn" data-act="home">Back to Brain Lab</button></div>';
   }
 
+  // Sudoku: one column — level, board, number pad. The level can be changed
+  // until the first number goes in.
+  function levelTabs(S, canChange){
+    var h = '<div class="bl-tabs" role="group" aria-label="Level">';
+    ['easy','medium','hard'].forEach(function(lv){
+      var on = S.level === lv;
+      h += '<button class="' + (on ? 'on' : '') + '" data-act="relevel" data-lv="' + lv + '"' + (!on && !canChange ? ' disabled' : '') + '>'
+        + lv.charAt(0).toUpperCase() + lv.slice(1) + '<small>' + PTS.sudoku[lv] + ' pts</small></button>';
+    });
+    return h + '</div>';
+  }
   function sudokuHtml(){
     var S = BL.sudoku, L = LOOK.sudoku, m = MENTOR.lilavati;
     if(!S.level){
-      var h = '<div style="--c:' + L.c + '">' + top('sudoku', 'From Lilavati’s puzzle book · one try') + '<div class="bl-split"><div>'
+      var h = '<div class="bl-col" style="--c:' + L.c + '">' + top('sudoku', 'From Lilavati’s puzzle book · one a day')
         + bubble(m, 'From Lilavati', esc(m.says))
-        + '<div class="bl-disp" style="font-size:22px;margin-top:16px;color:var(--green)">Choose your challenge</div></div><div>';
-      [['easy','Easy','a warm-up'],['medium','Medium','best for Class 4'],['hard','Hard','for champions']].forEach(function(x, k){
+        + '<div class="bl-disp" style="font-size:24px;margin-top:16px;color:var(--green)">Choose your challenge</div><div class="bl-levels">';
+      [['easy','Easy','a warm-up'],['medium','Medium','best for Class ' + classNo()],['hard','Hard','for champions']].forEach(function(x, k){
         var bars = ''; for(var b = 0; b < 3; b++) bars += '<i class="' + (b <= k ? 'on' : '') + '"></i>';
         h += '<button class="bl-level' + (S.pick === x[0] ? ' pick' : '') + '" data-act="level" data-lv="' + x[0] + '"><div class="bars">' + bars + '</div>'
           + '<div><h4>' + x[1] + '</h4><p>' + GIVEN[x[0]] + ' numbers given · ' + x[2] + '</p></div>'
           + '<div class="pts">' + PTS.sudoku[x[0]] + '<small>' + SUDOKU_LEAVES[x[0]] + (SUDOKU_LEAVES[x[0]] > 1 ? ' leaves' : ' leaf') + '</small></div></button>';
       });
-      return h + '<button class="bl-btn" data-act="start-sudoku"' + (S.pick ? '' : ' disabled') + '>'
-        + (S.pick ? 'Start ' + S.pick + ' · ' + PTS.sudoku[S.pick] + ' pts' : 'Pick a level first') + '</button>'
-        + '<div class="bl-note">Once you start, the level is fixed for today. You can check your answers once.</div></div></div></div>';
+      return h + '</div><button class="bl-btn" data-act="start-sudoku"' + (S.pick ? '' : ' disabled') + '>'
+        + (S.pick ? 'Start ' + S.pick + ' · ' + PTS.sudoku[S.pick] + ' pts' : 'Tap a level first') + '</button>'
+        + '<div class="bl-note">You can change the level until you put in your first number. You can check your answers once.</div></div>';
     }
     var P = puzzle(S.level), wrong = {};
+    var entered = Object.keys(S.cells).filter(function(k){ return S.cells[k]; }).length;
     if(S.done && !S.ok) for(var i0 = 0; i0 < 81; i0++) if(!P.start[i0] && S.cells[i0] && S.cells[i0] !== P.sol[i0]) wrong[i0] = 1;
-    var lv = S.level.charAt(0).toUpperCase() + S.level.slice(1);
-    var a = '<div style="--c:' + L.c + '">' + top('sudoku', lv + ' · from Lilavati’s puzzle book', PTS.sudoku[S.level] + ' pts')
-      + '<div class="bl-board"><div style="display:grid;grid-template-columns:repeat(9,minmax(0,1fr))">';
+    var h2 = '<div class="bl-col" style="--c:' + L.c + '">' + top('sudoku', 'From Lilavati’s puzzle book', PTS.sudoku[S.level] + ' pts · ' + SUDOKU_LEAVES[S.level] + (SUDOKU_LEAVES[S.level] > 1 ? ' leaves' : ' leaf'));
+    if(!S.done){
+      h2 += levelTabs(S, entered === 0);
+      if(entered > 0) h2 += '<div class="bl-note" style="margin-top:6px">The level is fixed now that you have started.</div>';
+    }
+    h2 += '<div class="bl-board"><div style="display:grid;grid-template-columns:repeat(9,minmax(0,1fr))">';
     for(var i = 0; i < 81; i++){
       var r = Math.floor(i / 9), c = i % 9, given = !!P.start[i];
       var v = given ? P.start[i] : (S.done ? (S.cells[i] || P.sol[i]) : (S.cells[i] || ''));
       var bs = 'border-right:' + (c % 3 === 2 && c < 8 ? '2.5px solid var(--green)' : '1px solid #E2D6BE') + ';border-bottom:' + (r % 3 === 2 && r < 8 ? '2.5px solid var(--green)' : '1px solid #E2D6BE')
         + (S.done && !given && !S.cells[i] ? ';color:#2F7D4F' : '');
       var cls = 'bl-cell' + (given ? ' g' : '') + (S.sel === i ? ' sel' : '') + (wrong[i] ? ' bad' : '');
-      a += '<button class="' + cls + '" style="' + bs + '" data-act="cell" data-i="' + i + '"' + (given || S.done ? ' disabled' : '') + ' aria-label="Row ' + (r + 1) + ' column ' + (c + 1) + '">' + v + '</button>';
+      h2 += '<button class="' + cls + '" style="' + bs + '" data-act="cell" data-i="' + i + '"' + (given || S.done ? ' disabled' : '') + ' aria-label="Row ' + (r + 1) + ' column ' + (c + 1) + '">' + v + '</button>';
     }
-    a += '</div></div></div>';
-    var b = '<div style="--c:' + L.c + '">';
+    h2 += '</div></div>';
     if(S.done){
-      b += S.ok ? '<div class="bl-win" style="margin-top:14px"><span class="big">+' + PTS.sudoku[S.level] + '</span> points <span style="display:flex;align-items:center;gap:4px;margin-left:auto">' + leafIcon(16) + ' +' + SUDOKU_LEAVES[S.level] + (SUDOKU_LEAVES[S.level] > 1 ? ' leaves' : ' leaf') + '</span></div>'
-                : '<div class="bl-win miss" style="margin-top:14px">Not quite this time — and no leaf is lost. The red boxes were wrong; the green numbers show the answers.</div>';
-      b += bubble(m, 'From Lilavati', S.ok ? 'Brilliant! Every row, column and box has 1 to 9 exactly once. A new puzzle comes tomorrow.' : 'Every row, column and box must hold 1 to 9 exactly once. Try again tomorrow!')
-        + '<button class="bl-btn" data-act="home">Back to Brain Lab</button>';
+      h2 += S.ok ? '<div class="bl-win" style="margin-top:14px"><span class="big">+' + PTS.sudoku[S.level] + '</span> points <span style="display:flex;align-items:center;gap:4px;margin-left:auto">' + leafIcon(16) + ' +' + SUDOKU_LEAVES[S.level] + (SUDOKU_LEAVES[S.level] > 1 ? ' leaves' : ' leaf') + '</span></div>'
+                 : '<div class="bl-win miss" style="margin-top:14px">Not quite this time — and no leaf is lost. The red boxes were wrong; the green numbers show the answers.</div>';
+      h2 += bubble(m, 'From Lilavati', S.ok ? 'Brilliant! Every row, column and box has 1 to 9 exactly once. A new puzzle comes tomorrow.' : 'Every row, column and box must hold 1 to 9 exactly once. Try again tomorrow!')
+         + '<button class="bl-btn" data-act="home">Back to Brain Lab</button>';
     } else {
-      b += '<div class="bl-pad">';
-      for(var n = 1; n <= 9; n++) b += '<button class="bl-num" data-act="num" data-n="' + n + '">' + n + '</button>';
-      b += '<button class="bl-num" data-act="num" data-n="0" style="font-family:Mukta,sans-serif;font-size:14px;font-weight:800">Erase</button></div>';
-      var filled = Object.keys(S.cells).filter(function(k){ return S.cells[k]; }).length + P.start.filter(Boolean).length;
-      b += '<button class="bl-btn" data-act="check-sudoku"' + (filled === 81 ? '' : ' disabled') + '>' + (filled === 81 ? 'Check my Sudoku' : (81 - filled) + ' boxes left to fill') + '</button>'
+      h2 += '<div class="bl-pad">';
+      for(var n = 1; n <= 9; n++) h2 += '<button class="bl-num" data-act="num" data-n="' + n + '">' + n + '</button>';
+      h2 += '<button class="bl-num" data-act="num" data-n="0" style="font-family:Mukta,sans-serif;font-size:14px;font-weight:800">Erase</button></div>';
+      var filled = entered + P.start.filter(Boolean).length;
+      h2 += '<button class="bl-btn" data-act="check-sudoku"' + (filled === 81 ? '' : ' disabled') + '>' + (filled === 81 ? 'Check my Sudoku' : (81 - filled) + ' boxes left to fill') + '</button>'
          + '<div class="bl-note">Tap a box, then a number. You can check only once, so look carefully first!</div>';
     }
-    b += '</div>';
-    return '<div class="bl-split"><div>' + a + '</div><div>' + b + '</div></div>';
+    return h2 + '</div>';
   }
 
   function doneHtml(){
@@ -899,6 +985,10 @@
     else if(act === 'start-sprint'){ startSprint(); }
     else if(act === 'level'){ BL.sudoku.pick = b.getAttribute('data-lv'); }
     else if(act === 'start-sudoku'){ if(BL.sudoku.pick){ BL.sudoku.level = BL.sudoku.pick; apply(true); } }
+    else if(act === 'relevel'){
+      var Sl = BL.sudoku, lv = b.getAttribute('data-lv');
+      if(!Sl.done && lv !== Sl.level && !Object.keys(Sl.cells).some(function(k){ return Sl.cells[k]; })){ Sl.level = lv; Sl.pick = lv; Sl.cells = {}; Sl.sel = -1; apply(true); }
+    }
     else if(act === 'cell'){ BL.sudoku.sel = +b.getAttribute('data-i'); }
     else if(act === 'num'){ var Sd = BL.sudoku; if(Sd.sel >= 0 && !Sd.done){ var n = +b.getAttribute('data-n'); if(n) Sd.cells[Sd.sel] = n; else delete Sd.cells[Sd.sel]; if(typeof ttQueueSave === 'function') ttQueueSave(); } }
     else if(act === 'check-sudoku'){ checkSudoku(); }
