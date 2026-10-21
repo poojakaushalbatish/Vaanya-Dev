@@ -128,7 +128,7 @@ var NIYAM_BAND_DEFS = {
     weekday: [
       { key:'lunch', name:'Lunch & Screen Time', icon:'🍱', mins:30, type:'break', pal:'grey', acts:[] },
       { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:30, type:'wordbook-inline', pal:'green', acts:[
-        { name:'Book reading + new words in your WordBook', pts:10, type:'wordbook',
+        { name:'Book reading + new words in your dictionary', pts:10, type:'wordbook',
           note:'10 pts for every 3 words, up to 9 words a day' }
       ]},
       { key:'study', name:'Homework & Self Study', icon:'✏️', mins:60, type:'normal', pal:'blue', acts:[
@@ -195,7 +195,7 @@ var NIYAM_BAND_DEFS = {
           note:'Parents award up to 30 pts on review' }
       ]},
       { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:30, type:'wordbook-inline', pal:'green', acts:[
-        { name:'Book reading + new words in your WordBook', pts:10, type:'wordbook',
+        { name:'Book reading + new words in your dictionary', pts:10, type:'wordbook',
           note:'10 pts for every 3 words, up to 9 words a day' }
       ]},
       { key:'family', name:'Family & Grandparents Time', icon:'👴', mins:60, type:'normal', pal:'teal', acts:[
@@ -230,7 +230,7 @@ var NIYAM_BAND_DEFS = {
     weekday: [
       { key:'lunch', name:'Lunch & Screen Time', icon:'🍱', mins:30, type:'break', pal:'grey', acts:[] },
       { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:30, type:'wordbook-inline', pal:'green', acts:[
-        { name:'Book reading + new words in your WordBook', pts:10, type:'wordbook',
+        { name:'Book reading + new words in your dictionary', pts:10, type:'wordbook',
           note:'10 pts for every 3 words, up to 9 words a day' }
       ]},
       { key:'study', name:'Homework & Self Study', icon:'✏️', mins:120, type:'normal', pal:'blue', acts:[
@@ -315,7 +315,7 @@ var NIYAM_BAND_DEFS = {
         { name:'Spoken English & debate practice', pts:0, type:'dropdown', options:[3,5,7,10], note:'Select points based on quality' }
       ]},
       { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:30, type:'wordbook-inline', pal:'green', acts:[
-        { name:'Book reading + new words in your WordBook', pts:10, type:'wordbook',
+        { name:'Book reading + new words in your dictionary', pts:10, type:'wordbook',
           note:'10 pts for every 3 words, up to 9 words a day' }
       ]},
       { key:'shloka', name:'Geeta — Shloka & Wisdom', icon:'🕉️', mins:30, type:'normal', pal:'amber', acts:[
@@ -370,8 +370,8 @@ var NIYAM_CLASS_DEFS = {
         { name:'Self-study: read over today’s lessons', pts:10, type:'self' }
       ]},
       { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:30, min:20, type:'wordbook-inline', pal:'green',
-        about:'Read any book you like and add the new words you find to your WordBook — with the meaning and a sentence. You can add words any time of the day: every 3 words earn 10 points.', acts:[
-        { name:'Read a book and add new words to your WordBook', pts:10, type:'wordbook',
+        about:'Read any book you like and add the new words you find to your dictionary — with the meaning and a sentence. You can add words any time of the day: every 3 words earn 10 points.', acts:[
+        { name:'Read a book and add new words to your dictionary', pts:10, type:'wordbook',
           note:'10 pts for every 3 words, up to 9 words a day' }
       ]},
       { key:'play', name:'Outdoor Play', icon:'⚽', mins:60, min:30, type:'normal', pal:'green',
@@ -450,8 +450,8 @@ var NIYAM_CLASS_DEFS = {
         { name:'Finish your lunch, put your plate away and clean your table', pts:20, type:'self' }
       ]},
       { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:45, type:'wordbook-inline', pal:'green',
-        about:'Read any book you like and add the new words you find to your WordBook — with the meaning and a sentence. You can add words any time of the day: every 3 words earn 10 points.', acts:[
-        { name:'Read a book and add new words to your WordBook', pts:10, type:'wordbook',
+        about:'Read any book you like and add the new words you find to your dictionary — with the meaning and a sentence. You can add words any time of the day: every 3 words earn 10 points.', acts:[
+        { name:'Read a book and add new words to your dictionary', pts:10, type:'wordbook',
           note:'10 pts for every 3 words, up to 9 words a day' }
       ]},
       { key:'olympiad', name:'Study Time / Olympiad Practice', icon:'🏅', mins:75, type:'normal', pal:'indigo',
@@ -512,7 +512,7 @@ var NIYAM_BLOCK_ABOUT = {
   school:   'School hours. Nothing to tick here \u2014 the tasks begin after school.',
   lunch:    'Eat, rest and relax after school. No tasks in this block.',
   break1:   'A short break. No tasks.',
-  reading:  'Read any book and add the new words you find to your WordBook \u2014 with the meaning and a sentence. You can add words any time of the day: every 3 words earn 10 points.',
+  reading:  'Read any book and add the new words you find to your dictionary \u2014 with the meaning and a sentence. You can add words any time of the day: every 3 words earn 10 points.',
   study:    'Finish today\u2019s homework first, then revise what was taught in class.',
   hw:       'Homework, with a parent close by to help.',
   play:     'Time outdoors \u2014 a sport, cycling or running around. Moving the body keeps the mind fresh.',
