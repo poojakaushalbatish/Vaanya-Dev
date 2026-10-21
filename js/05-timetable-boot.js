@@ -672,7 +672,7 @@ function ttWordEntryHTML(blockId, actId, pts){
         background:linear-gradient(135deg,#059669,#047857);color:#fff;
         font-size:13px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;
         box-shadow:0 4px 12px rgba(5,150,105,.3)">
-      💾 Save to My WordBook
+      💾 Save to My Dictionary
     </button>
     <div id="ttw-status" style="font-size:11px;font-weight:800;color:#059669;margin-top:6px;text-align:center;min-height:16px"></div>
   </div>`;
@@ -746,8 +746,8 @@ async function ttWordSave(blockId, actId, pts){
     if(row){ if(typeof wbWords !== 'undefined') wbWords.unshift(row); saved++; }
   }
   try{ if(typeof wbRender === 'function') wbRender(); if(typeof wbUpdateGamification === 'function') wbUpdateGamification(); }catch(e){}
-  if(status) status.textContent = (saved ? saved + ' word' + (saved>1?'s':'') + ' saved to your WordBook ✅' : '')
-    + (already ? (saved ? ' · ' : '') + already + ' already in your WordBook' : '');
+  if(status) status.textContent = (saved ? saved + ' word' + (saved>1?'s':'') + ' saved to your dictionary ✅' : '')
+    + (already ? (saved ? ' · ' : '') + already + ' already in your dictionary' : '');
 }
 
 // ── Percentage Calculator for Maths blocks ────────────────────
