@@ -1028,11 +1028,11 @@ async function ttSaveTextEntryToGallery(blockId, actId, galleryKey, actName){
 // class timetable and for tasks a parent adds. Same order and patterns as
 // BRAIN in js/09-parent-review.js — keep the two in step.
 const TT_BRAIN_GAMES = [
-  { key:'sudoku',     re:/sudoku/i,         max:40, pts:()=>sudokuPts },       // hard puzzle: 30 + 10
-  { key:'maths',      re:/maths\s*sprint/i, max:25, pts:()=>mathsPtsToday },   // 5 of 5
-  { key:'logic',      re:/logic/i,          max:15, pts:()=>logicPtsTotal },   // 10 of 10
-  { key:'riddles',    re:/riddle/i,         max:10, pts:()=>riddlePtsTotal },  // one riddle a day (decided 15 Oct 2026)
-  { key:'worksheets', re:/worksheet/i,      max:0,  pts:()=>worksheetPts },    // no fixed number a day
+  { key:'sudoku',     re:/sudoku/i,         max:40, pts:()=>sudokuPts },       // easy 15 · medium 30 · hard 40
+  { key:'maths',      re:/maths\s*sprint/i, max:30, pts:()=>mathsPtsToday },   // 10 questions x 3
+  { key:'logic',      re:/logic/i,          max:15, pts:()=>logicPtsTotal },   // 5 puzzles x 3
+  { key:'riddles',    re:/riddle/i,         max:10, pts:()=>riddlePtsTotal },  // 2 riddles x 5
+  { key:'worksheets', re:/worksheet/i,      max:0,  pts:()=>worksheetPts },    // worksheetPts now holds the +10 all-four bonus (js/10)
 ];
 
 // taskId -> game, for the FIRST task that names each game. A second task for
