@@ -1,12 +1,12 @@
 // ============================================================================
 // NIYAM — data/kindness-missions.js
-// The 52 weekly Kindness Missions (one a week, a year's worth). The child sees
-// only the mission for the current week; the next one is revealed the
-// following Monday (js/13-kindness.js). Order mixes the themes so no two
-// weeks in a row feel the same. Missions marked grownup:true are done with a
-// parent or another adult — outings, donations, public places.
-// To change a mission, edit its title / steps / why here. Keep the ids: a
-// child's finished missions are saved by id.
+// Today's Act of Kindness (js/13-kindness.js, shown under the timetable):
+//   • weekends (and holiday days): the 52 bigger acts below, one per day;
+//   • school days: the 60 small acts at the end (NIYAM_KINDNESS_DAILY).
+// The child sees only today's act; tomorrow's is a surprise. Bigger acts
+// marked grownup:true are done with a parent or another adult.
+// To change an act, edit its words here. Keep the ids: what a child has done
+// is saved by id.
 // ============================================================================
 var NIYAM_KINDNESS = [
   { id:'k01', em:'💌', title:'A thank-you card for a helper', steps:['Think of someone who helps your family every day — the guard, the driver, the didi or the cook.','Make a card for them: draw something and write why you are thankful.','Give it to them yourself, with a smile.'], why:'People who help us every day are often never thanked. Your card could make their whole week.' },
@@ -63,3 +63,71 @@ var NIYAM_KINDNESS = [
   { id:'k52', em:'🌟', title:'Thank everyone who helped you this year', steps:['Make a list of everyone who helped you this year — family, teachers, helpers, friends.','Make a big thank-you poster or cards.','Share it with them, and say thank you in person.'], why:'A whole year of kindness came your way. Saying thank you closes the circle.' }
 ];
 if(typeof window !== 'undefined') window.NIYAM_KINDNESS = NIYAM_KINDNESS;
+
+// ---- School-day acts of kindness (60) ------------------------------------------
+// One a day on school days, 5–10 minutes, about other people and the world —
+// not household jobs (those are in "Help at Home"). Revealed one day at a time
+// in the Daily Report (js/13-kindness.js). Weekends use the bigger missions above.
+var NIYAM_KINDNESS_DAILY = [
+  { id:'d01', em:'🙏', title:'Thank someone who helped you today', how:'Tell them exactly what they did and why it mattered to you.' },
+  { id:'d02', em:'💆', title:'Give a grandparent a head massage', how:'Five gentle minutes. No grandparent at home? Call one and ask about their day.' },
+  { id:'d03', em:'🫙', title:'Oil a grandparent’s feet or hands', how:'Ask first, be gentle, and take your time. If they live far away, call them instead.' },
+  { id:'d04', em:'☎️', title:'Call a grandparent just to talk', how:'Ask how their day was, and tell them one good thing about yours.' },
+  { id:'d05', em:'💌', title:'Leave a thank-you note for Mum or Dad', how:'Write one thing they did for you this week, and hide it where they will find it.' },
+  { id:'d06', em:'🥛', title:'Bring water to someone working hard', how:'The cook, the guard, the didi or a parent — offer them a glass of water.' },
+  { id:'d07', em:'😊', title:'Give three real compliments', how:'Say something nice and true to three different people today.' },
+  { id:'d08', em:'🤝', title:'Help a classmate', how:'Find someone stuck on something you understand, and explain it kindly.' },
+  { id:'d09', em:'🍪', title:'Share your snack', how:'Share part of your snack with a friend — or with someone who has none.' },
+  { id:'d10', em:'💡', title:'Be the electricity guard', how:'Walk around the house and switch off lights and fans in empty rooms.' },
+  { id:'d11', em:'🚰', title:'Save water today', how:'Close the tap while brushing, and remind one person at home to do the same.' },
+  { id:'d12', em:'🐦', title:'Put out water for the birds', how:'With a grown-up, place a shallow bowl of water on the balcony or a windowsill.' },
+  { id:'d13', em:'📚', title:'Read a story to a younger child', how:'A sibling, cousin or neighbour — read slowly and do the voices!' },
+  { id:'d14', em:'🎮', title:'Let someone else choose', how:'Let your brother, sister or friend choose the game or the show today.' },
+  { id:'d15', em:'🗣️', title:'Say sorry', how:'Think of someone you upset, even a little, and say sorry properly.' },
+  { id:'d16', em:'🍎', title:'Thank your teacher', how:'At the end of a class today, thank your teacher for something they taught you.' },
+  { id:'d17', em:'🚌', title:'Thank your bus or van driver', how:'Say thank you with a smile when you get off today.' },
+  { id:'d18', em:'🌱', title:'Water a thirsty plant', how:'Find a plant that looks dry — at home or school — and give it water.' },
+  { id:'d19', em:'🎨', title:'Draw a picture for someone', how:'Make a small drawing for someone you love and give it to them.' },
+  { id:'d20', em:'👂', title:'Be a good listener', how:'Ask someone about their day and listen for 10 minutes without interrupting.' },
+  { id:'d21', em:'🤗', title:'Tell your parents why you love them', how:'Give them a hug and tell them one thing you love about them.' },
+  { id:'d22', em:'👓', title:'Help an elder find or fix something', how:'Their glasses, the TV remote, their phone — help them patiently.' },
+  { id:'d23', em:'📝', title:'Share three things you are grateful for', how:'Write them down and read them out to your family at dinner.' },
+  { id:'d24', em:'🫂', title:'Include someone who is alone', how:'At break or in the park, invite someone who is on their own to join you.' },
+  { id:'d25', em:'📦', title:'Start a giving box', how:'Put one toy, book or piece of clothing you don’t use any more into a box for donation.' },
+  { id:'d26', em:'🍛', title:'No food wasted today', how:'Take only what you can eat and finish everything on your plate.' },
+  { id:'d27', em:'✏️', title:'Lend a helping hand at school', how:'Lend your pencil, eraser or ruler to someone who needs it.' },
+  { id:'d28', em:'🌟', title:'Cheer for someone else', how:'Celebrate a friend’s good work or win — even if you didn’t win.' },
+  { id:'d29', em:'🛡️', title:'Thank the guard by name', how:'Find out the name of your building’s guard and thank them today.' },
+  { id:'d30', em:'🧑‍🍳', title:'Thank the person who cooked', how:'Tell them which part of the meal you liked best.' },
+  { id:'d31', em:'🔤', title:'Teach a little one something', how:'Teach a younger child a new word, a number or a rhyme.' },
+  { id:'d32', em:'💬', title:'Send a kind message to a relative', how:'With your parent’s phone, send a cheerful message to an aunt, uncle or cousin.' },
+  { id:'d33', em:'👵', title:'Learn something from a grandparent', how:'Ask them to teach you a song, a game or a story from their childhood.' },
+  { id:'d34', em:'🎶', title:'Cheer someone up', how:'Sing a song, tell a joke or do something funny for someone who seems tired or sad.' },
+  { id:'d35', em:'🌼', title:'Gift a flower or a leaf', how:'Pick a fallen flower or leaf and give it to someone with a kind word.' },
+  { id:'d36', em:'🪑', title:'Offer your seat', how:'Give your seat or the best spot to someone older or tired.' },
+  { id:'d37', em:'🛍️', title:'Help carry something', how:'Help a parent, elder or neighbour carry their bags or things.' },
+  { id:'d38', em:'🧓', title:'Help a grandparent move around', how:'Walk with them, hold their hand on the stairs, or fetch what they need.' },
+  { id:'d39', em:'🥕', title:'Thank a shopkeeper or vendor', how:'When your family buys something today, say a proper thank you.' },
+  { id:'d40', em:'🔌', title:'Unplug what is not in use', how:'Find chargers and machines left plugged in, and switch them off.' },
+  { id:'d41', em:'📵', title:'10 minutes, no screens, all family', how:'Spend 10 minutes talking or playing with your family — no phones or TV.' },
+  { id:'d42', em:'💐', title:'A “you are amazing” card', how:'Make a small card for a brother, sister or cousin telling them why they are amazing.' },
+  { id:'d43', em:'📞', title:'Check on a friend', how:'Was someone absent or unwell? Ask how they are (with a parent’s help to call).' },
+  { id:'d44', em:'🗑️', title:'Sort the rubbish', how:'Help put dry and wet waste in separate bins today.' },
+  { id:'d45', em:'🫗', title:'Fill water bottles for everyone', how:'Fill the family’s water bottles for tomorrow.' },
+  { id:'d46', em:'🤫', title:'A secret kindness', how:'Do something kind without anyone knowing — tell only your parent.' },
+  { id:'d47', em:'🍽️', title:'Serve before you eat', how:'At dinner, serve water or food to others before you start eating.' },
+  { id:'d48', em:'🐕', title:'Be kind to an animal', how:'With a grown-up, give water to a pet or a street animal. Never touch street animals.' },
+  { id:'d49', em:'🧩', title:'Play with someone younger', how:'Spend 10 minutes playing the game a younger child wants to play.' },
+  { id:'d50', em:'💗', title:'Forgive someone', how:'If someone upset you, let it go today and be friendly to them.' },
+  { id:'d51', em:'🧒', title:'Help a friend tidy up', how:'At school or a friend’s place, help them put things away.' },
+  { id:'d52', em:'🙌', title:'Thank the people who clean', how:'Thank the person who cleans your school or building today.' },
+  { id:'d53', em:'📖', title:'Share a book', how:'Lend a book you enjoyed to a friend and tell them why you liked it.' },
+  { id:'d54', em:'🌙', title:'Wish your family good night properly', how:'Say good night to each person at home, with a hug or a kind word.' },
+  { id:'d55', em:'☀️', title:'Wish everyone good morning', how:'Greet each person at home with a smile and a cheerful good morning.' },
+  { id:'d56', em:'🧘', title:'Stay calm and kind', how:'If you feel angry today, take three deep breaths and answer kindly.' },
+  { id:'d57', em:'🖍️', title:'Make a bookmark for someone', how:'Make a bookmark and write a kind line on it for someone who reads.' },
+  { id:'d58', em:'🧺', title:'Help without being asked', how:'Notice someone busy and help them with a small task before they ask.' },
+  { id:'d59', em:'🍫', title:'Save something for someone', how:'Keep a share of a treat for a family member who isn’t home yet.' },
+  { id:'d60', em:'🌍', title:'Leave a place cleaner', how:'Wherever you are today — a classroom, a park, a room — leave it a little cleaner.' }
+];
+if(typeof window !== 'undefined') window.NIYAM_KINDNESS_DAILY = NIYAM_KINDNESS_DAILY;
