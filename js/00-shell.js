@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-10-21 · My Dictionary';
+  window.NIYAM_BUILD = '2026-10-22 · Star Bank rewards and Kindness Missions';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   // Startup self-check: shout early if a required script tag is missing from
@@ -224,6 +224,17 @@
     if(r.error) throw new Error(r.error.message);
     profile = Object.assign(profile||{}, row);
   }
+
+  // For the Star Bank (js/12-star-bank.js) and Kindness (js/13-kindness.js):
+  // check the parent PIN, and read / save small things in profile_data
+  // (the child's reward goal) without touching the rest of it.
+  window.niyamCheckPin = function(pin){ return !!(profile && profile.parent_pin) && String(pin || '').trim() === String(profile.parent_pin); };
+  window.niyamProfileData = function(){ return (profile && profile.profile_data) || {}; };
+  window.niyamSaveProfileData = async function(patch){
+    var pd = Object.assign({}, (profile && profile.profile_data) || {}, patch || {});
+    await saveProfile({ profile_data: pd });
+    return pd;
+  };
 
   // ---- Family timetable (parent admin screen) --------------------------
   // Fills window.TT_CUSTOM so ttGetSchedule() can prefer this family's own
