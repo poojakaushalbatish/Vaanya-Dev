@@ -50,9 +50,19 @@
     return '~' + days + ' good ' + (days===1?'day':'days') + ' to save up';
   }
 
+  // The Star Bank's default list (js/12-star-bank.js), or the old built-in list.
   function defaults(){
+    if(typeof window.niyamRewardDefaults === 'function') return window.niyamRewardDefaults();
     return clone((typeof REWARDS!=='undefined') ? REWARDS : []);
   }
+  var LEVELS = [['everyday','Everyday treat'],['weekend','Weekend reward'],['big','Big reward'],['dream','Dream goal']];
+  function levelOf(r){
+    if(r.level) return r.level;
+    var p = +r.pts || 0;
+    return p <= 150 ? 'everyday' : p <= 600 ? 'weekend' : p <= 3500 ? 'big' : 'dream';
+  }
+  function levelName(k){ var x = LEVELS.find(function(l){ return l[0] === k; }); return x ? x[1] : ''; }
+  function isDaily(r){ return r.daily === true || (r.daily === undefined && levelOf(r) === 'everyday'); }
 
   // ---- styles ---------------------------------------------------------------
   var CSS = ''
@@ -86,6 +96,9 @@
   + '.rwa-f{flex:1;min-width:120px}'
   + '.rwa-f label{display:block;font-size:10.5px;font-weight:800;text-transform:uppercase;'
   +   'letter-spacing:.06em;color:#8a8f9c;margin-bottom:3px}'
+  + '#rwa-screen select{width:100%;padding:9px 10px;border:1.5px solid #e6e2da;border-radius:10px;font-size:14px;background:#fcfbf8;font-family:inherit;color:#1f2433}'
+  + '#rwa-screen label.rwa-chk{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:#3a4150;text-transform:none;letter-spacing:0;margin-top:4px}'
+  + '#rwa-screen label.rwa-chk input{width:auto}'
   + '#rwa-screen input{width:100%;padding:9px 10px;border:1.5px solid #e6e2da;border-radius:10px;'
   +   'font-size:14px;background:#fcfbf8;box-sizing:border-box;font-family:inherit;color:#1f2433}'
   + '#rwa-screen input:focus{outline:none;border-color:#e8a838;background:#fff}'
@@ -105,17 +118,17 @@
     d.id = 'rwa-screen';
     d.innerHTML =
       '<div id="rwa-bar">'
-      + '<h2>🏆 Star Rewards Setup</h2>'
+      + '<h2>🏆 Rewards list</h2>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
       +   '<button class="rwa-btn rwa-warn" id="rwa-default">↺ Go Default</button>'
       +   '<button class="rwa-btn rwa-ghost" id="rwa-close">✕ Close</button>'
       +   '<button class="rwa-btn rwa-gold" id="rwa-save">💾 Save</button>'
       + '</div></div>'
       + '<div id="rwa-body">'
-      +   '<div class="rwa-note">Edit the big rewards your child saves up points for. Tap ✏️ to open '
-      +     'one, set its points cost, icon and title, or turn it off without deleting it. '
-      +     '<b>Already-claimed trophies are never affected</b> by editing, reordering or turning '
-      +     'a reward off.</div>'
+      +   '<div class="rwa-note">These are the rewards your child can choose in their Star Bank. Tap ✏️ to change '
+      +     'one — its picture, name, points, level, and whether it can be chosen only once a day — or turn it off without deleting it. '
+      +     'Every child is different: add the things <b>your</b> child would love. '
+      +     '<b>Rewards already chosen are never affected</b> by your changes.</div>'
       +   '<div id="rwa-list"></div>'
       +   '<button class="rwa-btn rwa-soft" id="rwa-addone" style="width:100%;padding:13px;margin-top:6px">'
       +     '➕ Add a new reward</button>'
@@ -150,7 +163,7 @@
         + '<div class="rwa-head">'
         +   '<div class="rwa-ico">'+esc(r.icon||'⭐')+'</div>'
         +   '<div class="rwa-tt"><b>'+esc(r.title||'Untitled reward')+'</b>'
-        +     '<span>'+(r.pts||0).toLocaleString()+' pts'+(goodDays?' · '+goodDays:'')+(isOff?' · turned off':'')+'</span></div>'
+        +     '<span>'+levelName(levelOf(r))+' · '+(r.pts||0).toLocaleString()+' pts'+(isDaily(r)?' · once a day':'')+(goodDays?' · '+goodDays:'')+(isOff?' · turned off':'')+'</span></div>'
         +   '<button class="rwa-mini'+(isOff?'':' on')+'" data-a="tgl" data-i="'+i+'" title="'+(isOff?'Turn on':'Turn off')+'">'+(isOff?'🔒':'✅')+'</button>'
         +   '<button class="rwa-mini" data-a="del" data-i="'+i+'" title="Delete reward">🗑️</button>'
         +   '<button class="rwa-mini" data-a="tog" data-i="'+i+'" title="Open/close">'+(isOpen?'✕':'✏️')+'</button>'
@@ -165,6 +178,12 @@
           +     '<input data-f="title" data-i="'+i+'" value="'+esc(r.title||'')+'"></div>'
           +   '<div class="rwa-f" style="flex:0 0 110px"><label>Points cost</label>'
           +     '<input data-f="pts" data-i="'+i+'" type="number" min="1" value="'+(r.pts||0)+'"></div>'
+          + '</div>'
+          + '<div class="rwa-row">'
+          +   '<div class="rwa-f"><label>Level</label><select data-f="level" data-i="'+i+'">'
+          +     LEVELS.map(function(l){ return '<option value="'+l[0]+'"'+(levelOf(r)===l[0]?' selected':'')+'>'+l[1]+'</option>'; }).join('')
+          +   '</select></div>'
+          +   '<div class="rwa-f"><label>How often</label><label class="rwa-chk"><input type="checkbox" data-f="daily" data-i="'+i+'"'+(isDaily(r)?' checked':'')+'> Only once a day</label></div>'
           + '</div></div>';
       }
       return h + '</div>';
@@ -193,15 +212,16 @@
       el.onchange = function(){
         var r = RA.items[+el.getAttribute('data-i')], f = el.getAttribute('data-f');
         if(f==='pts'){ r.pts = Math.max(1, parseInt(el.value)||0); }
+        else if(f==='daily'){ r.daily = !!el.checked; }
         else { r[f] = el.value; }
-        if(f==='icon' || f==='title') render();
+        if(f==='icon' || f==='title' || f==='level' || f==='daily' || f==='pts') render();
       };
     });
   }
 
   // ---- actions ----------------------------------------------------------------
   function addReward(){
-    var r = { id: uid(), pts: 500, icon: '⭐', title: 'New reward',
+    var r = { id: uid(), pts: 300, icon: '⭐', title: 'New reward', level: 'weekend', daily: false,
               strip: nextStrip(RA.items.length), active: true };
     RA.items.push(r);
     RA.open[r.id] = true;
@@ -210,8 +230,8 @@
   }
 
   function goDefault(){
-    if(!confirm('Reset ALL Star Rewards back to the built-in NIYAM defaults?\n\n'
-                + 'Already-claimed trophies are not affected. Nothing is saved until you press Save.')) return;
+    if(!confirm('Reset ALL rewards back to the NIYAM default list?\n\n'
+                + 'Rewards already chosen are not affected. Nothing is saved until you press Save.')) return;
     RA.items = defaults();
     RA.open = {};
     render();
@@ -226,6 +246,8 @@
       c.title = (c.title||'Reward').trim() || 'Reward';
       c.icon = c.icon || '⭐';
       c.active = c.active !== false;
+      c.level = levelOf(c);
+      c.daily = isDaily(c);
       return c;
     });
   }
@@ -277,7 +299,7 @@
     if(!bar || document.getElementById('ns-rwa-btn')) return;
     var b = document.createElement('button');
     b.id = 'ns-rwa-btn';
-    b.textContent = '🏆 Star Rewards Setup';
+    b.textContent = '🏆 Rewards list';
     b.onclick = open;
     var logout = document.getElementById('ns-pz-logout');
     if(logout && logout.parentNode) logout.parentNode.insertBefore(b, logout);
