@@ -321,7 +321,7 @@
                               : 'Only ' + fmtN(g.pts - b) + ' more for ' + g.title.split(' — ')[0].replace(/\s*\(.*\)$/, '') + '. You can do it! ' + g.icon)
             : ready ? 'You can choose from ' + ready + (ready === 1 ? ' reward' : ' rewards') + ' right now! Pick a goal too ⭐'
             : 'Every good day fills your jar. Keep going! ⭐';
-    var enjoyed = (S.rows || []).filter(function(x){ return /^reward_/.test(x.item_id) && x.status !== 'coming'; }).length;
+    var enjoyed = (S.rows || []).filter(function(x){ return /^reward_/.test(x.item_id) && !(x.status === 'coming' && x.date === today()); }).length;
     var sparks = ''; for(var i = 0; i < 12; i++) sparks += '<i class="sp" style="left:' + ((i * 37 + 9) % 95) + '%;bottom:' + ((i * 23) % 40) + '%;animation-delay:' + ((i * 0.45) % 5).toFixed(1) + 's;animation-duration:' + (4 + (i % 3)) + 's"></i>';
     var fill = g ? b / g.pts : Math.min(1, b / 1000);
     var name = childName();
@@ -368,12 +368,13 @@
   function myRewardsHtml(list){
     var icon = {}; list.forEach(function(r){ icon['reward_' + r.id] = r.icon; });
     var all = (S.rows || []).filter(function(x){ return x.pts > 0; });
-    var coming = all.filter(function(x){ return x.status === 'coming'; }), done = all.filter(function(x){ return x.status !== 'coming'; }).slice(0, 4);
+    var isComing = function(x){ return x.status === 'coming' && x.date === today(); };   // no "mark as enjoyed" any more: after the claim day it counts as enjoyed
+    var coming = all.filter(isComing), done = all.filter(function(x){ return !isComing(x); }).slice(0, 4);
     var h = '<div class="panel myr"><div class="cap" style="color:var(--plum)">My rewards</div>';
     if(S.rows === null) return h + '<div class="hint">Loading…</div></div>';
     if(!coming.length && !done.length) return h + '<div style="font-weight:700;color:var(--soft);font-size:13.5px;margin-top:6px">Rewards you choose will appear here.</div></div>';
     coming.concat(done).forEach(function(x){
-      var c = x.status === 'coming';
+      var c = isComing(x);
       h += '<div class="r"><span class="e">' + esc(icon[x.item_id] || '🎁') + '</span><div style="min-width:0">' + esc(x.title) + '<small>Claimed ' + fmtDate(x.date) + '</small></div>'
         + '<span class="st" style="' + (c ? 'background:#FFF3C4;color:#9A6400' : 'background:#DCFCE7;color:#15803D') + '">' + (c ? 'Coming soon' : 'Enjoyed ✓') + '</span></div>';
     });
