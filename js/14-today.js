@@ -71,10 +71,27 @@
   // hide what the new page replaces
   + '#aurora-topbar,#ns-topbtns,#mob-pts-pill,#tab-report .draft-info-bar,#tab-report .page-layout{display:none!important}'
   + '.ab-oldbar{display:none!important}'
-  + 'body.td-on{background:#EEEBF7}'
+  + 'body.td-on{background-color:#EFEAF9;background-image:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27120%27 height=%27120%27%3E%3Cg fill=%27%23C9BEEA%27 opacity=%27.55%27%3E%3Cpath d=%27M20 14l2 5 5 2-5 2-2 5-2-5-5-2 5-2z%27/%3E%3Ccircle cx=%2786%27 cy=%2732%27 r=%271.6%27/%3E%3Ccircle cx=%2752%27 cy=%2790%27 r=%271.6%27/%3E%3Cpath d=%27M98 82l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5z%27/%3E%3C/g%3E%3C/svg%3E"),'
+  +   'radial-gradient(55% 45% at 0% 0%,#E4D9FF 0%,rgba(228,217,255,0) 70%),radial-gradient(50% 40% at 100% 0%,#FFE1CF 0%,rgba(255,225,207,0) 70%),'
+  +   'radial-gradient(60% 50% at 100% 100%,#D3F1E8 0%,rgba(211,241,232,0) 70%),radial-gradient(50% 45% at 0% 100%,#FDE2F0 0%,rgba(253,226,240,0) 70%);background-attachment:fixed}'
+  + 'body.td-on #app-root{padding-top:0!important}'
+  + 'body.td-on .page{max-width:1500px;padding:12px 18px}'
   + '#ab-bar,#ab-bar *,#td-root,#td-root *{font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif!important}'
+  + '#ab-bar .who b,#td-root .greet,#td-root .ring .c b,#td-root .st b,#td-root .tt-block-name,#td-root #kd-bar h3,#td-root .side .card .cap,#td-root .tl-cap'
+  +   '{font-family:"Rozha One",Georgia,serif!important;font-weight:400!important;letter-spacing:.01em}'
+  + '#td-root .cap.tl-cap,#td-root .side .card .cap{text-transform:none;letter-spacing:0;font-size:21px;color:#5B2A9B!important}'
+  + '#td-root .tt-block-name{font-size:18px!important}'
+  + '#td-root .greet{font-size:34px}'
+  + '#ab-bar .who b{font-size:21px}'
+  + '#td-root #kd-bar h3{font-size:22px}'
+  + '#td-root #kd-bar .cap{font-family:"Plus Jakarta Sans",sans-serif!important}'
+  + '#td-root .side .card.thought{position:relative;margin-top:22px;padding:22px 20px 18px;border-radius:6px 6px 22px 6px;background:linear-gradient(180deg,#FFF6C9,#FFEFA8);border:0;box-shadow:0 14px 28px rgba(180,130,0,.18),0 2px 0 rgba(0,0,0,.03);transform:rotate(-1.2deg)}'
+  + '#td-root .thought .pin{position:absolute;top:-14px;left:50%;margin-left:-14px;font-size:26px;filter:drop-shadow(0 3px 2px rgba(0,0,0,.2))}'
+  + '#td-root .side .card.thought .cap{color:#B45309!important;font-family:"Rozha One",Georgia,serif!important;text-transform:none;letter-spacing:0;font-size:19px;font-weight:400!important}'
+  + '#td-root .thought .q{font-family:Kalam,"Comic Sans MS",cursive!important;font-weight:700!important;font-size:22px;line-height:1.35;color:#3B2A12;margin-top:6px}'
+  + '#td-root .thought .by{font-family:Kalam,cursive!important;font-weight:400!important;font-size:17px;color:#8A5A12;margin-top:8px;text-align:right}'
   // 3. a finished frame around the app
-  + '#app-frame{max-width:1340px;margin:14px auto 24px;background:#FCFBFF;border:1px solid #E3DEF2;border-radius:32px;padding:18px 22px 22px;box-shadow:0 24px 60px rgba(30,27,58,.10),0 2px 0 rgba(255,255,255,.8) inset;box-sizing:border-box}'
+  + '#app-frame{max-width:1460px;margin:0 auto 18px;background:radial-gradient(circle,rgba(124,92,196,.13) 1.1px,transparent 1.5px) 0 0/22px 22px,linear-gradient(180deg,#FFFFFF 0%,#FAF7FF 35%,#F6F1FF 70%,#FFF5EC 100%);border:1px solid #E3DEF2;border-radius:32px;padding:18px 22px 22px;box-shadow:0 24px 60px rgba(30,27,58,.10),0 2px 0 rgba(255,255,255,.8) inset;box-sizing:border-box}'
   // top bar
   + '#ab-bar{font-family:Nunito,system-ui,sans-serif;color:#1E1B3A;display:flex;align-items:center;gap:12px;margin:4px 0 12px;box-sizing:border-box}'
   + '#ab-bar *{box-sizing:border-box}'
@@ -129,9 +146,9 @@
   + '#td-root .ring .c b{font-family:Fredoka,sans-serif;font-size:36px;line-height:1}'
   + '#td-root .ring .c span{font-size:12px;font-weight:800;color:#6B6788;text-align:center;padding:0 6px}'
   + '#td-root .split{display:flex;flex-direction:column;gap:7px;flex:1;min-width:0}'
-  + '#td-root .sp{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.3);border-radius:14px;padding:7px 10px;font-weight:800;font-size:13px}'
-  + '#td-root .sp .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.3);margin-top:5px;overflow:hidden}'
-  + '#td-root .sp .bar i{display:block;height:100%;background:#fff}'
+  + '#td-root .split .sp{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.3);border-radius:14px;padding:7px 10px;font-weight:800;font-size:13px}'
+  + '#td-root .split .sp .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.3);margin-top:5px;overflow:hidden}'
+  + '#td-root .split .sp .bar i{display:block;height:100%;background:#fff}'
   + '#td-root .stats{display:flex;gap:8px;flex-wrap:wrap}'
   + '#td-root .st{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.3);border-radius:16px;padding:8px 12px;border-width:1px;color:#fff;text-align:left}'
   + '#td-root .st b{display:block;font-family:Fredoka,sans-serif;font-size:21px;line-height:1}'
@@ -201,6 +218,8 @@
   +   '#ab-bar .nav .nb .s{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}'
   +   'body.td-on{padding-bottom:78px}'
   +   '#app-frame{margin:0;border-radius:0;border:0;box-shadow:none;padding:10px 10px 16px;background:transparent}'
+  +   'body.td-on .page{padding:0}'
+  +   '#td-root .greet{font-size:28px}'
   +   '#ab-bar .pz{flex:0 0 auto;min-width:0;margin-left:auto}'
   +   '#ab-bar .pz .arr{display:none}'
   +   '#td-root .sched button{flex:1}'
@@ -216,7 +235,7 @@
     }
     if(!document.querySelector('link[data-td-font]')){
       var j = document.createElement('link'); j.rel = 'stylesheet'; j.setAttribute('data-td-font', '1');
-      j.href = 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap';
+      j.href = 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Rozha+One&family=Kalam:wght@400;700&display=swap';
       document.head.appendChild(j);
     }
   }
@@ -409,8 +428,8 @@
       try{
         var L = (typeof QUOTES_L !== 'undefined' && QUOTES_L.length) ? QUOTES_L : null;
         if(L){ var k = 0, d = today(); for(var i = 0; i < d.length; i++) k = (k * 31 + d.charCodeAt(i)) % 9973; var Q = L[k % L.length];
-          q.innerHTML = '<div class="card" style="background:linear-gradient(140deg,#FDF4FF,#EEF2FF)"><div class="cap" style="color:#7C3AED">Thought for today</div>'
-            + '<div class="quote" style="margin-top:6px">“' + esc(Q.text) + '”</div><div style="margin-top:6px;font-weight:800;font-size:12.5px;color:#6B6788">— ' + esc(Q.author || '') + '</div></div>'; }
+          q.innerHTML = '<div class="card thought"><span class="pin">📌</span><div class="cap">Thought for today</div>'
+            + '<div class="q">“' + esc(Q.text) + '”</div><div class="by">— ' + esc(Q.author || '') + '</div></div>'; }
       }catch(e){}
     }
     var ap = $('td-approved'); if(ap) ap.textContent = '✅ ' + days().filter(function(d){ return d.approved === true; }).length + ' days approved';
