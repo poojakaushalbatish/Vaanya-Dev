@@ -573,5 +573,8 @@
       return r;
     };
   }
-  window.niyamStarBank = { render: render, reload: function(){ return loadRows(true); }, state: function(){ return S; } };
+  window.niyamStarBank = { render: render, reload: function(){ return loadRows(true); }, state: function(){ return S; },
+    // for the Today page (js/14-today.js): the child's goal, and how many rewards they can choose now
+    goal: function(){ var id = goalId(); return rewards().find(function(r){ return r.id === id; }) || null; },
+    ready: function(){ var b = bank(); return rewards().filter(function(r){ return b >= r.pts && !usedToday(r); }).length; } };
 })();
