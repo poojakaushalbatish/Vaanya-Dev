@@ -793,4 +793,13 @@
 
   window.niyamOpenReview = open;
   window.niyamRenderReview = function(){ if($('rv-root')) render(); };
+  // The new Parent Zone (js/15-parent-zone.js, 23 Oct 2026) draws its own page
+  // but uses this file for everything that counts or saves points.
+  window.niyamReview = {
+    pending: pendingDays, model: model, edits: editsFor, find: findDay, approve: approveDay,
+    gradeBonus: gradeBonus, aRunBefore: aRunBefore, chips: chipsFor, shloka: shlokaInfo,
+    carried: carriedItems, freshen: freshen, after: afterBankChange,
+    saveCarried: function(key, v){ RV.carried[key] = v; return saveCarried(key); },
+    forget: function(date){ delete RV.edits[date]; }
+  };
 })();
