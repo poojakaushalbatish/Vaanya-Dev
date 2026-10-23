@@ -266,5 +266,18 @@
     if(n < 120) setTimeout(function(){ wait(n + 1); }, 500);
   })(0);
 
-  window.niyamKindness = { render: render, reload: load, state: function(){ return K; }, actFor: actFor };
+  // For the Parent Zone (js/15-parent-zone.js): give points, or ask for another try.
+  async function parentSet(id, patch){
+    var r = rows().find(function(x){ return String(x.id) === String(id); }); if(!r) return false;
+    var res = await _supabase.from('kindness').update(patch).eq('id', r.id);
+    if(res.error) throw new Error(res.error.message);
+    Object.assign(r, patch);
+    try{ if(typeof updateTopBar === 'function') updateTopBar(); }catch(err){}
+    render(); renderParent();
+    return true;
+  }
+  window.niyamKindness = { render: render, reload: load, state: function(){ return K; }, actFor: actFor, findAct: findAct,
+    scaleFor: function(m){ return /^little:/.test(m || '') ? [5] : isWeekendAct(m) ? SCALE_WEEKEND : SCALE_SCHOOL; },
+    give: function(id, p){ return parentSet(id, { status:'confirmed', pts:+p || 0, confirmed_at:new Date().toISOString() }); },
+    redo: function(id){ return parentSet(id, { status:'redo' }); } };
 })();
