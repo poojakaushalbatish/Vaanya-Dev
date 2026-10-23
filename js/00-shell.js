@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-10-23 · Today page v3 (background, Rozha font, thought note)';
+  window.NIYAM_BUILD = '2026-10-23 · Parent Zone v1 (Today, Progress, Timetable, Rewards, Settings)';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   // Startup self-check: shout early if a required script tag is missing from
@@ -228,6 +228,7 @@
   // For the Star Bank (js/12-star-bank.js) and Kindness (js/13-kindness.js):
   // check the parent PIN, and read / save small things in profile_data
   // (the child's reward goal) without touching the rest of it.
+  window.niyamSavePin = async function(pin){ await saveProfile({ parent_pin: String(pin) }); };
   window.niyamCheckPin = function(pin){ return !!(profile && profile.parent_pin) && String(pin || '').trim() === String(profile.parent_pin); };
   window.niyamProfileData = function(){ return (profile && profile.profile_data) || {}; };
   window.niyamSaveProfileData = async function(patch){
