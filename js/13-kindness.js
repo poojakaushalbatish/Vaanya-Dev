@@ -122,12 +122,14 @@
       document.head.appendChild(l);
     }
   }
-  // The bar sits right after the timetable blocks.
+  // The bar sits right after the timetable blocks (or on the side of the Today page).
   function bar(){
     var tt = $('tt-blocks-container'); if(!tt || !tt.parentNode) return null;
     var b = $('kd-bar');
     if(!b){ addStyles(); b = document.createElement('div'); b.id = 'kd-bar'; b.addEventListener('click', onClick); }
-    if(b.previousElementSibling !== tt) tt.parentNode.insertBefore(b, tt.nextSibling);
+    var slot = $('td-kind-slot');                  // the Today page (js/14-today.js) gives it a place on the side
+    if(slot){ if(b.parentNode !== slot) slot.appendChild(b); }
+    else if(b.previousElementSibling !== tt) tt.parentNode.insertBefore(b, tt.nextSibling);
     return b;
   }
 
