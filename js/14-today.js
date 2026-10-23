@@ -275,10 +275,11 @@
     });
   }
   function waiting(){
+    try{ if(window.niyamParentZone && window.niyamParentZone.count) return window.niyamParentZone.count(); }catch(e){}   // the same count as inside the Parent Zone
     var n = 0, t = today();
-    n += days().filter(function(d){ return d && d.date < t && d.approved !== true && (parseInt(d.pts, 10) || 0) > 0; }).length;
-    try{ var K = window.niyamKindness && window.niyamKindness.state(); if(K && K.rows) n += K.rows.filter(function(r){ return r.status === 'done'; }).length; }catch(e){}
-    try{ var S = window.niyamStarBank && window.niyamStarBank.state(); if(S && S.rows) n += S.rows.filter(function(r){ return r.status === 'coming'; }).length; }catch(e){}
+    var wait = days().filter(function(d){ return d && d.date < t && d.approved !== true && (parseInt(d.pts, 10) || 0) > 0; }), on = {};
+    wait.forEach(function(d){ on[d.date] = 1; }); n += wait.length;
+    try{ var K = window.niyamKindness && window.niyamKindness.state(); if(K && K.rows) n += K.rows.filter(function(r){ return r.status === 'done' && !on[r.week]; }).length; }catch(e){}
     return n;
   }
   function updateBar(){
