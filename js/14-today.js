@@ -14,9 +14,7 @@
 //     night), with the greeting, the date (‹ ›), the kind of day, a ring with
 //     today's points and bars for tasks, Brain Lab and points from parents,
 //     and chips for the Star Bank, the streak, the goal and the level;
-//   • "Right now": the block happening now, its tasks (simple ones can be
-//     ticked right there), time left and what comes next;
-//   • "My day": the timetable as a timeline — a green line for the day so far,
+//   • "My day": the timetable as a timeline (the block for now opens by itself) — a green line for the day so far,
 //     a red line for now, and each block's result ("✓ 3 of 3 · +25");
 //   • on the side: Today's Act of Kindness (js/13-kindness.js), "Also today"
 //     and a thought for the day; small notes at the bottom (saved, approved
@@ -73,7 +71,10 @@
   // hide what the new page replaces
   + '#aurora-topbar,#ns-topbtns,#mob-pts-pill,#tab-report .draft-info-bar,#tab-report .page-layout{display:none!important}'
   + '.ab-oldbar{display:none!important}'
-  + 'body.td-on{background:#F6F4FC}'
+  + 'body.td-on{background:#EEEBF7}'
+  + '#ab-bar,#ab-bar *,#td-root,#td-root *{font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif!important}'
+  // 3. a finished frame around the app
+  + '#app-frame{max-width:1340px;margin:14px auto 24px;background:#FCFBFF;border:1px solid #E3DEF2;border-radius:32px;padding:18px 22px 22px;box-shadow:0 24px 60px rgba(30,27,58,.10),0 2px 0 rgba(255,255,255,.8) inset;box-sizing:border-box}'
   // top bar
   + '#ab-bar{font-family:Nunito,system-ui,sans-serif;color:#1E1B3A;display:flex;align-items:center;gap:12px;margin:4px 0 12px;box-sizing:border-box}'
   + '#ab-bar *{box-sizing:border-box}'
@@ -88,11 +89,13 @@
   + '#ab-bar .nav .nb.active{background:#5B2A9B!important;color:#fff!important}'
   + '#ab-bar .nav .nb i{font-style:normal}'
   + '#ab-bar .nav .nb .s{display:none}'
-  + '#ab-bar .pz{margin-left:auto;position:relative;flex:0 0 auto;display:flex;align-items:center;gap:10px;border:0;cursor:pointer;border-radius:99px;padding:5px 18px 5px 5px;'
+  + '#ab-bar .pz{margin-left:14px;position:relative;flex:1 1 auto;min-width:230px;display:flex;align-items:center;gap:12px;border:0;cursor:pointer;border-radius:99px;padding:5px 22px 5px 5px;text-align:left;'
   +   'background:linear-gradient(135deg,#FFB300,#FF7A45 55%,#F43F5E);color:#fff;box-shadow:0 8px 22px rgba(244,63,94,.35),inset 0 -3px 0 rgba(0,0,0,.12);font-family:Fredoka,Nunito,sans-serif}'
   + '#ab-bar .pz:hover{filter:brightness(1.05)}'
   + '#ab-bar .pz .fam{width:42px;height:42px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 0 0 3px rgba(255,255,255,.45)}'
-  + '#ab-bar .pz b{display:block;font-weight:700;font-size:17px;line-height:1.05;letter-spacing:.01em}'
+  + '#ab-bar .pz b{display:block;font-weight:800;font-size:17px;line-height:1.1;letter-spacing:.01em}'
+  + '#ab-bar .pz .arr{margin-left:auto;font-size:22px;font-weight:800;opacity:.9}'
+  + '#ab-bar .nav{flex:0 0 auto}'
   + '#ab-bar .pz small{display:block;font-family:Nunito,sans-serif;font-size:11.5px;font-weight:900;opacity:.95}'
   + '#ab-bar .pz .badge{position:absolute;top:-7px;right:-5px;min-width:24px;height:24px;border-radius:99px;background:#1E1B3A;color:#FCD34D;font-family:Nunito,sans-serif;font-weight:900;font-size:12.5px;'
   +   'display:flex;align-items:center;justify-content:center;padding:0 6px;border:2px solid #fff;animation:tdPulse 1.8s infinite}'
@@ -103,50 +106,40 @@
   + '#td-root .f{font-family:Fredoka,Nunito,sans-serif}'
   + '#td-root .cap{font-size:11.5px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}'
   + '#td-root .hero{position:relative;overflow:hidden;border-radius:28px;padding:20px;color:#fff;min-height:240px}'
-  + '#td-root .hero.morning{background:linear-gradient(165deg,#C2410C 0%,#EA580C 35%,#F59E0B 75%,#FCD34D 110%)}'
-  + '#td-root .hero.afternoon{background:linear-gradient(160deg,#0284C7 0%,#0EA5E9 45%,#38BDF8 80%,#7DD3FC 100%)}'
-  + '#td-root .hero.evening{background:linear-gradient(165deg,#7C2D12 0%,#EA580C 40%,#F59E0B 75%,#FDE68A 110%)}'
+  + '#td-root .hero.morning{background:linear-gradient(160deg,#4C2C82 0%,#8E3F7E 45%,#C9655A 80%,#E59A5F 110%)}'
+  + '#td-root .hero.afternoon{background:linear-gradient(160deg,#075985 0%,#0369A1 40%,#0284C7 75%,#0EA5E9 110%)}'
+  + '#td-root .hero.evening{background:linear-gradient(160deg,#3B1A6B 0%,#8A2A5C 45%,#C2563A 85%,#E08A3C 110%)}'
   + '#td-root .hero.night{background:linear-gradient(165deg,#1E1B4B 0%,#312E81 45%,#5B21B6 100%)}'
   + '#td-root .hero .deco{position:absolute;inset:0;pointer-events:none;z-index:0}'
   + '#td-root .hero .in{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr);gap:16px}'
   + '#td-root .greet{font-family:Fredoka,Nunito,sans-serif;font-weight:700;font-size:30px;line-height:1.08;text-shadow:0 2px 10px rgba(0,0,0,.14)}'
-  + '#td-root .datenav{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:rgba(0,30,70,.18);border:1px solid rgba(255,255,255,.35);border-radius:99px;padding:4px 5px}'
+  + '#td-root .datenav{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.35);border-radius:99px;padding:4px 5px}'
   + '#td-root .datenav button{width:30px;height:30px;border-radius:50%;border:0;background:rgba(255,255,255,.25);color:#fff;font-size:16px;font-weight:900}'
   + '#td-root .datenav input{border:0;background:transparent;color:#fff;font-family:Nunito,sans-serif;font-weight:900;font-size:15px;padding:4px 2px;width:auto;max-width:150px;color-scheme:dark;cursor:pointer}'
   + '#td-root .daytype{margin-top:8px;font-weight:800;font-size:13.5px;opacity:.97}'
-  + '#td-root .daytype button{border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.15);color:#fff;border-radius:99px;padding:2px 10px;font-weight:800;font-size:12px;margin-left:4px}'
+  + '#td-root .sched{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}'
+  + '#td-root .sched button{display:flex;align-items:center;gap:8px;border:1.5px solid rgba(255,255,255,.45);background:rgba(0,0,0,.18);color:#fff;border-radius:14px;padding:8px 12px;font-weight:700;font-size:13px;text-align:left;line-height:1.2}'
+  + '#td-root .sched button small{display:block;font-size:11px;font-weight:600;opacity:.85}'
+  + '#td-root .sched button.on{background:#fff;color:#1E1B3A;border-color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.18)}'
+  + '#td-root .sched button.on small{opacity:.7}'
+  + '#td-root .sched button span.i{font-size:18px}'
   + '#td-root .ringbox{display:flex;align-items:center;gap:16px}'
   + '#td-root .ring{position:relative;width:132px;height:132px;flex:0 0 auto;border-radius:50%}'
   + '#td-root .ring .c{position:absolute;inset:13px;border-radius:50%;background:rgba(255,255,255,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#1E1B3A}'
   + '#td-root .ring .c b{font-family:Fredoka,sans-serif;font-size:36px;line-height:1}'
   + '#td-root .ring .c span{font-size:12px;font-weight:800;color:#6B6788;text-align:center;padding:0 6px}'
   + '#td-root .split{display:flex;flex-direction:column;gap:7px;flex:1;min-width:0}'
-  + '#td-root .sp{background:rgba(0,30,70,.18);border:1px solid rgba(255,255,255,.3);border-radius:14px;padding:7px 10px;font-weight:800;font-size:13px}'
+  + '#td-root .sp{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.3);border-radius:14px;padding:7px 10px;font-weight:800;font-size:13px}'
   + '#td-root .sp .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.3);margin-top:5px;overflow:hidden}'
   + '#td-root .sp .bar i{display:block;height:100%;background:#fff}'
   + '#td-root .stats{display:flex;gap:8px;flex-wrap:wrap}'
-  + '#td-root .st{background:rgba(0,30,70,.18);border:1px solid rgba(255,255,255,.3);border-radius:16px;padding:8px 12px;border-width:1px;color:#fff;text-align:left}'
+  + '#td-root .st{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.3);border-radius:16px;padding:8px 12px;border-width:1px;color:#fff;text-align:left}'
   + '#td-root .st b{display:block;font-family:Fredoka,sans-serif;font-size:21px;line-height:1}'
   + '#td-root .st span{font-size:11.5px;font-weight:800;opacity:.94}'
   + '#td-root .cols{display:grid;grid-template-columns:minmax(0,1fr);gap:0}'
-  // right now
-  + '#td-root .now{position:relative;margin-top:16px;background:#fff;border-radius:24px;padding:16px;border:2px solid var(--c);box-shadow:0 12px 30px rgba(30,27,58,.10)}'
-  + '#td-root .now .tag{display:inline-flex;align-items:center;gap:6px;background:var(--c);color:#fff;border-radius:99px;padding:3px 10px;font-weight:900;font-size:11.5px;letter-spacing:.08em}'
-  + '#td-root .now .tag i{width:8px;height:8px;border-radius:50%;background:#fff;animation:tdPulse 1.4s infinite}'
-  + '#td-root .now h2{margin:8px 0 2px;font-family:Fredoka,sans-serif;font-weight:700;font-size:25px;line-height:1.12;color:#1E1B3A}'
-  + '#td-root .now .left{font-weight:800;color:#6B6788;font-size:13.5px}'
-  + '#td-root .tbar{height:10px;border-radius:99px;background:#F1EEF9;margin-top:10px;overflow:hidden}'
-  + '#td-root .tbar i{display:block;height:100%;background:var(--c)}'
-  + '#td-root .task{display:flex;align-items:center;gap:12px;width:100%;margin-top:10px;border:2px solid #ECE9F6;border-radius:16px;padding:11px 12px;font-weight:800;font-size:15px;background:#fff;text-align:left;color:#1E1B3A}'
-  + '#td-root .task .bx{width:26px;height:26px;border-radius:8px;border:2.5px solid #CFC9E6;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px}'
-  + '#td-root .task.done{background:#F0FDF4;border-color:#BBF7D0}'
-  + '#td-root .task.done .bx{background:#16A34A;border-color:#16A34A}'
-  + '#td-root .task .p{margin-left:auto;font-family:Fredoka,sans-serif;font-weight:700;color:#16A34A;white-space:nowrap}'
-  + '#td-root .task .go{margin-left:auto;font-size:12.5px;font-weight:900;color:var(--c);white-space:nowrap}'
-  + '#td-root .task[disabled]{cursor:default;opacity:.7}'
-  + '#td-root .nextup{display:flex;align-items:center;gap:10px;margin-top:12px;background:#F8F7FD;border-radius:14px;padding:10px 12px;font-weight:800;font-size:13.5px;color:#6B6788}'
   // timeline
-  + '#td-root .tl-cap{color:#6B6788;margin:22px 0 10px}'
+  + '#td-root .tl-cap{color:#6B6788;margin:18px 0 10px}'
+  + '#td-root .tt-block.state-current{box-shadow:0 12px 30px rgba(14,165,233,.15)!important}'
   + '#td-root #tt-blocks-container{position:relative;padding-left:66px;margin:0}'
   + '#td-root #tt-blocks-container:before{content:"";position:absolute;left:52px;top:10px;bottom:10px;width:3px;border-radius:3px;background:#E4E0F2}'
   + '#td-root #tt-blocks-container .td-rail{position:absolute;left:52px;top:10px;width:3px;border-radius:3px;background:linear-gradient(#34D399,#16A34A);height:var(--done,0px);pointer-events:none}'
@@ -207,6 +200,10 @@
   +   '#ab-bar .nav .nb .l{display:none}'
   +   '#ab-bar .nav .nb .s{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}'
   +   'body.td-on{padding-bottom:78px}'
+  +   '#app-frame{margin:0;border-radius:0;border:0;box-shadow:none;padding:10px 10px 16px;background:transparent}'
+  +   '#ab-bar .pz{flex:0 0 auto;min-width:0;margin-left:auto}'
+  +   '#ab-bar .pz .arr{display:none}'
+  +   '#td-root .sched button{flex:1}'
   + '}';
 
   function addStyles(){
@@ -217,6 +214,19 @@
       l.href = 'https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap';
       document.head.appendChild(l);
     }
+    if(!document.querySelector('link[data-td-font]')){
+      var j = document.createElement('link'); j.rel = 'stylesheet'; j.setAttribute('data-td-font', '1');
+      j.href = 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap';
+      document.head.appendChild(j);
+    }
+  }
+  // The top bar and every page sit inside one framed card.
+  function frame(){
+    var bar = $('ab-bar'); if(!bar) return;
+    var f = $('app-frame');
+    if(!f){ f = document.createElement('div'); f.id = 'app-frame'; bar.parentNode.insertBefore(f, bar); }
+    if(bar.parentNode !== f) f.appendChild(bar);
+    Array.prototype.slice.call(f.parentNode.children).forEach(function(t){ if(t.classList.contains('tab')) f.appendChild(t); });
   }
 
   // ---- the top bar (every page) ---------------------------------------------------
@@ -227,13 +237,14 @@
     document.body.classList.add('td-on');
     var bar = document.createElement('div'); bar.id = 'ab-bar';
     bar.innerHTML = '<div class="ab-av"><div id="ab-av">⭐</div></div><div class="who"><b id="ab-name">My day</b><span id="ab-sub"></span></div>'
-      + '<button class="pz" id="ab-pz" aria-label="Parent Zone"><span class="fam">👪</span><span><b>Parent Zone</b><small id="ab-pz-sub">For grown-ups</small></span><span class="badge" id="ab-pz-n" style="display:none"></span></button>';
+      + '<button class="pz" id="ab-pz" aria-label="Parent Zone"><span class="fam">👪</span><span><b>Parent Zone</b><small id="ab-pz-sub">For grown-ups</small></span><span class="arr">›</span><span class="badge" id="ab-pz-n" style="display:none"></span></button>';
     nav.parentNode.insertBefore(bar, nav);
     bar.insertBefore(nav, $('ab-pz'));
     // the old sync bar (saved / approved / backup) moves to the bottom of Today
     var sync = $('sync-status'); if(sync && sync.parentNode) sync.parentNode.classList.add('ab-oldbar');
     $('ab-pz').addEventListener('click', function(){ var b = $('ns-parent-btn'); if(b) b.click(); });
     relabel();
+    frame();
     return true;
   }
   function relabel(){
@@ -271,7 +282,7 @@
     if($('td-root')) return true;
     addStyles();
     var r = document.createElement('div'); r.id = 'td-root';
-    r.innerHTML = '<div id="td-hero"></div><div class="cols"><div><div id="td-now"></div><div class="cap tl-cap">My day</div><div id="td-tl"></div></div>'
+    r.innerHTML = '<div id="td-hero"></div><div class="cols"><div><div class="cap tl-cap">My day</div><div id="td-tl"></div></div>'
       + '<div class="side"><div id="td-kind-slot"></div><div id="td-also"></div><div id="td-thought"></div></div></div><div class="foot" id="td-foot"></div>';
     var lock = $('locked-banner');
     tab.insertBefore(r, lock ? lock.nextSibling : tab.firstChild);
@@ -296,9 +307,8 @@
       h += '<div style="position:absolute;right:34px;top:24px;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FEF9C3,#FDE68A 60%,#FCD34D);box-shadow:0 0 50px rgba(253,230,138,.6)"></div>'
         + '<div style="position:absolute;right:20px;top:14px;width:60px;height:60px;border-radius:50%;background:#312E81"></div>';
     } else {
-      var sun = m === 'morning' ? 'left:-50px;bottom:-110px' : m === 'evening' ? 'right:10%;bottom:-150px' : 'right:-50px;bottom:-110px';
-      h += '<div style="position:absolute;' + sun + ';width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,#FEF3C7 0%,#FDE68A 35%,rgba(253,230,138,0) 70%)"></div>';
-      [[18, 70, 90, 7], [96, 84, 70, 9], [168, 62, 60, 8]].forEach(function(c){ h += '<div style="position:absolute;top:' + c[0] + 'px;left:' + c[1] + '%;width:' + c[2] + 'px;height:22px;border-radius:20px;background:rgba(255,255,255,.2);animation:tdDrift ' + c[3] + 's ease-in-out infinite alternate"></div>'; });
+      var sun = m === 'morning' ? 'right:6%;top:-120px' : m === 'evening' ? 'right:12%;bottom:-160px' : 'right:-60px;bottom:-130px';
+      h += '<div style="position:absolute;' + sun + ';width:240px;height:240px;border-radius:50%;opacity:.55;background:radial-gradient(circle,#FEF3C7 0%,#FDE68A 35%,rgba(253,230,138,0) 70%)"></div>';
     }
     return '<div class="deco">' + h + '</div>';
   }
@@ -313,8 +323,10 @@
     var T = times(), first = T.find(function(t){ return t.b.type !== 'locked-until-3pm' && typeof t.start === 'number'; });
     var weekend = false; try{ weekend = ttIsWeekendSchedule(); }catch(e){}
     var natural = [0, 6].indexOf(new Date(date + 'T12:00:00').getDay()) >= 0;
-    var dayType = (weekend ? (natural ? '☀️ Weekend' : '🎈 Holiday') : '🏫 School day') + (first ? ' · your day starts at ' + hm(first.start) : '') + (isToday ? ' · now ' + hm(nowH()) : '');
-    var toggle = isToday && !natural ? '<button data-act="holiday">' + (weekend ? 'Back to school day' : 'Holiday today?') + '</button>' : '';
+    var dayType = (first ? 'Your day starts at ' + hm(first.start) : '') + (isToday ? (first ? ' · ' : '') + 'now ' + hm(nowH()) : '');
+    var toggle = '<div class="sched">'
+      + '<button class="' + (weekend ? '' : 'on') + '" data-act="sched" data-m="weekday"' + (isToday ? '' : ' disabled') + '><span class="i">🏫</span><span>School day<small>Mon – Fri timetable</small></span></button>'
+      + '<button class="' + (weekend ? 'on' : '') + '" data-act="sched" data-m="holiday"' + (isToday ? '' : ' disabled') + '><span class="i">☀️</span><span>Holiday<small>Sat · Sun · holidays</small></span></button></div>';
     var bank = typeof availablePts === 'function' ? availablePts() : 0, streak = typeof getStreak === 'function' ? getStreak() : 0;
     var goal = ''; try{ var g = window.niyamStarBank && window.niyamStarBank.goal && window.niyamStarBank.goal(); if(g) goal = '<button class="st" data-act="tab" data-t="rewards"><b>' + esc(g.icon) + ' ' + (bank >= g.pts ? '✓' : fmtN(g.pts - bank)) + '</b><span>' + (bank >= g.pts ? 'goal ready!' : 'to my goal') + '</span></button>'; }catch(e){}
     var lv = levelOf(typeof totalEarned === 'function' ? totalEarned() : 0);
@@ -322,7 +334,7 @@
     el.innerHTML = '<div class="hero ' + m + '">' + decoHtml(m) + '<div class="in">'
       + '<div><div class="greet">' + greet + '</div>'
       + '<div class="datenav"><button data-act="prev" aria-label="Previous day">‹</button><span id="td-date-slot"></span><button data-act="next" aria-label="Next day"' + (date >= today() ? ' disabled style="opacity:.35"' : '') + '>›</button></div>'
-      + '<div class="daytype">' + dayType + ' ' + toggle + '</div></div>'
+      + toggle + '<div class="daytype">' + dayType + '</div></div>'
       + '<div class="ringbox"><div class="ring" style="background:conic-gradient(#fff 0 ' + pct + '%,rgba(255,255,255,.28) ' + pct + '% 100%)"><div class="c"><b>' + fmtN(total) + '</b><span>' + (approved ? '✅ approved' : 'of ' + fmtN(s.max) + ' today') + '</span></div></div>'
       + '<div class="split">' + bar('📋 My tasks', s.tasks, s.tasksMax) + bar('🧠 Brain Lab', s.brain, s.brainMax) + bar('👨‍👩‍👧 From parents', s.parent, s.parentMax) + '</div></div>'
       + '<div class="stats"><button class="st" data-act="tab" data-t="rewards"><b>⭐ ' + fmtN(bank) + '</b><span>in my Star Bank</span></button>'
@@ -331,38 +343,6 @@
       + '</div></div>';
     var slot = $('td-date-slot');
     if(inp && slot){ if(inp.getAttribute('style')) inp.removeAttribute('style'); slot.appendChild(inp); }
-  }
-
-  function renderNow(){
-    var el = $('td-now'); if(!el) return;
-    var date = dateOpen();
-    if(date !== today()){ el.innerHTML = ''; return; }
-    var T = times(), h = nowH(), cur = null, next = null;
-    T.forEach(function(t){ var st = stateOf(t); if(st === 'current' && !cur) cur = t; });
-    T.forEach(function(t){ if(!next && typeof t.start === 'number' && t.start > h && t.b.type !== 'break') next = t; });
-    var brk = !cur && T.find(function(t){ return t.b.type === 'break' && typeof t.start === 'number' && t.start <= h && t.end > h; });
-    var nextTxt = next ? (next.b.icon || '⏭️') + ' Next: ' + esc(next.b.name) + ' at ' + hm(next.start) : '🌙 That’s the last part of today. Well done!';
-    if(!cur){
-      var allDone = !next, firstBlock = T.find(function(t){ return typeof t.start === 'number' && t.b.type !== 'locked-until-3pm'; });
-      var title = brk ? (brk.b.icon || '☕') + ' ' + esc(brk.b.name) : allDone ? '🌙 Your day is done' : firstBlock && h < firstBlock.start ? '🌅 Your day starts soon' : '☕ Free time';
-      var sub = brk ? 'Relax — until ' + hm(brk.end) : allDone ? 'Sleep well — tomorrow is a new day!' : firstBlock && h < firstBlock.start ? 'Starts at ' + hm(firstBlock.start) : 'Nothing to do right now';
-      el.innerHTML = '<div class="now" style="--c:#8B5CF6"><span class="tag"><i></i>RIGHT NOW</span><h2>' + title + '</h2><div class="left">' + sub + '</div>' + (allDone ? '' : '<div class="nextup">' + nextTxt + '</div>') + '</div>';
-      return;
-    }
-    var b = cur.b, st = (typeof ttBlockStates !== 'undefined' && ttBlockStates[b.id]) || {}, chk = st.checkedActs || {};
-    var left = Math.max(0, Math.round((cur.end - h) * 60)), span = Math.max(1, (cur.end - cur.start) * 60), pct = Math.min(100, Math.round((1 - left / span) * 100));
-    var c = b.color || '#0EA5E9';
-    var tasks = (b.activities || []).map(function(a){
-      var t = a.type || 'self', done = !!chk[a.id] || (st.parentPts && st.parentPts[a.id] !== undefined) || ((st.calcPts || {})[a.id] > 0) || ((st.ddPts || {})[a.id] > 0) || ((st.wordPts || {})[a.id] > 0);
-      if(t === 'self' || t === 'parent'){
-        return '<button class="task' + (done ? ' done' : '') + '" data-act="tick" data-b="' + esc(b.id) + '" data-a="' + esc(a.id) + '" data-p="' + (+a.pts || 0) + '" data-type="' + t + '"><span class="bx">' + (done ? '✓' : '') + '</span>'
-          + '<span>' + esc(a.name) + '</span><span class="p">' + (t === 'parent' ? '👨‍👩‍👧' : '+' + (+a.pts || 0)) + '</span></button>';
-      }
-      return '<button class="task' + (done ? ' done' : '') + '" data-act="open" data-b="' + esc(b.id) + '"><span class="bx">' + (done ? '✓' : '') + '</span><span>' + esc(a.name) + '</span><span class="go">Open ↓</span></button>';
-    }).join('');
-    el.innerHTML = '<div class="now" style="--c:' + esc(c) + '"><span class="tag"><i></i>RIGHT NOW</span><h2>' + (b.icon || '') + ' ' + esc(b.name) + '</h2>'
-      + '<div class="left">Until ' + hm(cur.end) + ' · ' + (left <= 1 ? 'almost over' : left + ' minutes left') + '</div><div class="tbar"><i style="width:' + pct + '%"></i></div>'
-      + tasks + '<div class="nextup">' + nextTxt + '</div></div>';
   }
 
   // Times, results, the green "so far" line and the red "now" line around the timetable.
@@ -440,10 +420,10 @@
     if(!buildBar()) return;
     updateBar();
     if(!buildToday()) return;
-    renderHero(); renderNow(); decorate(); renderSide();
+    renderHero(); decorate(); renderSide();
     var kb = $('kd-bar'), slot = $('td-kind-slot'); if(kb && slot && kb.parentNode !== slot) slot.appendChild(kb);
   }
-  function light(){ try{ if($('td-root')){ renderHero(); renderNow(); decorate(); renderSide(); } updateBar(); }catch(e){ console.warn('[today] refresh:', e); } }
+  function light(){ try{ if($('td-root')){ renderHero(); decorate(); renderSide(); } updateBar(); }catch(e){ console.warn('[today] refresh:', e); } }
 
   // ---- taps ----------------------------------------------------------------------------------
   function goTab(id){
@@ -460,16 +440,10 @@
       inp.value = v; inp.dispatchEvent(new Event('change', { bubbles:true }));
       return;
     }
-    if(act === 'holiday'){ var w = false; try{ w = ttIsWeekendSchedule(); }catch(err){} if(typeof lp_setSchedule === 'function') lp_setSchedule(w ? 'weekday' : 'holiday'); return; }
+    if(act === 'sched'){ var mode = b.getAttribute('data-m'), w = false; try{ w = ttIsWeekendSchedule(); }catch(err){}
+      if((mode === 'holiday') !== w && typeof lp_setSchedule === 'function') lp_setSchedule(mode);
+      light(); return; }
     if(act === 'tab'){ goTab(b.getAttribute('data-t')); return; }
-    if(act === 'tick'){
-      if(typeof ttToggleAct === 'function') ttToggleAct(b.getAttribute('data-b'), b.getAttribute('data-a'), +b.getAttribute('data-p') || 0, b.getAttribute('data-type'));
-      light(); return;
-    }
-    if(act === 'open'){
-      var el = $('ttb-' + b.getAttribute('data-b'));
-      if(el){ el.classList.add('open'); el.scrollIntoView({ block:'start', behavior:'smooth' }); }
-    }
   }
 
   // ---- Parent Zone: Clear lives here now ------------------------------------------------------
