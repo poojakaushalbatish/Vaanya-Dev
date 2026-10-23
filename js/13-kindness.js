@@ -93,7 +93,9 @@
   + '#kd-bar .gift{flex:0 0 auto;width:64px;height:64px;border-radius:18px;background:linear-gradient(160deg,#0F766E,#14B8A6);display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 6px 16px rgba(15,118,110,.3);animation:kdShake 2.6s ease-in-out infinite}'
   + '#kd-bar .closed h3{margin:2px 0 0;font-family:Fredoka,sans-serif;font-weight:700;font-size:21px;line-height:1.15}'
   + '#kd-bar .tap{margin-left:auto;flex:0 0 auto;background:var(--teal);color:#fff;border-radius:99px;padding:9px 16px;font-family:Fredoka,sans-serif;font-weight:600;font-size:15px;box-shadow:0 4px 0 var(--deep)}'
-  + '#kd-bar .sp{position:absolute;font-size:14px;animation:kdTw 2.2s ease-in-out infinite}'
+  + '#kd-bar .gift,#kd-bar .em{position:relative}'
+  + '#kd-bar .spk{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;background:linear-gradient(160deg,#FBBF24,#F59E0B);color:#fff;font-size:13px;line-height:1;'
+  +   'display:flex;align-items:center;justify-content:center;border:2.5px solid #fff;box-shadow:0 3px 8px rgba(217,119,6,.45);animation:kdSpk 2.2s ease-in-out infinite}'
   + '#kd-bar .open{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;animation:kdOpen .5s cubic-bezier(.2,1.4,.4,1)}'
   + '#kd-bar .em{flex:0 0 auto;width:64px;height:64px;border-radius:18px;background:#fff;border:2px solid #F5D48A;display:flex;align-items:center;justify-content:center;font-size:36px}'
   + '#kd-bar .open h3{margin:2px 0 0;font-family:Fredoka,sans-serif;font-weight:700;font-size:21px;line-height:1.2}'
@@ -108,6 +110,7 @@
   + '#kd-bar .state{margin-top:10px;border-radius:14px;padding:10px 12px;font-weight:800;font-size:14px;line-height:1.45}'
   + '#kd-bar .foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1.5px dashed #F5D48A;padding:9px 18px;font-weight:800;font-size:12.5px;color:var(--soft)}'
   + '@keyframes kdShake{0%,80%,100%{transform:rotate(0)}84%{transform:rotate(-10deg)}88%{transform:rotate(9deg)}92%{transform:rotate(-6deg)}96%{transform:rotate(4deg)}}'
+  + '@keyframes kdSpk{0%,100%{transform:scale(.9) rotate(0)}50%{transform:scale(1.12) rotate(20deg)}}'
   + '@keyframes kdTw{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:1;transform:scale(1.1)}}'
   + '@keyframes kdOpen{0%{transform:scale(.9);opacity:0}100%{transform:none;opacity:1}}'
   + '@media (prefers-reduced-motion:reduce){#kd-bar *{animation:none!important}}'
@@ -139,19 +142,19 @@
     var date = dateOpen(), isToday = date === today(), act = actFor(date), row = rowFor(date), wk = weekendDay(date);
     if(!act){ b.innerHTML = ''; return; }
     var scale = wk ? '10 to 50 points' : '5 to 20 points';
-    var sparks = '<span class="sp" style="left:8px;top:6px">✨</span><span class="sp" style="right:14px;bottom:8px;animation-delay:1s">✨</span>';
+    var sparks = '', spk = '<span class="spk">✦</span>';   // a golden sparkle badge on the gift's corner (by design)
     var foot = '<div class="foot"><span>💛 ' + kindCount() + ' kind ' + (kindCount() === 1 ? 'act' : 'acts') + ' · ⭐ ' + kindPts().toLocaleString('en-IN') + ' points from kindness</span>'
       + '<span>' + (isToday ? 'Tomorrow brings a new surprise 🎁' : fmtDay(date)) + '</span></div>';
     if(K.missing){ b.innerHTML = '<div class="wrap"><div class="closed" style="cursor:default"><div class="gift">🎁</div><div><div class="cap" style="color:var(--teal)">Today’s Act of Kindness</div><h3>Almost ready</h3><div class="how">Ask your parent to finish the setup (one step in Supabase).</div></div></div></div>'; return; }
     var open = row || revealed(date) || !isToday;
     if(!open){
-      b.innerHTML = '<div class="wrap">' + sparks + '<button class="closed" data-act="reveal"><div class="gift">🎁</div><div style="min-width:0">'
+      b.innerHTML = '<div class="wrap">' + sparks + '<button class="closed" data-act="reveal"><div class="gift">🎁' + spk + '</div><div style="min-width:0">'
         + '<div class="cap" style="color:var(--teal)">Today’s Act of Kindness' + (wk ? ' · weekend special' : '') + '</div>'
         + '<h3>A surprise is waiting for you!</h3><div class="how" style="color:var(--soft)">Tap to find out today’s kind deed · ' + scale + '</div></div>'
         + '<span class="tap">Open it ✨</span></button>' + foot + '</div>';
       return;
     }
-    var h = '<div class="wrap">' + sparks + '<div class="open"><div class="em">' + act.em + '</div><div style="flex:1;min-width:0">'
+    var h = '<div class="wrap">' + sparks + '<div class="open"><div class="em">' + act.em + spk + '</div><div style="flex:1;min-width:0">'
       + '<div class="cap" style="color:var(--teal)">' + (isToday ? 'Today’s' : fmtDay(date) + ' ·') + ' Act of Kindness' + (wk ? ' · weekend special' : '') + '</div>'
       + '<h3>' + esc(act.title) + '</h3>'
       + (act.how ? '<div class="how">' + esc(act.how) + '</div>' : '')
