@@ -30,7 +30,7 @@
 (function(){
   'use strict';
 
-  var PZ = { page:'today', open:{}, kind:{}, carry:{}, busy:false, month:null, sel:null, shl:null, tt:null, rw:null, rwNew:false, pin:null };
+  var PZ = { page:'today', open:{}, exp:{}, apOpen:{}, apw:0, kind:{}, carry:{}, busy:false, month:null, sel:null, shl:null, tt:null, rw:null, rwNew:false, pin:null };
   var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var WD = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   var LEVELS = [['everyday','Everyday treats','once a day'],['weekend','Weekend treats',''],['big','Big rewards',''],['dream','Dream rewards','']];
@@ -153,7 +153,27 @@
   + '#pz2 .day{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 40px -30px rgba(21,26,44,.25);overflow:hidden}'
   + '#pz2 .day+.day{margin-top:14px}'
   + '#pz2 .day.late{border-color:#E6C2B6;box-shadow:inset 4px 0 0 var(--rust),0 18px 40px -30px rgba(21,26,44,.25)}'
-  + '#pz2 .dtop{display:flex;align-items:center;gap:16px;padding:18px 22px}'
+  + '#pz2 .dtop{display:flex;align-items:center;gap:16px;padding:18px 22px;width:100%;background:none;border:0;text-align:left;font:inherit}'
+  + '#pz2 .chev{color:var(--mute);flex:0 0 auto;display:flex}'
+  + '#pz2 .tile{display:flex;align-items:center;gap:16px;width:100%;text-align:left;font:inherit;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px 18px;box-shadow:0 12px 30px -26px rgba(21,26,44,.3)}'
+  + '#pz2 .tile+.tile,#pz2 .tile+.day,#pz2 .day+.tile{margin-top:10px}'
+  + '#pz2 .tile:hover{border-color:#CFC9BB}'
+  + '#pz2 .tile .dbadge{width:48px;height:50px;border-radius:13px}#pz2 .tile .dbadge b{font-size:20px}'
+  + '#pz2 .tile .tx{flex:1;min-width:0}'
+  + '#pz2 .tile .tx b{display:block;font-family:Fraunces,serif;font-weight:500;font-size:18px}'
+  + '#pz2 .tile .tx span{color:var(--mute);font-size:13px}'
+  + '#pz2 .tile.late{border-color:#E6C2B6;box-shadow:inset 4px 0 0 var(--rust)}'
+  + '#pz2 .tile.late .dbadge{background:var(--rust-soft);border-color:#EBCFC5}#pz2 .tile.late .dbadge b{color:var(--rust)}'
+  + '#pz2 .tile.ok .dbadge{background:var(--sage-soft);border-color:#CFE0D4}#pz2 .tile.ok .dbadge b{color:var(--sage)}'
+  + '#pz2 .apv{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}'
+  + '#pz2 .apv+.apv{margin-top:10px}'
+  + '#pz2 .apv .tile{border:0;border-radius:0;box-shadow:none}'
+  + '#pz2 .apbody{padding:4px 22px 18px;border-top:1px solid var(--line2)}'
+  + '#pz2 .wk{display:flex;align-items:center;gap:6px}'
+  + '#pz2 .wk button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;padding:0}'
+  + '#pz2 .wk span{font-weight:600;font-size:13px;color:var(--ink2);min-width:120px;text-align:center}'
+  + '#pz2 .notice{display:flex;align-items:center;gap:10px;background:var(--rust-soft);border:1px solid #EBCFC5;color:#7A3524;border-radius:14px;padding:10px 14px;margin-bottom:14px;font-size:13.5px}'
+  + '#pz2 .notice b{color:#6B2C1D}'
   + '#pz2 .dbadge{width:58px;height:62px;border-radius:16px;background:var(--paper);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto}'
   + '#pz2 .dbadge b{font-family:Fraunces,serif;font-weight:500;font-size:25px;line-height:1}'
   + '#pz2 .dbadge span{font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-top:3px}'
@@ -235,7 +255,8 @@
   + '#pz2 .key{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin-top:10px}'
   + '#pz2 .key i{display:inline-block;width:11px;height:11px;border-radius:4px;vertical-align:-1px;margin-right:5px}'
   // timetable + rewards + settings
-  + '#pz2 .tt .r{display:grid;grid-template-columns:70px 16px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line2)}'
+  + '#pz2 .tt .r{display:grid;grid-template-columns:70px 16px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 10px;border:0;border-top:1px solid var(--line2);width:100%;background:none;text-align:left;font:inherit;border-radius:0}'
+  + '#pz2 .tt .r:hover{background:#FCFBF8}#pz2 .tt .r.sel{background:var(--brass-soft);border-radius:14px;border-top-color:transparent}'
   + '#pz2 .tt .r:first-child{border-top:0}'
   + '#pz2 .tt .tm{font-family:Fraunces,serif;font-size:16px;text-align:right}'
   + '#pz2 .tt .tm small{display:block;font-family:Inter;font-size:11.5px;color:var(--mute)}'
@@ -296,6 +317,8 @@
   +   '#pz2 .shg{grid-template-columns:repeat(6,minmax(0,1fr))}'
   +   '#pz2 .tt .r{grid-template-columns:56px 12px minmax(0,1fr)}#pz2 .tt .r>div:last-child{grid-column:3}'
   +   '#pz2-toast{bottom:96px}'
+  +   '#pz2 .tile{padding:12px 14px;gap:12px}#pz2 .tile .tag{display:none}#pz2 .tile .tx b{font-size:17px}'
+  +   '#pz2 .edcols{grid-template-columns:minmax(0,1fr)!important}#pz2 .edcols>div:last-child{order:-1}#pz2 .edcols .card[style*=sticky]{position:static!important}'
   + '}'
   // the PIN screen
   + '#ns-pinprompt.pz2-pin{background:#151A2C!important}'
@@ -325,7 +348,7 @@
     // days before today (today is still going), kindness on days not waiting, tasks left for later
     var n = 0, on = {}, t = today();
     try{ R().pending().forEach(function(d){ on[d.date] = 1; if(d.date < t) n++; }); }catch(e){}
-    n += kRows().filter(function(r){ return r.status === 'done' && !on[r.week]; }).length;
+    n += kRows().filter(function(r){ return r.status === 'done' && !on[r.week] && !/^little:/.test(r.mission || ''); }).length;
     try{ n += R().carried().length; }catch(e){}
     return n;
   }
@@ -395,9 +418,16 @@
     if(bc) facts.push('Brain Lab ' + bc + ' of 4'); if(words.length) facts.push(plural(words.length, 'new word', 'new words'));
     var waitDays = Math.round((dObj(today()) - x) / 86400000);
     var tag = late ? '<span class="tag t-rust">Waiting ' + plural(waitDays, 'day', 'days') + '</span>'
-            : C.toScore ? '<span class="tag t-brass">' + C.toScore + ' to score</span>' : '<span class="tag t-mute">Ready</span>';
-    var h = '<div class="day' + (late ? ' late' : '') + '"><div class="dtop"><div class="dbadge"><b>' + x.getDate() + '</b><span>' + MONTHS[x.getMonth()].slice(0, 3) + '</span></div>'
-      + '<div class="tx"><b>' + WD[x.getDay()] + (isToday ? ' <span style="font-family:Inter;font-size:13px;color:var(--mute);font-weight:500">· today, still going</span>' : '') + '</b><span>' + facts.join(' · ') + '</span></div>' + tag + '</div>';
+            : C.toScore ? '<span class="tag t-brass">' + C.toScore + ' to score</span>' : '<span class="tag t-mute">Ready to approve</span>';
+    var badge = '<div class="dbadge"><b>' + x.getDate() + '</b><span>' + MONTHS[x.getMonth()].slice(0, 3) + '</span></div>';
+    var title = WD[x.getDay()] + ', ' + x.getDate() + ' ' + MONTHS[x.getMonth()];
+    if(!PZ.exp[d.date]){
+      return '<button class="tile' + (late ? ' late' : '') + '" data-pz="exp" data-date="' + d.date + '">' + badge
+        + '<span class="tx"><b>' + title + '</b><span' + (late ? ' style="color:var(--rust)"' : '') + '>' + (isToday ? 'Today · still going · ' : '') + (late ? 'Waiting ' + plural(waitDays, 'day', 'days') : 'Approval awaited') + ' · ' + fmtN(C.total) + ' points so far</span></span>'
+        + (late ? '' : tag) + '<span class="chev">' + I('down') + '</span></button>';
+    }
+    var h = '<div class="day' + (late ? ' late' : '') + '"><button class="dtop" data-pz="exp" data-date="' + d.date + '">' + badge
+      + '<span class="tx"><b>' + title + (isToday ? ' <span style="font-family:Inter;font-size:13px;color:var(--mute);font-weight:500">· today, still going</span>' : '') + '</b><span>' + facts.join(' · ') + '</span></span>' + tag + '<span class="chev">' + I('up') + '</span></button>';
 
     // the parent's score
     var rows = '';
@@ -525,32 +555,73 @@
     var pend = [], carried = [], yest = addDays(today(), -1);
     try{ pend = R().pending(); carried = R().carried(); }catch(e){}
     var on = {}; pend.forEach(function(d){ on[d.date] = 1; });
-    var loose = kRows().filter(function(r){ return r.status === 'done' && !on[r.week]; });
-    var late = pend.filter(function(d){ return d.date < yest; }), recent = pend.filter(function(d){ return d.date >= yest; }).reverse();
+    var loose = kRows().filter(function(r){ return r.status === 'done' && !on[r.week] && !/^little:/.test(r.mission || ''); });
+    var late = pend.filter(function(d){ return d.date < yest; });
     var n = pend.length, hr = new Date().getHours();
     var hello = hr < 12 ? 'Good morning.' : hr < 17 ? 'Good afternoon.' : 'Good evening.';
     var title = n ? hello + ' <em>' + plural(n, 'day is', 'days are') + '</em> waiting for you.' : hello + ' <em>All caught up.</em>';
     var h = '<div class="head"><div><div class="eyebrow">' + longDay(today()) + ' ' + new Date().getFullYear() + '</div><h1>' + title + '</h1>'
-      + '<p>' + (n ? 'Score what only you can judge, then approve. Points reach ' + esc(first()) + '’s Star Bank the moment you approve.' : 'Every saved day is approved. ' + esc(first()) + '’s next day appears here as soon as it is saved.') + '</p></div></div>';
+      + '<p>' + (n ? 'Tap a day to open it. Score what only you can judge, then approve — the points reach ' + esc(first()) + '’s Star Bank straight away.' : 'Every saved day is approved. ' + esc(first()) + '’s next day appears here as soon as it is saved.') + '</p></div></div>';
     h += '<div class="cols"><div>';
-    if(late.length){
-      h += '<div class="banner">' + I('alert', 'width:22px;height:22px;color:var(--rust)') + '<div><b>' + plural(late.length, 'older day is', 'older days are') + ' still waiting</b>'
-        + 'The oldest is from ' + longDay(late[0].date) + '. Their points are not in ' + esc(first()) + '’s Star Bank yet.</div></div>';
-      h += '<div class="pzsec r">Still waiting from earlier</div>' + late.map(function(d){ return dayCard(d, true); }).join('');
-      if(recent.length) h += '<div class="pzsec">Recent days</div>';
-    }
-    h += recent.map(function(d){ return dayCard(d, false); }).join('');
-    var ready = pend.filter(function(d){ var C = dayCalc(d); return !C.toScore; });
+    if(late.length) h += '<div class="notice">' + I('alert', 'color:var(--rust)') + '<span><b>' + plural(late.length, 'older day', 'older days') + ' still waiting</b> — since ' + longDay(late[0].date) + '. Those points are not in the Star Bank yet.</span></div>';
+    if(n) h += '<div class="pzsec" style="margin-top:0">Waiting for approval</div>';
+    h += pend.slice().reverse().map(function(d){ return dayCard(d, d.date < yest); }).join('');   // the most recent day first
+    var ready = pend.filter(function(d){ return !dayCalc(d).toScore; });
     if(ready.length > 1){
       var tot = ready.reduce(function(a, d){ return a + dayCalc(d).total; }, 0);
-      h += '<div style="text-align:center;margin-top:14px"><button class="btn" data-pz="all"' + (PZ.busy ? ' disabled' : '') + '>' + I('tick') + 'Approve the ' + ready.length + ' ready days · ' + fmtN(tot) + ' points</button></div>';
+      h += '<div style="text-align:center;margin-top:12px"><button class="btn" data-pz="all"' + (PZ.busy ? ' disabled' : '') + '>' + I('tick') + 'Approve the ' + ready.length + ' ready days · ' + fmtN(tot) + ' points</button></div>';
     }
     if(carried.length || loose.length){
-      h += '<div class="card" style="margin-top:16px"><div class="ch"><h2>Also waiting <small>from days you already approved</small></h2></div>'
+      h += '<div class="card" style="margin-top:16px"><div class="ch"><h2>Still to score <small>from days already approved</small></h2></div>'
         + carried.map(carriedCard).join('') + loose.map(kindCard).join('') + '</div>';
     }
-    if(!n && !carried.length && !loose.length) h += '<div class="card empty"><div class="ok">' + I('tick', 'width:26px;height:26px') + '</div><h2>Nothing needs you right now</h2><p style="color:var(--mute);margin:6px 0 0">Older days are in Progress.</p></div>';
+    if(!n && !carried.length && !loose.length) h += '<div class="card empty"><div class="ok">' + I('tick', 'width:26px;height:26px') + '</div><h2>Nothing needs you right now</h2></div>';
+    h += approvedSection();
     h += '</div><div class="stack">' + weekCard() + talkCard() + '</div></div>';
+    return h;
+  }
+
+  // ---- approved reports: one line each, a week at a time --------------------------------------------
+  function weekStart(off){ var t = today(), x = dObj(t); return addDays(addDays(t, -((x.getDay() + 6) % 7)), (off || 0) * 7); }
+  function approvedSection(){
+    var off = PZ.apw || 0, mon = weekStart(off), sun = addDays(mon, 6);
+    var list = days().filter(function(d){ return d && d.approved === true && d.date >= mon && d.date <= sun; }).sort(function(a, b){ return a.date < b.date ? 1 : -1; });
+    var lab = off === 0 ? 'This week' : off === -1 ? 'Last week' : dObj(mon).getDate() + ' ' + MONTHS[dObj(mon).getMonth()].slice(0, 3) + ' – ' + dObj(sun).getDate() + ' ' + MONTHS[dObj(sun).getMonth()].slice(0, 3);
+    var h = '<div class="pzsec" style="justify-content:space-between">Approved reports</div>'
+      + '<div style="display:flex;justify-content:flex-end;margin:-4px 0 10px"><div class="wk"><button data-pz="apw" data-v="-1" title="Earlier week">' + I('left', 'width:15px;height:15px') + '</button><span>' + lab + '</span>'
+      + '<button data-pz="apw" data-v="1"' + (off >= 0 ? ' disabled' : '') + ' title="Later week">' + I('right', 'width:15px;height:15px') + '</button></div></div>';
+    if(!list.length) return h + '<div class="card" style="color:var(--mute);text-align:center;padding:18px">No approved days in this week.</div>';
+    return h + list.map(function(d){
+      var x = dObj(d.date), open = !!(PZ.apOpen || {})[d.date];
+      return '<div class="apv"><button class="tile ok" data-pz="apopen" data-date="' + d.date + '"><div class="dbadge"><b>' + x.getDate() + '</b><span>' + MONTHS[x.getMonth()].slice(0, 3) + '</span></div>'
+        + '<span class="tx"><b>' + WD[x.getDay()] + ', ' + x.getDate() + ' ' + MONTHS[x.getMonth()] + '</b><span>Approved · ' + fmtN(d.pts) + ' points' + (d.parentGrade ? ' · grade ' + esc(d.parentGrade) : '') + '</span></span>'
+        + '<span class="chev">' + I(open ? 'up' : 'down') + '</span></button>' + (open ? '<div class="apbody">' + reportBody(d) + '</div>' : '') + '</div>';
+    }).join('');
+  }
+  // What an approved day looked like: points, note, words, Brain Lab, kindness and the ticks.
+  function reportBody(d){
+    var rv = {}; try{ rv = JSON.parse(d.reviewJSON || '{}') || {}; }catch(e){}
+    var aw = 0; Object.keys(rv.awards || {}).forEach(function(k){ aw += num(rv.awards[k]); });
+    var m = null; try{ m = R().model(d); R().forget(d.date); }catch(e){}
+    var h = '';
+    if(rv.tt !== undefined) h += '<div style="color:var(--ink2);font-size:13px;margin-top:12px">Ticks ' + num(rv.tt) + ' · Brain Lab ' + num(rv.brain) + ' · Parent’s score ' + aw + (rv.bonus ? ' · A bonus ' + rv.bonus : '') + '</div>';
+    var kr = kRows().find(function(r){ return r.week === d.date && r.status === 'confirmed' && !/^little:/.test(r.mission || ''); });
+    if(kr){ var a = kindAct(kr) || { title:'Act of Kindness' }; h += '<div style="color:var(--ink2);font-size:13px;margin-top:4px">Act of Kindness: “' + esc(a.title) + '” · +' + num(kr.pts) + '</div>'; }
+    if(d.parentComment) h += '<div class="quote" style="margin-top:10px">' + esc(d.parentComment) + '</div>';
+    if(m){
+      var words = wordsOfDay(m); if(words.length) h += '<div style="margin-top:10px;font-size:13px"><b>New words:</b> ' + words.map(esc).join(', ') + '</div>';
+      var bl = brainLine(d); if(bl) h += '<div style="margin-top:4px;font-size:13px"><b>Brain Lab:</b> ' + esc(bl) + '</div>';
+      var rows = '';
+      m.blocks.forEach(function(B){
+        var rs = B.rows.filter(function(r){ return !r.info; }); if(!rs.length) return;
+        var dn = rs.filter(function(r){ return r.parent ? (r.award || 0) > 0 : r.done; });
+        var miss = rs.filter(function(r){ return !(r.parent ? (r.award || 0) > 0 : r.done); });
+        rows += '<div class="task"><span class="box' + (miss.length ? '' : ' on') + '">' + (miss.length ? '' : I('tick')) + '</span><span class="nm">' + esc(B.b.name || '') + (miss.length ? '<small>Not done: ' + miss.map(function(r){ return esc(r.name); }).join(', ') + '</small>' : '') + '</span><span class="p" style="font-size:14px">' + dn.length + ' of ' + rs.length + '</span></div>';
+      });
+      if(rows) h += '<div class="lab" style="margin-top:12px"><span>The day</span></div>' + rows;
+    }
+    h += '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn sm" data-pz="reopen" data-date="' + d.date + '">' + I('pen', 'width:15px;height:15px') + 'Open again for review</button>'
+      + '<button class="btn sm red" data-pz="del" data-date="' + d.date + '">' + I('trash', 'width:15px;height:15px') + 'Delete this day</button></div>';
     return h;
   }
 
@@ -568,7 +639,7 @@
           try{ if(kv === 'redo') await NK().redo(kr.id); else { await NK().give(kr.id, kv); got += kv; } delete PZ.kind[kr.id]; }
           catch(err){ synced = false; console.warn('[parent zone] kindness:', err); }
         }
-        delete PZ.open[date];
+        delete PZ.open[date]; delete PZ.exp[date];
       }
     }catch(err){
       console.error('[parent zone] approve failed:', err);
@@ -656,21 +727,11 @@
   }
   function dayDetail(date){
     var d = rec(date); if(!d) return '';
-    var rv = {}; try{ rv = JSON.parse(d.reviewJSON || '{}') || {}; }catch(e){}
-    var aw = 0; Object.keys(rv.awards || {}).forEach(function(k){ aw += num(rv.awards[k]); });
-    var h = '<div class="card" style="border-color:var(--brass2)"><div class="ch"><div><div class="eyebrow">' + (d.approved === true ? 'Approved day' : 'Waiting for you') + '</div><h2 style="margin-top:2px">' + longDay(date) + '</h2></div>'
+    var x = dObj(date);
+    var h = '<div class="card" style="border-color:var(--brass2)"><div class="ch"><div><div class="eyebrow">' + (d.approved === true ? 'Approved · ' + fmtN(d.pts) + ' points' + (d.parentGrade ? ' · grade ' + esc(d.parentGrade) : '') : 'Waiting for you') + '</div><h2 style="margin-top:2px">' + longDay(date) + '</h2></div>'
       + '<button class="btn sm" data-pz="pick" data-date="' + date + '">' + I('x', 'width:14px;height:14px') + '</button></div>';
-    if(d.approved === true){
-      h += '<div style="display:flex;align-items:flex-end;gap:12px"><div class="big" style="font-size:44px">' + fmtN(d.pts) + '</div><div style="padding-bottom:6px;color:var(--mute)">points' + (d.parentGrade ? ' · grade <b style="color:var(--ink)">' + esc(d.parentGrade) + '</b>' : '') + '</div></div>';
-      if(rv.tt !== undefined) h += '<div style="color:var(--ink2);font-size:13px;margin-top:8px">Ticks ' + num(rv.tt) + ' · Brain Lab ' + num(rv.brain) + ' · Parent’s score ' + aw + (rv.bonus ? ' · A bonus ' + rv.bonus : '') + '</div>';
-      if(d.parentComment) h += '<div class="quote" style="margin-top:10px">' + esc(d.parentComment) + '</div>';
-      h += '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn" data-pz="reopen" data-date="' + date + '">' + I('pen') + 'Open again for review</button>'
-        + '<button class="btn red" data-pz="del" data-date="' + date + '">' + I('trash') + 'Delete this day</button></div>'
-        + '<div style="color:var(--mute);font-size:12px;margin-top:8px">Opening it again takes its ' + fmtN(d.pts) + ' points out of the Star Bank until you approve it again.</div>';
-    } else {
-      h += '<p style="color:var(--ink2);margin:0 0 12px">This day has not been approved yet.</p><button class="btn dark" data-pz="go" data-p="today">Go to Today ' + I('right', 'width:15px;height:15px') + '</button>'
-        + ' <button class="btn red" data-pz="del" data-date="' + date + '">' + I('trash') + 'Delete</button>';
-    }
+    if(d.approved === true) h += reportBody(d);
+    else h += '<p style="color:var(--ink2);margin:0 0 12px">This day has not been approved yet.</p><button class="btn dark" data-pz="goday" data-date="' + date + '">Open it in Today ' + I('right', 'width:15px;height:15px') + '</button>';
     return h + '</div>';
   }
   async function reopenDay(date){
@@ -743,30 +804,169 @@
   // ======================================================================================
   // TIMETABLE
   // ======================================================================================
+  // Timetable editing happens on this page (Pooja, 23 Oct 2026). The rules are
+  // the same as the older editor (js/06-timetable-admin.js): every block has a
+  // name and a start time, an end comes after its start, blocks never overlap,
+  // and tasks of a switched-off feature are kept aside and put back on save.
+  var KINDS = [['normal', 'Earns points'], ['break', 'Break — no points'], ['locked-until-3pm', 'School time']];
+  var ACT_TYPES = [['self', 'Child ticks it'], ['parent', 'Parent scores it'], ['pct-calc', 'Score out of 100% → points'], ['text-entry', 'Child writes an answer']];
+  var BUILT_IN = { wordbook:'Points for every 3 words in My Dictionary', link:'Points come from Brain Lab', 'parent-select':'Parent scores it, up to the maximum', dropdown:'Child picks points for quality' };
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function uid(p){ return p + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   function hm(h){ var H = Math.floor(h), M = Math.round((h - H) * 60); if(M === 60){ H++; M = 0; } return (H % 12 || 12) + ':' + (M < 10 ? '0' : '') + M; }
-  function ap(h){ return Math.floor(h) >= 12 ? 'pm' : 'am'; }
+  function ap(h){ return Math.floor(h) % 24 >= 12 ? 'pm' : 'am'; }
+  function parseT(txt){
+    var m = /(\d{1,2})\s*:\s*(\d{2})\s*([ap]\.?m\.?)?/i.exec(txt || ''); if(!m) return null;
+    var h = +m[1], mi = +m[2], a = (m[3] || '').toLowerCase();
+    if(a.indexOf('p') === 0 && h < 12) h += 12; if(a.indexOf('a') === 0 && h === 12) h = 0;
+    return h + mi / 60;
+  }
+  function times(b){
+    var parts = String(b.time || '').split(/–|—|--|\bto\b|-/i);
+    var s = parseT(parts[0]), e = parts.length > 1 ? parseT(parts.slice(1).join(' ')) : null;
+    if(s === null && typeof b.unlockHour === 'number') s = b.unlockHour;
+    return { s:s, e:e };
+  }
+  function fmt12(d){ var H = Math.floor(d), M = Math.round((d - H) * 60); if(M === 60){ H++; M = 0; } return (H % 12 || 12) + ':' + (M < 10 ? '0' : '') + M + ' ' + (H % 24 >= 12 ? 'PM' : 'AM'); }
+  function setTimes(b, s, e){ b.time = fmt12(s) + (e !== null ? ' – ' + fmt12(e) : ''); b.unlockHour = s; }
+  function byTime(arr){ return arr.slice().sort(function(a, b){ var x = times(a).s, y = times(b).s; return (x === null ? 99 : x) - (y === null ? 99 : y); }); }
   function blockPts(b){ return (b.activities || []).reduce(function(a, x){ var t = x.type || 'self'; return a + (t === 'wordbook' ? num(x.pts) * 3 : (t === 'pct-calc' || t === 'parent-select') ? num(x.maxCalcPts) : t === 'dropdown' ? Math.max.apply(null, (x.options && x.options.length ? x.options : [10])) : t === 'link' ? 0 : num(x.pts)); }, 0); }
+  function ttLoad(){
+    if(PZ.T) return;
+    var T = { weekday:[], weekend:[], hidden:{} };
+    ['weekday', 'weekend'].forEach(function(w){
+      var src = clone(w === 'weekday' ? weekdayList() : weekendList()), H = { blocks:[], acts:{} };
+      src.forEach(function(b){ b.id = b.id || uid('cblk'); });
+      var shown = src;
+      if(typeof window.niyamFilterSchedule === 'function'){
+        shown = window.niyamFilterSchedule(src, window.niyamFeatures || {});
+        var byId = {}; shown.forEach(function(b){ byId[b.id] = b; });
+        src.forEach(function(b){
+          var s2 = byId[b.id]; if(!s2){ H.blocks.push(b); return; }
+          var gone = []; (b.activities || []).forEach(function(a, i){ if((s2.activities || []).indexOf(a) === -1) gone.push({ at:i, act:a }); });
+          if(gone.length) H.acts[b.id] = gone;
+        });
+      }
+      T[w] = byTime(shown.map(clone)); T.hidden[w] = H;
+    });
+    PZ.T = T;
+  }
+  function withHidden(w){
+    var H = PZ.T.hidden[w] || { blocks:[], acts:{} };
+    return PZ.T[w].map(function(b){
+      var extra = H.acts[b.id]; if(!extra || b.type === 'break' || b.type === 'locked-until-3pm') return clone(b);
+      var c = clone(b); c.activities = c.activities || [];
+      extra.forEach(function(g){ c.activities.splice(Math.min(g.at, c.activities.length), 0, clone(g.act)); });
+      return c;
+    }).concat(clone(H.blocks));
+  }
+  function tidy(arr){
+    return byTime(arr).map(function(b){
+      var c = clone(b); c.id = c.id || uid('cblk'); c.name = String(c.name || '').trim();
+      c.activities = (c.activities || []).map(function(a){ var x = clone(a); x.id = x.id || uid('cact'); x.pts = num(x.pts); x.name = String(x.name || '').trim() || c.name; return x; });
+      c.maxPts = blockPts(c); return c;
+    });
+  }
+  function which(){ return PZ.tt === 'holiday' ? 'weekend' : 'weekday'; }
+  function pickT(id, d, empty){
+    var h12 = '', mi = 0, a = 'PM';
+    if(d !== null && d !== undefined){ var H = Math.floor(d); mi = Math.round((d - H) * 60); if(mi === 60){ H++; mi = 0; } a = H % 24 >= 12 ? 'PM' : 'AM'; h12 = String(H % 12 || 12); }
+    var hrs = (empty ? ['<option value="">—</option>'] : []).concat([12,1,2,3,4,5,6,7,8,9,10,11].map(function(x){ return '<option' + (String(x) === h12 ? ' selected' : '') + '>' + x + '</option>'; }));
+    var ms = []; for(var m = 0; m < 60; m += 5) ms.push(m); if(ms.indexOf(mi) < 0){ ms.push(mi); ms.sort(function(p, q){ return p - q; }); }
+    return '<div style="display:flex;gap:6px;align-items:center"><select id="' + id + '-h" style="flex:1">' + hrs.join('') + '</select><b style="color:var(--mute)">:</b>'
+      + '<select id="' + id + '-m" style="flex:1">' + ms.map(function(x){ return '<option value="' + x + '"' + (x === mi ? ' selected' : '') + '>' + (x < 10 ? '0' : '') + x + '</option>'; }).join('') + '</select>'
+      + '<select id="' + id + '-a" style="flex:1"><option' + (a === 'AM' ? ' selected' : '') + '>AM</option><option' + (a === 'PM' ? ' selected' : '') + '>PM</option></select></div>';
+  }
+  function readT(id){
+    var h = $(id + '-h'); if(!h || h.value === '') return null;
+    var H = num(h.value) % 12; if($(id + '-a').value === 'PM') H += 12;
+    return H + num($(id + '-m').value) / 60;
+  }
+  // copy what is typed in the form into the block being edited
+  function tRead(){
+    var b = PZ.tdraft; if(!b) return;
+    if($('pz2-tb-name')) b.name = $('pz2-tb-name').value;
+    if($('pz2-tb-kind')){ b.type = $('pz2-tb-kind').value === 'normal' ? undefined : $('pz2-tb-kind').value; if(!b.type) delete b.type; }
+    if($('pz2-tb-s-h')){ b._s = readT('pz2-tb-s'); b._e = readT('pz2-tb-e'); }
+    (b.activities || []).forEach(function(a, i){
+      var n = $('pz2-ta-n-' + i), t = $('pz2-ta-t-' + i), pts = $('pz2-ta-p-' + i);
+      if(n) a.name = n.value;
+      if(t) a.type = t.value;
+      if(pts){ if(a.type === 'pct-calc' || a.type === 'parent-select') a.maxCalcPts = num(pts.value); else a.pts = num(pts.value); }
+    });
+  }
+  function ttEditor(){
+    var b = PZ.tdraft, kind = b.type === 'break' || b.type === 'locked-until-3pm' ? b.type : 'normal', tt = b._s !== undefined ? { s:b._s, e:b._e } : times(b);
+    var h = '<div class="card" style="position:sticky;top:20px"><div class="ch"><div><div class="eyebrow">' + (PZ.tnew ? 'New block' : 'Editing') + ' · ' + (which() === 'weekend' ? 'holiday timetable' : 'school day timetable') + '</div><h2 style="margin-top:2px">' + esc(b.name || 'A new block') + '</h2></div><button class="btn sm" data-pz="tclose">' + I('x', 'width:14px;height:14px') + '</button></div>'
+      + '<label class="fl" style="margin-top:0">Name</label><input type="text" id="pz2-tb-name" maxlength="60" value="' + esc(b.name || '') + '" placeholder="e.g. Homework">'
+      + '<label class="fl">Kind of block</label><select id="pz2-tb-kind" data-pz-ch="tkind">' + KINDS.map(function(k){ return '<option value="' + k[0] + '"' + (k[0] === kind ? ' selected' : '') + '>' + k[1] + '</option>'; }).join('') + '</select>'
+      + '<div style="display:grid;grid-template-columns:1fr;gap:4px"><label class="fl">Starts</label>' + pickT('pz2-tb-s', tt.s, tt.s === null) + '<label class="fl">Ends</label>' + pickT('pz2-tb-e', tt.e, true) + '</div>';
+    if(kind === 'normal'){
+      h += '<label class="fl">Tasks</label>';
+      (b.activities || []).forEach(function(a, i){
+        var t = a.type || 'self', pick = ACT_TYPES.some(function(x){ return x[0] === t; });
+        var ptsField = (t === 'link' || t === 'dropdown') ? '' : '<input type="number" id="pz2-ta-p-' + i + '" min="0" step="5" value="' + ((t === 'pct-calc' || t === 'parent-select') ? num(a.maxCalcPts) : num(a.pts)) + '" style="width:84px" title="' + (t === 'wordbook' ? 'Points for every 3 words' : 'Points') + '">';
+        h += '<div style="border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:8px;background:#FDFCF9">'
+          + '<div style="display:flex;gap:8px"><input type="text" id="pz2-ta-n-' + i + '" value="' + esc(a.name || '') + '" placeholder="Task">' + ptsField
+          + '<button class="btn sm red" data-pz="tadel" data-i="' + i + '" title="Remove this task" style="padding:7px 10px">' + I('trash', 'width:15px;height:15px') + '</button></div>'
+          + (pick ? '<select id="pz2-ta-t-' + i + '" style="margin-top:6px">' + ACT_TYPES.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === t ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select>'
+                  : '<div style="color:var(--mute);font-size:12px;margin-top:6px">' + esc(BUILT_IN[t] || 'Built-in task') + '</div>') + '</div>';
+      });
+      h += '<button class="btn" style="width:100%;border-style:dashed" data-pz="taadd">' + I('plus') + 'Add a task</button>';
+    }
+    if(PZ.terr) h += '<div style="color:var(--rust);font-weight:600;margin-top:12px">' + esc(PZ.terr) + '</div>';
+    h += '<div style="display:flex;gap:10px;margin-top:14px"><button class="btn dark" style="flex:1" data-pz="tsave"' + (PZ.busy ? ' disabled' : '') + '>Save</button>'
+      + (PZ.tnew ? '' : '<button class="btn red" data-pz="tbdel">' + I('trash') + 'Delete block</button>') + '</div>'
+      + '<div style="color:var(--mute);font-size:12px;margin-top:8px">Changes start from the next day ' + esc(first()) + ' opens. Approved days never change.</div></div>';
+    return h;
+  }
   function pageTimetable(){
     if(PZ.tt === null){ var w = false; try{ w = ttIsWeekendSchedule(); }catch(e){} PZ.tt = w ? 'holiday' : 'school'; }
-    var list = PZ.tt === 'holiday' ? weekendList() : weekdayList();
-    try{ if(window.niyamFilterSchedule) list = window.niyamFilterSchedule(list, window.niyamFeatures || {}); }catch(e){}
-    var mx = 0; try{ mx = window.niyamDayMax ? window.niyamDayMax(list) : 0; }catch(e){}
-    var rows = list.map(function(b, i){
-      var st = typeof b.unlockHour === 'number' ? b.unlockHour : null, en = null;
-      for(var j = i + 1; j < list.length; j++) if(typeof list[j].unlockHour === 'number'){ en = list[j].unlockHour; break; }
-      var brk = b.type === 'break' || b.type === 'locked-until-3pm', pts = brk ? 0 : blockPts(b);
+    ttLoad();
+    var list = PZ.T[which()], mx = list.reduce(function(a, b){ return a + (b.type === 'break' || b.type === 'locked-until-3pm' ? 0 : blockPts(b)); }, 0);
+    var rows = list.map(function(b){
+      var t = times(b), brk = b.type === 'break' || b.type === 'locked-until-3pm', pts = brk ? 0 : blockPts(b), sel = PZ.tdraft && !PZ.tnew && PZ.tdraft.id === b.id;
       var tasks = (b.activities || []).map(function(a){ return '<i>' + esc(a.name || '') + ((a.type === 'parent' || a.type === 'parent-select') ? ' · you score' : '') + '</i>'; }).join('');
-      return '<div class="r' + (brk ? ' brk' : '') + '"><div class="tm">' + (st !== null ? hm(st) + '<small>' + (en !== null ? 'to ' + hm(en) + ' ' + ap(en) : ap(st)) + '</small>' : '') + '</div><div class="dt"></div>'
-        + '<div class="nm"><b>' + esc((b.icon ? b.icon + ' ' : '') + (b.name || '')) + '</b>' + (tasks ? '<div class="chips">' + tasks + '</div>' : '') + '</div>'
-        + '<div>' + (pts ? '<span class="num" style="font-size:17px">' + pts + '</span> <span style="color:var(--mute);font-size:12px">pts</span>' : '') + '</div></div>';
+      return '<button class="r' + (brk ? ' brk' : '') + (sel ? ' sel' : '') + '" data-pz="tsel" data-id="' + esc(b.id) + '"><div class="tm">' + (t.s !== null ? hm(t.s) + '<small>' + (t.e !== null ? 'to ' + hm(t.e) + ' ' + ap(t.e) : ap(t.s)) + '</small>' : '') + '</div><div class="dt"></div>'
+        + '<div class="nm"><b>' + esc((b.icon ? b.icon + ' ' : '') + (b.name || 'New block')) + '</b>' + (tasks ? '<div class="chips">' + tasks + '</div>' : (brk ? '<div style="color:var(--mute);font-size:12.5px">' + (b.type === 'break' ? 'Break' : 'School time') + '</div>' : '')) + '</div>'
+        + '<div>' + (pts ? '<span class="num" style="font-size:17px">' + pts + '</span> <span style="color:var(--mute);font-size:12px">pts</span>' : '') + '</div></button>';
     }).join('');
     var custom = !!(window.TT_CUSTOM && ((window.TT_CUSTOM.weekday || []).length || (window.TT_CUSTOM.weekend || []).length));
+    var hid = PZ.T.hidden[which()] || { blocks:[], acts:{} }, nHid = hid.blocks.length + Object.keys(hid.acts).length;
     var h = '<div class="head"><div><div class="eyebrow">Timetable</div><h1>' + esc(first()) + '’s <em>day</em>, block by block</h1><p>'
-      + plural(list.filter(function(b){ return b.type !== 'break' && b.type !== 'locked-until-3pm'; }).length, 'block', 'blocks') + (mx ? ' · up to ' + fmtN(mx) + ' points' : '') + ' · ' + (custom ? 'your own timetable' : 'NIYAM’s timetable for ' + esc(window.niyamChildClass || 'his class')) + '</p></div>'
-      + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div class="seg"><button class="' + (PZ.tt === 'school' ? 'on' : '') + '" data-pz="tt" data-v="school" style="padding:10px 16px">School day</button><button class="' + (PZ.tt === 'holiday' ? 'on' : '') + '" data-pz="tt" data-v="holiday" style="padding:10px 16px">Holiday</button></div>'
-      + '<button class="btn dark" data-pz="ttedit">' + I('pen') + 'Edit timetable</button></div></div>';
-    return h + '<div class="card tt">' + (rows || '<p style="color:var(--mute)">No timetable yet.</p>') + '</div>'
-      + '<p style="color:var(--mute);font-size:12.5px;margin:12px 4px 0">Changes start the next time ' + esc(first()) + ' opens his day. In the editor you can also go back to NIYAM’s suggested timetable.</p>';
+      + plural(list.filter(function(b){ return b.type !== 'break' && b.type !== 'locked-until-3pm'; }).length, 'block', 'blocks') + ' · up to ' + fmtN(mx) + ' points · ' + (custom ? 'your own timetable' : 'NIYAM’s timetable for ' + esc(window.niyamChildClass || 'his class')) + '</p></div>'
+      + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div class="seg"><button class="' + (PZ.tt === 'school' ? 'on' : '') + '" data-pz="tt" data-v="school" style="padding:10px 16px">School day timetable</button><button class="' + (PZ.tt === 'holiday' ? 'on' : '') + '" data-pz="tt" data-v="holiday" style="padding:10px 16px">Holiday timetable</button></div>'
+      + '<button class="btn dark" data-pz="tbadd">' + I('plus') + 'Add a block</button></div></div>';
+    h += '<div class="cols edcols" style="grid-template-columns:minmax(0,1fr) ' + (PZ.tdraft ? '380px' : '0') + '"><div><div class="card tt">' + (rows || '<p style="color:var(--mute)">No blocks yet.</p>') + '</div>'
+      + '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:12px 4px 0;color:var(--mute);font-size:12.5px"><span>Tap a block to change it.' + (nHid ? ' Blocks of switched-off parts of the app are kept aside and come back if you switch them on.' : '') + '</span>'
+      + '<button class="lnk" data-pz="tdefault">Use NIYAM’s suggested timetable</button></div></div><div>' + (PZ.tdraft ? ttEditor() : '') + '</div></div>';
+    return h;
+  }
+  function ttProblem(list, b){
+    if(!String(b.name || '').trim()) return 'Please give the block a name.';
+    var s = b._s, e = b._e;
+    if(s === null || s === undefined) return 'Please set a start time.';
+    if(e !== null && e !== undefined && e <= s) return 'The block ends before it starts. Please check the end time.';
+    var ra = { s:s, e:(e === null || e === undefined) ? s : e };
+    for(var i = 0; i < list.length; i++){
+      var o = list[i]; if(o.id === b.id) continue;
+      var t = times(o); if(t.s === null) continue;
+      var rb = { s:t.s, e:t.e === null || t.e <= t.s ? t.s : t.e };
+      var hit = (ra.e > ra.s && rb.e > rb.s) ? (ra.s < rb.e - 1e-6 && rb.s < ra.e - 1e-6) : (ra.e > ra.s ? (ra.s < rb.s - 1e-6 && rb.s < ra.e - 1e-6) : (rb.e > rb.s ? (rb.s < ra.s - 1e-6 && ra.s < rb.e - 1e-6) : false));
+      if(hit) return 'This time overlaps with “' + (o.name || 'another block') + '” (' + (o.time || '') + '). Please change one of them.';
+    }
+    return '';
+  }
+  async function ttSaveAll(msg){
+    PZ.busy = true; render();
+    try{
+      await window.niyamSaveTimetable(tidy(withHidden('weekday')), tidy(withHidden('weekend')));
+      try{ if(typeof window.niyamRefreshPlan === 'function') window.niyamRefreshPlan(); }catch(e){}
+      try{ if(typeof ttRender === 'function') ttRender(); }catch(e){}
+      PZ.T = null; PZ.tdraft = null; PZ.tnew = false; PZ.terr = '';
+      toast(msg); return true;
+    }catch(err){ PZ.terr = 'Could not save: ' + (err && err.message ? err.message : err) + ' — your changes are still here, try again.'; return false; }
+    finally{ PZ.busy = false; render(); }
   }
 
   // ======================================================================================
@@ -804,7 +1004,7 @@
         + '<div class="set" style="padding:14px 0 4px;border-top:0"><div class="tx"><b>Once a day</b><span>He can claim it only once on the same day</span></div><button class="tog' + ((e.daily === true || (e.daily === undefined && lvOf(e) === 'everyday')) ? ' on' : '') + '" data-pz="rwdaily"></button></div>'
         + '<div style="display:flex;gap:10px;margin-top:14px"><button class="btn dark" style="flex:1" data-pz="rwsave"' + (PZ.busy ? ' disabled' : '') + '>Save</button>' + (PZ.rwNew ? '' : '<button class="btn red" data-pz="rwdel" data-id="' + esc(e.id) + '">' + I('trash') + 'Delete</button>') + '</div></div>';
     }
-    return h + '<div class="cols" style="grid-template-columns:minmax(0,1fr) ' + (edit ? '360px' : '0') + '"><div class="card" style="padding-top:6px">' + cat + '</div><div>' + side + '</div></div>';
+    return h + '<div class="cols edcols" style="grid-template-columns:minmax(0,1fr) ' + (edit ? '360px' : '0') + '"><div class="card" style="padding-top:6px">' + cat + '</div><div>' + side + '</div></div>';
   }
   function rwRead(){
     var e = PZ.rw; if(!e) return;
@@ -865,6 +1065,7 @@
     try{
       var pd = window.niyamProfileData() || {}, feats = Object.assign({}, pd.features || {}); feats[k] = !on;
       await window.niyamSaveProfileData({ features:feats });
+      try{ sessionStorage.setItem('pz2-msg', (k === 'brainlab' ? 'Brain Lab' : 'Progress') + (on ? ' is now switched off.' : ' is now switched on.')); }catch(e){}
       location.reload();
     }catch(err){ PZ.busy = false; alert('Could not save: ' + (err && err.message ? err.message : err)); render(); }
   }
@@ -882,6 +1083,10 @@
     if(act === 'kind'){ var kv = v === 'redo' ? 'redo' : num(v); PZ.kind[id] = PZ.kind[id] === kv ? undefined : kv; if(PZ.kind[id] === undefined) delete PZ.kind[id]; render(); return; }
     if(act === 'grade'){ E = R().edits(date); var g = b.getAttribute('data-g'); E.grade = E.grade === g ? '' : g; render(); return; }
     if(act === 'open'){ PZ.open[date] = !PZ.open[date]; render(); return; }
+    if(act === 'exp'){ PZ.exp[date] = !PZ.exp[date]; if(!PZ.exp[date]) delete PZ.open[date]; render(); return; }
+    if(act === 'apopen'){ PZ.apOpen = PZ.apOpen || {}; PZ.apOpen[date] = !PZ.apOpen[date]; render(); return; }
+    if(act === 'apw'){ PZ.apw = Math.min(0, (PZ.apw || 0) + num(v)); PZ.apOpen = {}; render(); return; }
+    if(act === 'goday'){ PZ.exp[date] = true; go('today'); return; }
     if(act === 'tick'){ toggleTick(date, id); render(); return; }
     if(act === 'approve'){ approveDates([date]); return; }
     if(act === 'all'){
@@ -906,8 +1111,31 @@
     if(act === 'master'){ masterShloka(id); return; }
     if(act === 'relearn'){ relearnShloka(id); return; }
     // Timetable
-    if(act === 'tt'){ PZ.tt = v; render(); return; }
-    if(act === 'ttedit'){ if(typeof window.niyamOpenTimetableEditor === 'function') window.niyamOpenTimetableEditor(); return; }
+    if(act === 'tt'){ PZ.tt = v; PZ.tdraft = null; PZ.terr = ''; render(); return; }
+    if(act === 'tsel'){ var tb = PZ.T[which()].find(function(x){ return x.id === id; }); if(tb){ PZ.tdraft = clone(tb); PZ.tnew = false; PZ.terr = ''; render(); } return; }
+    if(act === 'tbadd'){ PZ.tdraft = { id:uid('cblk'), name:'', icon:'', activities:[{ id:uid('cact'), name:'', pts:5, type:'self', note:'' }] }; PZ.tdraft._s = null; PZ.tdraft._e = null; PZ.tnew = true; PZ.terr = ''; render(); return; }
+    if(act === 'tclose'){ PZ.tdraft = null; PZ.terr = ''; render(); return; }
+    if(act === 'taadd'){ tRead(); PZ.tdraft.activities = PZ.tdraft.activities || []; PZ.tdraft.activities.push({ id:uid('cact'), name:'', pts:5, type:'self', note:'' }); render(); return; }
+    if(act === 'tadel'){ tRead(); PZ.tdraft.activities.splice(num(b.getAttribute('data-i')), 1); render(); return; }
+    if(act === 'tsave'){
+      tRead(); var L = PZ.T[which()], dr = PZ.tdraft, err = ttProblem(L, dr);
+      if(err){ PZ.terr = err; render(); return; }
+      var blk = clone(dr); delete blk._s; delete blk._e; setTimes(blk, dr._s, dr._e === undefined ? null : dr._e);
+      if(blk.type === 'break' || blk.type === 'locked-until-3pm') blk.activities = [];
+      var ix = L.findIndex(function(x){ return x.id === blk.id; }); if(ix >= 0) L[ix] = blk; else L.push(blk);
+      PZ.T[which()] = byTime(L);
+      ttSaveAll(PZ.tnew ? 'Block added' : 'Block saved'); return;
+    }
+    if(act === 'tbdel'){
+      if(!confirm('Delete “' + (PZ.tdraft.name || 'this block') + '” from the ' + (which() === 'weekend' ? 'holiday' : 'school day') + ' timetable?')) return;
+      var did = PZ.tdraft.id; PZ.T[which()] = PZ.T[which()].filter(function(x){ return x.id !== did; });
+      ttSaveAll('Block deleted'); return;
+    }
+    if(act === 'tdefault'){
+      if(!confirm('Use NIYAM’s suggested timetable for ' + (window.niyamChildClass || 'his class') + '?\n\nBoth the school day and holiday timetables are replaced. Approved days never change.')) return;
+      PZ.T = null; var keep = window.TT_CUSTOM; window.TT_CUSTOM = null; ttLoad(); window.TT_CUSTOM = keep;
+      PZ.tdraft = null; ttSaveAll('NIYAM’s suggested timetable is back'); return;
+    }
     // Rewards
     if(act === 'rwadd'){ PZ.rw = { id:'c-' + Date.now(), icon:'🎁', title:'', pts:300, level:'weekend', daily:false }; PZ.rwNew = true; render(); return; }
     if(act === 'rwedit'){ var it = rwList().find(function(r){ return String(r.id) === id; }); if(it){ PZ.rw = Object.assign({}, it); PZ.rwNew = false; render(); } return; }
@@ -944,6 +1172,10 @@
     if(act === 'logout'){ if(confirm('Log out of NIYAM on this device?')){ var lo = $('ns-pz-logout'); if(lo) lo.click(); } return; }
     if(act === 'feat'){ toggleFeature(b.getAttribute('data-k')); return; }
   }
+  function onChange(e){
+    var t = e.target; if(!t || !t.getAttribute) return;
+    if(t.getAttribute('data-pz-ch') === 'tkind'){ tRead(); if(PZ.tdraft._s === undefined){ var tt = times(PZ.tdraft); PZ.tdraft._s = tt.s; PZ.tdraft._e = tt.e; } render(); }
+  }
   function onInput(e){
     var t = e.target; if(!t || !t.getAttribute) return;
     var nd = t.getAttribute('data-pz-note'); if(nd){ try{ R().edits(nd).note = t.value; }catch(err){} }
@@ -954,13 +1186,14 @@
     var zone = $('ns-parent-zone'); if(!zone) return false;
     addStyles();
     var root = $('pz2');
-    if(!root){ root = document.createElement('div'); root.id = 'pz2'; zone.appendChild(root); root.addEventListener('click', onClick); root.addEventListener('input', onInput); }
+    if(!root){ root = document.createElement('div'); root.id = 'pz2'; zone.appendChild(root); root.addEventListener('click', onClick); root.addEventListener('input', onInput); root.addEventListener('change', onChange); }
     zone.classList.add('pz2-on');
     return true;
   }
   function openZone(){
     if(!window.niyamReview || !build()) return;
-    PZ.page = 'today'; PZ.sel = null; PZ.rw = null; PZ.pin = null; PZ.month = null; PZ.tt = null;
+    PZ.T = null; PZ.tdraft = null; PZ.terr = '';
+    PZ.page = 'today'; PZ.exp = {}; PZ.open = {}; PZ.apOpen = {}; PZ.apw = 0; PZ.sel = null; PZ.rw = null; PZ.pin = null; PZ.month = null; PZ.tt = null;
     render();
     // kindness and the dictionary arrive a moment later
     try{ if(NK() && NK().reload){ var p = NK().reload(); if(p && p.then) p.then(render); } }catch(e){}
@@ -988,22 +1221,30 @@
     var pad = document.createElement('div'); pad.id = 'pz2-pad'; pad.className = 'pzpad';
     pad.innerHTML = ['1','2','3','4','5','6','7','8','9','','0','⌫'].map(function(k){ return k ? '<button type="button" data-k="' + k + '"' + (k === '⌫' ? ' class="n"' : '') + '>' + k + '</button>' : '<span></span>'; }).join('');
     inp.parentNode.insertBefore(pad, inp.nextSibling);
-    inp.setAttribute('readonly', 'readonly');
+    function shown(){ return box.style.display !== 'none' && getComputedStyle(box).display !== 'none'; }
+    function check(){ inp.value = inp.value.replace(/\D/g, '').slice(0, 4); if(inp.value.length === 4){ ok.click(); setTimeout(function(){ if(shown()) inp.value = ''; }, 300); } }
+    // phones and tablets use the pad (no keyboard pops up); computers can also type
+    var touch = !!(window.matchMedia && window.matchMedia('(pointer:coarse)').matches);
+    if(touch) inp.setAttribute('readonly', 'readonly'); else inp.removeAttribute('readonly');
+    inp.addEventListener('input', check);
+    inp.addEventListener('keydown', function(e){ if(e.key === 'Enter') ok.click(); });
     pad.addEventListener('click', function(e){
       var b = e.target.closest('[data-k]'); if(!b) return;
       var k = b.getAttribute('data-k');
-      if(k === '⌫') inp.value = inp.value.slice(0, -1);
-      else if(inp.value.length < 4) inp.value += k;
-      if(inp.value.length === 4){ ok.click(); setTimeout(function(){ if($('ns-pinprompt').style.display !== 'none') inp.value = ''; }, 300); }
+      if(k === '⌫') inp.value = inp.value.slice(0, -1); else if(inp.value.length < 4) inp.value += k;
+      check();
     });
-    // a keyboard still works on computers
+    // typing anywhere while the PIN screen is open goes into the PIN
     document.addEventListener('keydown', function(e){
-      if(box.style.display === 'none' || !box.offsetParent) return;
-      if(/^\d$/.test(e.key) && inp.value.length < 4){ inp.value += e.key; if(inp.value.length === 4){ ok.click(); setTimeout(function(){ if($('ns-pinprompt').style.display !== 'none') inp.value = ''; }, 300); } }
-      else if(e.key === 'Backspace') inp.value = inp.value.slice(0, -1);
+      if(!shown() || document.activeElement === inp) return;
+      if(/^\d$/.test(e.key)){ e.preventDefault(); if(inp.value.length < 4) inp.value += e.key; check(); }
+      else if(e.key === 'Backspace'){ e.preventDefault(); inp.value = inp.value.slice(0, -1); }
+      else if(e.key === 'Escape'){ var c = $('ns-pinprompt-cancel'); if(c) c.click(); }
     });
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pinPad); else pinPad();
+  // after a switch in Settings reloads the app, say what changed
+  try{ var msg = sessionStorage.getItem('pz2-msg'); if(msg){ sessionStorage.removeItem('pz2-msg'); setTimeout(function(){ toast(msg); }, 1500); } }catch(e){}
 
   window.niyamParentZone = { render: render, go: go, count: counts };
 })();
