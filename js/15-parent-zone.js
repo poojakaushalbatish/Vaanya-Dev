@@ -172,6 +172,32 @@
   + '#pz2 .wk{display:flex;align-items:center;gap:6px}'
   + '#pz2 .wk button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;padding:0}'
   + '#pz2 .wk span{font-weight:600;font-size:13px;color:var(--ink2);min-width:120px;text-align:center}'
+  + '#pz2 .tile.wait{border-color:#E6C2B6;box-shadow:inset 4px 0 0 var(--rust),0 12px 30px -26px rgba(21,26,44,.3)}'
+  + '#pz2 .tile.wait .dbadge{background:var(--rust-soft);border-color:#EBCFC5}#pz2 .tile.wait .dbadge b{color:var(--rust)}'
+  + '#pz2 .tile.wait .tx>span{color:var(--rust)}'
+  + '#pz2 .day.wait{border-color:#E6C2B6;box-shadow:inset 4px 0 0 var(--rust),0 18px 40px -30px rgba(21,26,44,.25)}'
+  + '#pz2 .day.wait .dbadge{background:var(--rust-soft);border-color:#EBCFC5}#pz2 .day.wait .dbadge b{color:var(--rust)}'
+  + '#pz2 .apv{border-color:#C8DDCF;box-shadow:inset 4px 0 0 var(--sage)}'
+  + '#pz2 .apv .tile{background:transparent}'
+  + '#pz2 .okl{color:var(--sage)!important;font-weight:600}'
+  + '#pz2 .hsec{display:flex;align-items:center;gap:10px;margin:28px 0 12px}'
+  + '#pz2 .hsec:first-child{margin-top:0}'
+  + '#pz2 .hsec h2{font-size:24px;font-weight:600}'
+  + '#pz2 .hsec .cnt{min-width:26px;height:26px;border-radius:99px;padding:0 8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff}'
+  + '#pz2 .hsec.r h2{color:var(--rust)}#pz2 .hsec.r .cnt{background:var(--rust)}'
+  + '#pz2 .hsec.g h2{color:var(--sage)}#pz2 .hsec.g .cnt{background:var(--sage)}'
+  + '#pz2 .rcol{align-self:stretch}'
+  + '#pz2 .live{position:sticky;top:16px;z-index:2}'
+  + '#pz2 .live.on{border:1.5px solid var(--ink);box-shadow:0 22px 44px -28px rgba(21,26,44,.45)}'
+  + '#pz2 .live .ln{display:flex;justify-content:space-between;padding:9px 0;border-top:1px dashed var(--line);color:var(--ink2)}'
+  + '#pz2 .live .ln:first-of-type{margin-top:10px;border-top:0}'
+  + '#pz2 .live .ln b{font-family:Fraunces,serif;font-weight:500;font-size:17px;color:var(--ink)}'
+  + '#pz2 .live .ln.neg b{color:var(--rust)}#pz2 .live .ln.pos b{color:var(--sage)}'
+  + '#pz2 .live .tot{display:flex;justify-content:space-between;align-items:flex-end;border-top:1.5px solid var(--ink);margin-top:6px;padding-top:12px;font-weight:600}'
+  + '#pz2 .live .tot .big{font-size:46px}'
+  + '#pz2 .bankline{margin-top:10px;background:var(--paper);border-radius:12px;padding:9px 12px;font-size:13px;color:var(--ink2)}'
+  + '#pz2 .bankline b{color:var(--ink)}'
+  + '#pz2 .livebar{display:none}'
   + '#pz2 .notice{display:flex;align-items:center;gap:10px;background:var(--rust-soft);border:1px solid #EBCFC5;color:#7A3524;border-radius:14px;padding:10px 14px;margin-bottom:14px;font-size:13.5px}'
   + '#pz2 .notice b{color:#6B2C1D}'
   + '#pz2 .dbadge{width:58px;height:62px;border-radius:16px;background:var(--paper);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto}'
@@ -316,7 +342,13 @@
   +   '#pz2 .rw{grid-template-columns:30px minmax(0,1fr) 70px 70px}#pz2 .rw .d{display:none}'
   +   '#pz2 .shg{grid-template-columns:repeat(6,minmax(0,1fr))}'
   +   '#pz2 .tt .r{grid-template-columns:56px 12px minmax(0,1fr)}#pz2 .tt .r>div:last-child{grid-column:3}'
-  +   '#pz2-toast{bottom:96px}'
+  +   '#pz2-toast{bottom:150px}'
+  +   '#pz2 .live{position:static}'
+  +   '#pz2 .livebar{display:flex;align-items:center;gap:10px;position:fixed;left:10px;right:10px;bottom:76px;z-index:6;background:var(--navy);color:#fff;border-radius:16px;padding:10px 16px;box-shadow:0 14px 30px rgba(0,0,0,.25);font-size:13px}'
+  +   '#pz2 .livebar b{font-family:Fraunces,serif;font-weight:500;font-size:24px;color:var(--brass2)}'
+  +   '#pz2 .livebar small{margin-left:auto;color:#A9A8B0;font-size:12px}'
+  +   '#pz2 .main{padding-bottom:160px}'
+  +   '#pz2 .day .dtop .tag{display:none}'
   +   '#pz2 .tile{padding:12px 14px;gap:12px}#pz2 .tile .tag{display:none}#pz2 .tile .tx b{font-size:17px}'
   +   '#pz2 .edcols{grid-template-columns:minmax(0,1fr)!important}#pz2 .edcols>div:last-child{order:-1}#pz2 .edcols .card[style*=sticky]{position:static!important}'
   + '}'
@@ -422,11 +454,11 @@
     var badge = '<div class="dbadge"><b>' + x.getDate() + '</b><span>' + MONTHS[x.getMonth()].slice(0, 3) + '</span></div>';
     var title = WD[x.getDay()] + ', ' + x.getDate() + ' ' + MONTHS[x.getMonth()];
     if(!PZ.exp[d.date]){
-      return '<button class="tile' + (late ? ' late' : '') + '" data-pz="exp" data-date="' + d.date + '">' + badge
+      return '<button class="tile wait' + (late ? ' late' : '') + '" data-pz="exp" data-date="' + d.date + '">' + badge
         + '<span class="tx"><b>' + title + '</b><span' + (late ? ' style="color:var(--rust)"' : '') + '>' + (isToday ? 'Today · still going · ' : '') + (late ? 'Waiting ' + plural(waitDays, 'day', 'days') : 'Approval awaited') + ' · ' + fmtN(C.total) + ' points so far</span></span>'
         + (late ? '' : tag) + '<span class="chev">' + I('down') + '</span></button>';
     }
-    var h = '<div class="day' + (late ? ' late' : '') + '"><button class="dtop" data-pz="exp" data-date="' + d.date + '">' + badge
+    var h = '<div class="day wait' + (late ? ' late' : '') + '"><button class="dtop" data-pz="exp" data-date="' + d.date + '">' + badge
       + '<span class="tx"><b>' + title + (isToday ? ' <span style="font-family:Inter;font-size:13px;color:var(--mute);font-weight:500">· today, still going</span>' : '') + '</b><span>' + facts.join(' · ') + '</span></span>' + tag + '<span class="chev">' + I('up') + '</span></button>';
 
     // the parent's score
@@ -480,8 +512,7 @@
       h += '<div class="dsec"><div class="lab"><span>Grade &amp; a note</span><small>both optional</small></div>' + gradeRow
         + '<textarea data-pz-note="' + d.date + '" placeholder="A note for ' + esc(first()) + ' — he sees it on his Today page">' + esc(note) + '</textarea></div>';
     }
-    var sum = open ? ['Ticks ' + m.tt, 'Brain Lab ' + m.brain, 'Parent’s score ' + m.awards].concat(C.kpts ? ['Kindness ' + C.kpts] : []).concat(C.bonus ? ['A bonus ' + C.bonus] : []).join(' · ')
-                   : (m.need ? 'Anything you don’t score waits for later' : 'Goes to ' + first() + '’s Star Bank');
+    var sum = m.need ? 'Anything you don’t score waits for later' : '';
     h += '<div class="dfoot"><button class="lnk" data-pz="open" data-date="' + d.date + '">' + I(open ? 'up' : 'down') + (open ? 'Show less' : 'See the full day') + '</button>'
       + '<span class="sum">' + esc(sum) + '</span>'
       + '<button class="btn dark" data-pz="approve" data-date="' + d.date + '"' + (PZ.busy ? ' disabled' : '') + '>' + I('tick') + 'Approve · ' + fmtN(C.total) + ' points</button></div></div>';
@@ -499,6 +530,47 @@
       + '<button class="btn sm dark" data-pz="ksave" data-id="' + esc(r.id) + '"' + (kv === undefined || PZ.busy ? ' disabled' : '') + '>Give</button></div>';
   }
 
+  // ---- the live counter: what the child ticked, what the parent changed, what goes to the bank ----
+  function focusDay(){
+    var pend = []; try{ pend = R().pending(); }catch(e){}
+    var f = PZ.focus && PZ.exp[PZ.focus] ? pend.find(function(d){ return d.date === PZ.focus; }) : null;
+    if(!f) f = pend.slice().reverse().find(function(d){ return PZ.exp[d.date]; }) || null;
+    return f;
+  }
+  function liveNums(d){
+    var C = dayCalc(d), E = C.E, u = E.undone, dn = E.done;
+    E.undone = {}; E.done = {};
+    var base; try{ base = R().model(d); } finally { E.undone = u; E.done = dn; }
+    return { C:C, child:base.tt, changed:C.m.tt - base.tt, brain:C.m.brain, parent:C.m.awards, kind:C.kpts, bonus:C.bonus, total:C.total };
+  }
+  function liveCard(){
+    var d = focusDay(), b = bank(), pend = []; try{ pend = R().pending(); }catch(e){}
+    if(!d){
+      if(!pend.length) return '';
+      var all = pend.reduce(function(a, x){ return a + dayCalc(x).total; }, 0);
+      return '<div class="card live"><div class="eyebrow">Live points counter</div><div style="display:flex;align-items:flex-end;gap:12px;margin-top:8px"><div class="big">' + fmtN(all) + '</div><div style="padding-bottom:6px;font-weight:600">points waiting in ' + plural(pend.length, 'day', 'days') + '</div></div>'
+        + '<div class="bankline">Star Bank now <b>' + fmtN(b) + ' ★</b> → after approving all <b>' + fmtN(b + all) + ' ★</b></div>'
+        + '<div style="color:var(--mute);font-size:12.5px;margin-top:10px">Open a day to see its points change live as you score and check it.</div></div>';
+    }
+    var L = liveNums(d), x = dObj(d.date);
+    var ln = function(lab, v, cls){ return '<div class="ln' + (cls ? ' ' + cls : '') + '"><span>' + lab + '</span><b>' + (v > 0 ? '+' : v < 0 ? '−' : '') + fmtN(Math.abs(v)) + '</b></div>'; };
+    var h = '<div class="card live on"><div class="eyebrow">Live points counter · ' + WD[x.getDay()] + ' ' + x.getDate() + ' ' + MONTHS[x.getMonth()].slice(0, 3) + '</div>'
+      + ln(esc(first()) + ' ticked', L.child)
+      + (L.changed ? ln(L.changed < 0 ? 'Taken off by you' : 'Added by you', L.changed, L.changed < 0 ? 'neg' : 'pos') : '')
+      + (L.brain ? ln('Brain Lab', L.brain) : '')
+      + ln('Parent’s score', L.parent, L.parent ? 'pos' : '')
+      + (L.C.kr ? ln('Act of Kindness', L.kind, L.kind ? 'pos' : '') : '')
+      + (L.bonus ? ln('A-grade bonus', L.bonus, 'pos') : '')
+      + '<div class="tot"><span>Goes to the Star Bank</span><span class="big">' + fmtN(L.total) + '</span></div>'
+      + '<div class="bankline">Star Bank now <b>' + fmtN(b) + ' ★</b> → after you approve <b>' + fmtN(b + L.total) + ' ★</b></div>';
+    var left = L.C.toScore; if(left) h += '<div style="color:#8A6326;font-size:12.5px;margin-top:8px;font-weight:600">' + plural(left, 'thing', 'things') + ' still to score</div>';
+    return h + '</div>';
+  }
+  function liveBar(){   // phones: the same total, always in sight
+    var d = focusDay(); if(!d) return '';
+    var L = liveNums(d), b = bank();
+    return '<div class="livebar"><span>Goes to the Star Bank</span><b>' + fmtN(L.total) + '</b><small>' + fmtN(b) + ' → ' + fmtN(b + L.total) + ' ★</small></div>';
+  }
   function weekCard(){
     var t = today(), x = dObj(t), mon = addDays(t, -((x.getDay() + 6) % 7)), gd = goodDay(), W = [], sum = 0, lastSum = 0, appr = 0, have = 0, waiting = 0;
     for(var i = 0; i < 7; i++){ var dt = addDays(mon, i), r = rec(dt); W.push({ dt:dt, r:r }); if(r){ have++; if(r.approved === true){ appr++; sum += num(r.pts); } else waiting++; } }
@@ -564,7 +636,7 @@
       + '<p>' + (n ? 'Tap a day to open it. Score what only you can judge, then approve — the points reach ' + esc(first()) + '’s Star Bank straight away.' : 'Every saved day is approved. ' + esc(first()) + '’s next day appears here as soon as it is saved.') + '</p></div></div>';
     h += '<div class="cols"><div>';
     if(late.length) h += '<div class="notice">' + I('alert', 'color:var(--rust)') + '<span><b>' + plural(late.length, 'older day', 'older days') + ' still waiting</b> — since ' + longDay(late[0].date) + '. Those points are not in the Star Bank yet.</span></div>';
-    if(n) h += '<div class="pzsec" style="margin-top:0">Waiting for approval</div>';
+    if(n) h += '<div class="hsec r"><h2>Waiting for approval</h2><span class="cnt">' + n + '</span></div>';
     h += pend.slice().reverse().map(function(d){ return dayCard(d, d.date < yest); }).join('');   // the most recent day first
     var ready = pend.filter(function(d){ return !dayCalc(d).toScore; });
     if(ready.length > 1){
@@ -577,7 +649,7 @@
     }
     if(!n && !carried.length && !loose.length) h += '<div class="card empty"><div class="ok">' + I('tick', 'width:26px;height:26px') + '</div><h2>Nothing needs you right now</h2></div>';
     h += approvedSection();
-    h += '</div><div class="stack">' + weekCard() + talkCard() + '</div></div>';
+    h += '</div><div class="stack rcol">' + liveCard() + talkCard() + weekCard() + '</div></div>' + liveBar();
     return h;
   }
 
@@ -587,14 +659,13 @@
     var off = PZ.apw || 0, mon = weekStart(off), sun = addDays(mon, 6);
     var list = days().filter(function(d){ return d && d.approved === true && d.date >= mon && d.date <= sun; }).sort(function(a, b){ return a.date < b.date ? 1 : -1; });
     var lab = off === 0 ? 'This week' : off === -1 ? 'Last week' : dObj(mon).getDate() + ' ' + MONTHS[dObj(mon).getMonth()].slice(0, 3) + ' – ' + dObj(sun).getDate() + ' ' + MONTHS[dObj(sun).getMonth()].slice(0, 3);
-    var h = '<div class="pzsec" style="justify-content:space-between">Approved reports</div>'
-      + '<div style="display:flex;justify-content:flex-end;margin:-4px 0 10px"><div class="wk"><button data-pz="apw" data-v="-1" title="Earlier week">' + I('left', 'width:15px;height:15px') + '</button><span>' + lab + '</span>'
+    var h = '<div class="hsec g"><h2>Approved reports</h2><span class="cnt">' + list.length + '</span><span style="flex:1"></span><div class="wk"><button data-pz="apw" data-v="-1" title="Earlier week">' + I('left', 'width:15px;height:15px') + '</button><span>' + lab + '</span>'
       + '<button data-pz="apw" data-v="1"' + (off >= 0 ? ' disabled' : '') + ' title="Later week">' + I('right', 'width:15px;height:15px') + '</button></div></div>';
     if(!list.length) return h + '<div class="card" style="color:var(--mute);text-align:center;padding:18px">No approved days in this week.</div>';
     return h + list.map(function(d){
       var x = dObj(d.date), open = !!(PZ.apOpen || {})[d.date];
       return '<div class="apv"><button class="tile ok" data-pz="apopen" data-date="' + d.date + '"><div class="dbadge"><b>' + x.getDate() + '</b><span>' + MONTHS[x.getMonth()].slice(0, 3) + '</span></div>'
-        + '<span class="tx"><b>' + WD[x.getDay()] + ', ' + x.getDate() + ' ' + MONTHS[x.getMonth()] + '</b><span>Approved · ' + fmtN(d.pts) + ' points' + (d.parentGrade ? ' · grade ' + esc(d.parentGrade) : '') + '</span></span>'
+        + '<span class="tx"><b>' + WD[x.getDay()] + ', ' + x.getDate() + ' ' + MONTHS[x.getMonth()] + '</b><span class="okl">✓ Approved · ' + fmtN(d.pts) + ' points' + (d.parentGrade ? ' · grade ' + esc(d.parentGrade) : '') + '</span></span>'
         + '<span class="chev">' + I(open ? 'up' : 'down') + '</span></button>' + (open ? '<div class="apbody">' + reportBody(d) + '</div>' : '') + '</div>';
     }).join('');
   }
@@ -1079,15 +1150,15 @@
     if(act === 'go'){ PZ.rw = null; go(b.getAttribute('data-p')); return; }
     if(act === 'leave'){ var bk = $('ns-pz-back'); if(bk) bk.click(); return; }
     // Today
-    if(act === 'award'){ E = R().edits(date); var n = num(v); if(E.awards[id] === n) delete E.awards[id]; else { E.awards[id] = n; delete E.later[id]; } render(); return; }
-    if(act === 'kind'){ var kv = v === 'redo' ? 'redo' : num(v); PZ.kind[id] = PZ.kind[id] === kv ? undefined : kv; if(PZ.kind[id] === undefined) delete PZ.kind[id]; render(); return; }
-    if(act === 'grade'){ E = R().edits(date); var g = b.getAttribute('data-g'); E.grade = E.grade === g ? '' : g; render(); return; }
+    if(act === 'award'){ PZ.focus = date; E = R().edits(date); var n = num(v); if(E.awards[id] === n) delete E.awards[id]; else { E.awards[id] = n; delete E.later[id]; } render(); return; }
+    if(act === 'kind'){ if(date) PZ.focus = date; var kv = v === 'redo' ? 'redo' : num(v); PZ.kind[id] = PZ.kind[id] === kv ? undefined : kv; if(PZ.kind[id] === undefined) delete PZ.kind[id]; render(); return; }
+    if(act === 'grade'){ PZ.focus = date; E = R().edits(date); var g = b.getAttribute('data-g'); E.grade = E.grade === g ? '' : g; render(); return; }
     if(act === 'open'){ PZ.open[date] = !PZ.open[date]; render(); return; }
-    if(act === 'exp'){ PZ.exp[date] = !PZ.exp[date]; if(!PZ.exp[date]) delete PZ.open[date]; render(); return; }
+    if(act === 'exp'){ PZ.exp[date] = !PZ.exp[date]; if(PZ.exp[date]) PZ.focus = date; if(!PZ.exp[date]) delete PZ.open[date]; render(); return; }
     if(act === 'apopen'){ PZ.apOpen = PZ.apOpen || {}; PZ.apOpen[date] = !PZ.apOpen[date]; render(); return; }
     if(act === 'apw'){ PZ.apw = Math.min(0, (PZ.apw || 0) + num(v)); PZ.apOpen = {}; render(); return; }
     if(act === 'goday'){ PZ.exp[date] = true; go('today'); return; }
-    if(act === 'tick'){ toggleTick(date, id); render(); return; }
+    if(act === 'tick'){ PZ.focus = date; toggleTick(date, id); render(); return; }
     if(act === 'approve'){ approveDates([date]); return; }
     if(act === 'all'){
       var ready = R().pending().filter(function(d){ return !dayCalc(d).toScore; });
