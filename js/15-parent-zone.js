@@ -195,8 +195,10 @@
   + '#pz2 .live .ln.neg b{color:var(--rust)}#pz2 .live .ln.pos b{color:var(--sage)}'
   + '#pz2 .live .tot{display:flex;justify-content:space-between;align-items:flex-end;border-top:1.5px solid var(--ink);margin-top:6px;padding-top:12px;font-weight:600}'
   + '#pz2 .live .tot .big{font-size:46px}'
-  + '#pz2 .bankline{margin-top:10px;background:var(--paper);border-radius:12px;padding:9px 12px;font-size:13px;color:var(--ink2)}'
-  + '#pz2 .bankline b{color:var(--ink)}'
+  + '#pz2 .bankline{margin-top:10px;background:var(--paper);border-radius:12px;padding:4px 12px;font-size:13px;color:var(--ink2)}'
+  + '#pz2 .bankline div{display:flex;justify-content:space-between;gap:10px;padding:6px 0}'
+  + '#pz2 .bankline div+div{border-top:1px solid var(--line)}'
+  + '#pz2 .bankline b{color:var(--ink);white-space:nowrap}'
   + '#pz2 .livebar{display:none}'
   + '#pz2 .notice{display:flex;align-items:center;gap:10px;background:var(--rust-soft);border:1px solid #EBCFC5;color:#7A3524;border-radius:14px;padding:10px 14px;margin-bottom:14px;font-size:13.5px}'
   + '#pz2 .notice b{color:#6B2C1D}'
@@ -455,7 +457,7 @@
     var title = WD[x.getDay()] + ', ' + x.getDate() + ' ' + MONTHS[x.getMonth()];
     if(!PZ.exp[d.date]){
       return '<button class="tile wait' + (late ? ' late' : '') + '" data-pz="exp" data-date="' + d.date + '">' + badge
-        + '<span class="tx"><b>' + title + '</b><span' + (late ? ' style="color:var(--rust)"' : '') + '>' + (isToday ? 'Today · still going · ' : '') + (late ? 'Waiting ' + plural(waitDays, 'day', 'days') : 'Approval awaited') + ' · ' + fmtN(C.total) + ' points so far</span></span>'
+        + '<span class="tx"><b>' + title + '</b><span' + (late ? ' style="color:var(--rust)"' : '') + '>' + (isToday ? 'Today · still going · ' : '') + (late ? 'Awaiting approval for ' + plural(waitDays, 'day', 'days') : 'Awaiting approval') + ' · ' + fmtN(C.total) + ' points accrued</span></span>'
         + (late ? '' : tag) + '<span class="chev">' + I('down') + '</span></button>';
     }
     var h = '<div class="day wait' + (late ? ' late' : '') + '"><button class="dtop" data-pz="exp" data-date="' + d.date + '">' + badge
@@ -548,28 +550,28 @@
     if(!d){
       if(!pend.length) return '';
       var all = pend.reduce(function(a, x){ return a + dayCalc(x).total; }, 0);
-      return '<div class="card live"><div class="eyebrow">Live points counter</div><div style="display:flex;align-items:flex-end;gap:12px;margin-top:8px"><div class="big">' + fmtN(all) + '</div><div style="padding-bottom:6px;font-weight:600">points waiting in ' + plural(pend.length, 'day', 'days') + '</div></div>'
-        + '<div class="bankline">Star Bank now <b>' + fmtN(b) + ' ★</b> → after approving all <b>' + fmtN(b + all) + ' ★</b></div>'
-        + '<div style="color:var(--mute);font-size:12.5px;margin-top:10px">Open a day to see its points change live as you score and check it.</div></div>';
+      return '<div class="card live"><div class="eyebrow">Points summary</div><div style="display:flex;align-items:flex-end;gap:12px;margin-top:8px"><div class="big">' + fmtN(all) + '</div><div style="padding-bottom:6px;font-weight:600">points awaiting approval<div style="font-weight:400;color:var(--mute);font-size:13px">across ' + plural(pend.length, 'day', 'days') + '</div></div></div>'
+        + '<div class="bankline"><div><span>Current Star Bank balance</span><b>' + fmtN(b) + ' ★</b></div><div><span>Balance once all are approved</span><b>' + fmtN(b + all) + ' ★</b></div></div>'
+        + '<div style="color:var(--mute);font-size:12.5px;margin-top:10px">Open a day to review it. This summary updates as you assess each item.</div></div>';
     }
     var L = liveNums(d), x = dObj(d.date);
     var ln = function(lab, v, cls){ return '<div class="ln' + (cls ? ' ' + cls : '') + '"><span>' + lab + '</span><b>' + (v > 0 ? '+' : v < 0 ? '−' : '') + fmtN(Math.abs(v)) + '</b></div>'; };
-    var h = '<div class="card live on"><div class="eyebrow">Live points counter · ' + WD[x.getDay()] + ' ' + x.getDate() + ' ' + MONTHS[x.getMonth()].slice(0, 3) + '</div>'
-      + ln(esc(first()) + ' ticked', L.child)
-      + (L.changed ? ln(L.changed < 0 ? 'Taken off by you' : 'Added by you', L.changed, L.changed < 0 ? 'neg' : 'pos') : '')
-      + (L.brain ? ln('Brain Lab', L.brain) : '')
+    var h = '<div class="card live on"><div class="eyebrow">Points summary · ' + WD[x.getDay()] + ' ' + x.getDate() + ' ' + MONTHS[x.getMonth()].slice(0, 3) + '</div>'
+      + ln('Tasks completed by ' + esc(first()), L.child)
+      + (L.changed ? ln(L.changed < 0 ? 'Deducted on your review' : 'Added on your review', L.changed, L.changed < 0 ? 'neg' : 'pos') : '')
+      + (L.brain ? ln('Brain Lab challenges', L.brain) : '')
       + ln('Parent’s score', L.parent, L.parent ? 'pos' : '')
       + (L.C.kr ? ln('Act of Kindness', L.kind, L.kind ? 'pos' : '') : '')
-      + (L.bonus ? ln('A-grade bonus', L.bonus, 'pos') : '')
-      + '<div class="tot"><span>Goes to the Star Bank</span><span class="big">' + fmtN(L.total) + '</span></div>'
-      + '<div class="bankline">Star Bank now <b>' + fmtN(b) + ' ★</b> → after you approve <b>' + fmtN(b + L.total) + ' ★</b></div>';
-    var left = L.C.toScore; if(left) h += '<div style="color:#8A6326;font-size:12.5px;margin-top:8px;font-weight:600">' + plural(left, 'thing', 'things') + ' still to score</div>';
+      + (L.bonus ? ln('A-grade streak bonus', L.bonus, 'pos') : '')
+      + '<div class="tot"><span>Total to be credited</span><span class="big">' + fmtN(L.total) + '</span></div>'
+      + '<div class="bankline"><div><span>Current Star Bank balance</span><b>' + fmtN(b) + ' ★</b></div><div><span>Balance after approval</span><b>' + fmtN(b + L.total) + ' ★</b></div></div>';
+    var left = L.C.toScore; if(left) h += '<div style="color:#8A6326;font-size:12.5px;margin-top:8px;font-weight:600">' + plural(left, 'item awaits', 'items await') + ' your assessment</div>';
     return h + '</div>';
   }
   function liveBar(){   // phones: the same total, always in sight
     var d = focusDay(); if(!d) return '';
     var L = liveNums(d), b = bank();
-    return '<div class="livebar"><span>Goes to the Star Bank</span><b>' + fmtN(L.total) + '</b><small>' + fmtN(b) + ' → ' + fmtN(b + L.total) + ' ★</small></div>';
+    return '<div class="livebar"><span>To be credited</span><b>' + fmtN(L.total) + '</b><small>Balance ' + fmtN(b) + ' → ' + fmtN(b + L.total) + ' ★</small></div>';
   }
   function weekCard(){
     var t = today(), x = dObj(t), mon = addDays(t, -((x.getDay() + 6) % 7)), gd = goodDay(), W = [], sum = 0, lastSum = 0, appr = 0, have = 0, waiting = 0;
