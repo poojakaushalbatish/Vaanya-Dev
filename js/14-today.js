@@ -51,6 +51,7 @@
   function levelOf(pts){ var l = LEVELS[0], i = 0; LEVELS.forEach(function(x, k){ if(pts >= x[0]){ l = x; i = k; } }); return { n:i + 1, name:l[1] }; }
   function mood(){ var h = nowH(); return h >= 5 && h < 12 ? 'morning' : h >= 12 && h < 17 ? 'afternoon' : h >= 17 && h < 19.5 ? 'evening' : 'night'; }
   function rec(date){ return days().find(function(d){ return d.date === date; }); }
+  function brainOn(){ return !(window.niyamFeatures && window.niyamFeatures.brainlab === false); }   // switched off in the Parent Zone
 
   // When each block starts and ends (the end is the next block's start).
   function times(){
@@ -356,7 +357,7 @@
       + '<div class="datenav"><button data-act="prev" aria-label="Previous day">‹</button><span id="td-date-slot"></span><button data-act="next" aria-label="Next day"' + (date >= today() ? ' disabled style="opacity:.35"' : '') + '>›</button></div>'
       + toggle + '<div class="daytype">' + dayType + '</div></div>'
       + '<div class="ringbox"><div class="ring" style="background:conic-gradient(#fff 0 ' + pct + '%,rgba(255,255,255,.28) ' + pct + '% 100%)"><div class="c"><b>' + fmtN(total) + '</b><span>' + (approved ? '✅ approved' : 'of ' + fmtN(s.max) + ' today') + '</span></div></div>'
-      + '<div class="split">' + bar('📋 My tasks', s.tasks, s.tasksMax) + bar('🧠 Brain Lab', s.brain, s.brainMax) + bar('👨‍👩‍👧 From parents', s.parent, s.parentMax) + '</div></div>'
+      + '<div class="split">' + bar('📋 My tasks', s.tasks, s.tasksMax) + (brainOn() ? bar('🧠 Brain Lab', s.brain, s.brainMax) : '') + bar('👨‍👩‍👧 From parents', s.parent, s.parentMax) + '</div></div>'
       + '<div class="stats"><button class="st" data-act="tab" data-t="rewards"><b>⭐ ' + fmtN(bank) + '</b><span>in my Star Bank</span></button>'
       + '<div class="st"><b>🔥 ' + streak + '</b><span>day streak</span></div>' + goal
       + '<div class="st"><b>🏅 Lv ' + lv.n + '</b><span>' + lv.name + '</span></div></div>'
@@ -404,7 +405,7 @@
   function renderSide(){
     var el = $('td-also'); if(!el) return;
     var rows = [];
-    try{
+    if(brainOn()) try{
       var BL = window.niyamBrainLab && window.niyamBrainLab.state && window.niyamBrainLab.state();
       if(!BL && window.niyamBrainLab && window.niyamBrainLab.score){ window.niyamBrainLab.score(); BL = window.niyamBrainLab.state(); }
       if(BL && BL.date === dateOpen()){ var n = ['riddle','logic','maths','sudoku'].filter(function(g){ return BL[g] && BL[g].done; }).length;
