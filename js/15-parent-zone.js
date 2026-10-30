@@ -366,6 +366,17 @@
   + '#ns-pinprompt.pz2-pin .pzpad button:active{background:rgba(199,154,78,.25)}'
   + '#ns-pinprompt.pz2-pin .pzpad button.n{border:0;font-family:Inter,system-ui,sans-serif;font-size:14px;color:#A9A8B0}'
   + '#ns-pinprompt.pz2-pin #ns-pinprompt-ok{display:none!important}'
+  + '#ns-pinprompt.pz2-pin.fg .ns-card>*:not(#pz2-fg):not(.pzmark){display:none!important}'
+  + '#ns-pinprompt.pz2-pin #pz2-fg{text-align:left;font-family:Inter,system-ui,sans-serif}'
+  + '#ns-pinprompt.pz2-pin #pz2-fg h2{margin:16px 0 6px!important;font-size:26px!important;text-align:center}'
+  + '#ns-pinprompt.pz2-pin #pz2-fg .ns-sub{text-align:center;color:#A9A8B0!important;line-height:1.5}'
+  + '#ns-pinprompt.pz2-pin #pz2-fg .fgl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9B9AA3;font-weight:600;margin:16px 0 6px}'
+  + '#ns-pinprompt.pz2-pin #pz2-fg .fgv{color:#fff;font-weight:600}'
+  + '#ns-pinprompt.pz2-pin #pz2-fg input{width:100%;box-sizing:border-box;background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.2)!important;color:#fff!important;border-radius:12px!important;padding:12px!important;font-size:16px!important;box-shadow:none!important}'
+  + '#ns-pinprompt.pz2-pin #pz2-fg .fgb{display:block;width:100%;margin-top:18px;background:#C79A4E!important;color:#151A2C!important;border:0;border-radius:12px;padding:13px;font:700 15px Inter,system-ui,sans-serif;cursor:pointer}'
+  + '#ns-pinprompt.pz2-pin #pz2-fg .fgl2{display:block;width:100%;margin-top:12px;background:none!important;border:0!important;color:#C7C5CF!important;font:500 13.5px Inter,system-ui,sans-serif;cursor:pointer;padding:6px;box-shadow:none!important}'
+  + '#ns-pinprompt.pz2-pin #pz2-fg .fgm{margin-top:12px;background:rgba(176,80,58,.25);color:#FFD9CF;border-radius:10px;padding:10px 12px;font-size:13.5px}'
+  + '#ns-pinprompt.pz2-pin #pz2-fg .fgm.ok{background:rgba(60,116,87,.3);color:#D6F0DF}'
   + '#ns-pinprompt.pz2-pin #ns-pinprompt-cancel{background:transparent!important;color:#A9A8B0!important;border:1px solid rgba(255,255,255,.16)!important}';
 
   function addStyles(){
@@ -413,7 +424,7 @@
     catch(e){ console.error('[parent zone] ' + PZ.page + ':', e); $('pz2-page').innerHTML = '<div class="card">Something went wrong drawing this page. Please go back and open the Parent Zone again.</div>'; }
     if($('ns-parent-zone')) $('ns-parent-zone').scrollTop = y;
   }
-  function go(p){ PZ.page = p; render(); if($('ns-parent-zone')) $('ns-parent-zone').scrollTop = 0; }
+  function go(p){ PZ.page = p; try{ sessionStorage.setItem('pz2-page', p); }catch(e){} render(); if($('ns-parent-zone')) $('ns-parent-zone').scrollTop = 0; }
 
   // ======================================================================================
   // TODAY
@@ -1266,7 +1277,8 @@
   function openZone(){
     if(!window.niyamReview || !build()) return;
     PZ.T = null; PZ.tdraft = null; PZ.terr = '';
-    PZ.page = 'today'; PZ.exp = {}; PZ.open = {}; PZ.apOpen = {}; PZ.apw = 0; PZ.sel = null; PZ.rw = null; PZ.pin = null; PZ.month = null; PZ.tt = null;
+    PZ.page = 'today'; try{ var lp = sessionStorage.getItem('pz2-page'); if(/^(today|progress|timetable|rewards|settings)$/.test(lp || '')) PZ.page = lp; }catch(e){}
+    PZ.exp = {}; PZ.open = {}; PZ.apOpen = {}; PZ.apw = 0; PZ.sel = null; PZ.rw = null; PZ.pin = null; PZ.month = null; PZ.tt = null;
     render();
     // kindness and the dictionary arrive a moment later
     try{ if(NK() && NK().reload){ var p = NK().reload(); if(p && p.then) p.then(render); } }catch(e){}
@@ -1307,9 +1319,66 @@
       if(k === '⌫') inp.value = inp.value.slice(0, -1); else if(inp.value.length < 4) inp.value += k;
       check();
     });
+    // ---- Forgot PIN ----
+    var fl = document.createElement('div'); fl.style.cssText = 'text-align:center;margin-top:10px';
+    fl.innerHTML = '<button type="button" id="pz2-forgot" style="background:none!important;border:0!important;color:#C79A4E!important;font:600 14px Inter,system-ui,sans-serif;padding:6px;cursor:pointer;box-shadow:none!important">Forgot PIN?</button>';
+    card.appendChild(fl);
+    var fg = document.createElement('div'); fg.id = 'pz2-fg'; card.appendChild(fg);
+    function fgShow(step, msg, ok){
+      box.classList.add('fg');
+      var em = window.niyamAccountEmail ? window.niyamAccountEmail() : '';
+      var h = '';
+      if(step === 1){
+        h = '<h2>Reset your Parent PIN</h2><p class="ns-sub">To keep the Parent Zone safe, first confirm it is you with the password of your NIYAM account.</p>'
+          + '<div class="fgl">Account</div><div class="fgv">' + esc(em) + '</div>'
+          + '<div class="fgl">Account password</div><input id="pz2-fg-pw" type="password" autocomplete="current-password">'
+          + '<button type="button" class="fgb" data-fg="check">Confirm</button>'
+          + '<button type="button" class="fgl2" data-fg="mail">Forgot the account password too? Email me a reset link</button>';
+      } else if(step === 2){
+        h = '<h2>Choose a new PIN</h2><p class="ns-sub">4 numbers. Keep it private from your child.</p>'
+          + '<div class="fgl">New PIN</div><input id="pz2-fg-p1" type="password" inputmode="numeric" maxlength="4">'
+          + '<div class="fgl">New PIN again</div><input id="pz2-fg-p2" type="password" inputmode="numeric" maxlength="4">'
+          + '<button type="button" class="fgb" data-fg="save">Save PIN and open the Parent Zone</button>';
+      } else {
+        h = '<h2>Check your email</h2><p class="ns-sub">We have sent a link to <b>' + esc(em) + '</b>. Open it on this device and choose a new account password. Then come back here, tap “Forgot PIN?” and use the new password.</p>';
+      }
+      h += (msg ? '<div class="fgm' + (ok ? ' ok' : '') + '">' + esc(msg) + '</div>' : '') + '<button type="button" class="fgl2" data-fg="back">← Back to the PIN</button>';
+      fg.innerHTML = h;
+      var f = fg.querySelector('input'); if(f) setTimeout(function(){ f.focus(); }, 50);
+    }
+    function fgHide(){ box.classList.remove('fg'); fg.innerHTML = ''; inp.value = ''; }
+    $('pz2-forgot').addEventListener('click', function(){ fgShow(1); });
+    var pb = $('ns-parent-btn'); if(pb) pb.addEventListener('click', fgHide);
+    var cn = $('ns-pinprompt-cancel'); if(cn) cn.addEventListener('click', fgHide);
+    fg.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ var b = fg.querySelector('.fgb'); if(b) b.click(); } });
+    fg.addEventListener('click', async function(e){
+      var b = e.target.closest('[data-fg]'); if(!b || b.disabled) return;
+      var a = b.getAttribute('data-fg');
+      if(a === 'back'){ fgHide(); return; }
+      if(a === 'check'){
+        var pw = ($('pz2-fg-pw') || {}).value || ''; if(!pw){ fgShow(1, 'Please type the account password.'); return; }
+        b.disabled = true; b.textContent = 'Checking…';
+        try{ await window.niyamReauth(pw); fgShow(2); }catch(err){ fgShow(1, 'That password is not right. Please try again.'); }
+        return;
+      }
+      if(a === 'mail'){
+        b.disabled = true;
+        try{ await window.niyamSendPasswordReset(window.niyamAccountEmail()); fgShow(3); }catch(err){ fgShow(1, 'Could not send the email: ' + (err && err.message ? err.message : err)); }
+        return;
+      }
+      if(a === 'save'){
+        var p1 = ($('pz2-fg-p1') || {}).value || '', p2 = ($('pz2-fg-p2') || {}).value || '';
+        if(!/^\d{4}$/.test(p1)){ fgShow(2, 'The PIN must be 4 numbers.'); return; }
+        if(p1 !== p2){ fgShow(2, 'The two PINs are not the same.'); return; }
+        b.disabled = true; b.textContent = 'Saving…';
+        try{ await window.niyamSavePin(p1); fgHide(); if(window.niyamEnterParentZone) window.niyamEnterParentZone(); toast('Your new PIN is saved.'); }
+        catch(err){ fgShow(2, 'Could not save: ' + (err && err.message ? err.message : err)); }
+      }
+    });
+
     // typing anywhere while the PIN screen is open goes into the PIN
     document.addEventListener('keydown', function(e){
-      if(!shown() || document.activeElement === inp) return;
+      if(!shown() || box.classList.contains('fg') || /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '')) return;
       if(/^\d$/.test(e.key)){ e.preventDefault(); if(inp.value.length < 4) inp.value += e.key; check(); }
       else if(e.key === 'Backspace'){ e.preventDefault(); inp.value = inp.value.slice(0, -1); }
       else if(e.key === 'Escape'){ var c = $('ns-pinprompt-cancel'); if(c) c.click(); }
