@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-10-24 · Parent Zone v4 (points summary wording)';
+  window.NIYAM_BUILD = '2026-10-30 · Safe setup (resume, no flash), Forgot PIN';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   // Startup self-check: shout early if a required script tag is missing from
@@ -17,7 +17,6 @@
     var missing = [];
     if(typeof window.niyamBuildTimetable !== 'function') missing.push('data/timetable-bands.js');
     if(typeof window.niyamOpenTimetableEditor !== 'function') missing.push('js/06-timetable-admin.js');
-    if(typeof window.niyamOpenTomorrowsPlan !== 'function') missing.push('js/07-tomorrows-plan.js');
     if(typeof window.niyamOpenReview !== 'function') missing.push('js/09-parent-review.js');
     if(missing.length){
       console.error('%cNIYAM: missing script tag(s) in index.html \u2192 ' + missing.join(', '),
@@ -59,6 +58,18 @@
   #niyam-shell .ns-primary{background:linear-gradient(180deg,#f6c453,#e8a838);color:#191a2f;width:100%;margin-top:18px;font-weight:800;letter-spacing:.01em;box-shadow:0 8px 20px rgba(232,168,56,.34)}
   #niyam-shell .ns-primary:hover{filter:brightness(1.04)}
   #niyam-shell .ns-link{background:none;color:var(--gold-deep);padding:6px;font-size:14px;font-weight:700}
+  #ns-boot{position:fixed;inset:0;z-index:99998;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:#F6F3EC;color:#151A2C;font-family:Fraunces,Georgia,serif;text-align:center;padding:24px;transition:opacity .35s}
+  #ns-boot .bm{width:58px;height:58px;border-radius:16px;border:1.5px solid #C79A4E;display:flex;align-items:center;justify-content:center;font-size:28px;color:#A57A35}
+  #ns-boot h3{margin:4px 0 0;font-weight:500;font-size:28px;line-height:1.2}
+  #ns-boot h3 em{color:#A57A35}
+  #ns-boot p{margin:0;font-family:Inter,system-ui,sans-serif;font-size:14px;color:#6E7183}
+  #ns-boot .bar{width:180px;height:4px;border-radius:99px;background:#E5E0D4;overflow:hidden;margin-top:6px}
+  #ns-boot .bar i{display:block;height:100%;width:40%;background:#151A2C;border-radius:99px;animation:nsBoot 1.2s ease-in-out infinite}
+  @keyframes nsBoot{0%{transform:translateX(-110%)}100%{transform:translateX(260%)}}
+  #ns-notice{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:100004;max-width:min(560px,92vw);display:none;align-items:flex-start;gap:12px;background:#151A2C;color:#fff;border-radius:14px;padding:14px 16px;font:500 14px/1.45 Inter,system-ui,sans-serif;box-shadow:0 16px 40px rgba(0,0,0,.3)}
+  #ns-notice.warn{background:#7A3524}
+  #ns-notice button{background:none;border:0;color:#C7C5CF;font-size:18px;line-height:1;cursor:pointer;padding:0 0 0 6px}
+  #niyam-shell .ns-ok{background:#ecfdf3;border:1px solid #bbf7d0;color:#166534;font-size:13px;padding:10px;border-radius:10px;margin-top:12px;display:none}
   #niyam-shell .ns-err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:13px;padding:10px;border-radius:10px;margin-top:12px;display:none}
   #niyam-shell .ns-step{display:inline-block;color:var(--gold-deep);background:var(--gold-soft);border:1px solid var(--gold-line);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:4px 11px;border-radius:99px;margin-bottom:12px}
   #niyam-shell .ns-consent{display:flex;gap:10px;align-items:flex-start;background:var(--gold-soft);border:1px solid var(--gold-line);border-radius:12px;padding:14px;font-size:14px;line-height:1.5;color:#4a4434}
@@ -153,7 +164,9 @@
        <button id="ns-to-signup" class="ns-link">New family? Create an account</button>
        <button id="ns-to-login" class="ns-link" style="display:none">Have an account? Log in</button>
      </div>
+     <div style="text-align:center"><button id="ns-forgot" class="ns-link">Forgot your password?</button></div>
      <div id="ns-login-err" class="ns-err"></div>
+     <div id="ns-login-ok" class="ns-ok"></div>
     </div>
    </div>
   </div>
@@ -182,6 +195,20 @@
    </div>
   </div>
   <div id="ns-topbtns"><button id="ns-parent-btn">&#128274; Parent</button></div>
+  <div id="ns-newpw" class="ns-screen">
+   <div class="ns-wrap" style="padding-top:70px">
+    <div class="ns-card">
+     <h2>Choose a new password</h2>
+     <p class="ns-sub">You opened the password link from your email. Choose a new password for your NIYAM account.</p>
+     <label>New password</label><input id="ns-newpw1" type="password" autocomplete="new-password" placeholder="6+ characters">
+     <label>New password again</label><input id="ns-newpw2" type="password" autocomplete="new-password">
+     <button id="ns-newpw-save" class="ns-primary" style="margin-top:14px">Save new password</button>
+     <div id="ns-newpw-err" class="ns-err"></div>
+    </div>
+   </div>
+  </div>
+  <div id="ns-boot"><div class="bm">N</div><h3 id="ns-boot-h">Getting the day ready</h3><p id="ns-boot-p">This takes a moment.</p><div class="bar"><i></i></div></div>
+  <div id="ns-notice"><span id="ns-notice-t"></span><button id="ns-notice-x" aria-label="Close">×</button></div>
   <div id="ns-pinprompt" class="ns-screen">
    <div class="ns-wrap" style="padding-top:70px">
     <div class="ns-card">
@@ -243,14 +270,16 @@
   window.TT_CUSTOM = null;
   async function loadFamilyTimetable(){
     try{
-      if(!window.sb || !currentUser) return;
+      if(!window.sb || !currentUser) return 'error';
       var r = await window.sb.from('timetables').select('weekday,weekend').maybeSingle();
-      if(r.error || !r.data) return;
+      if(r.error) return 'error';
+      if(!r.data) return 'none';
       var wd = r.data.weekday, we = r.data.weekend;
       if(typeof wd === 'string'){ try{ wd = JSON.parse(wd); }catch(e){ wd = null; } }
       if(typeof we === 'string'){ try{ we = JSON.parse(we); }catch(e){ we = null; } }
       window.TT_CUSTOM = { weekday: wd || null, weekend: we || null };
-    }catch(e){ console.warn('[shell] timetable load:', e); }
+      return (wd && wd.length) || (we && we.length) ? 'ok' : 'none';
+    }catch(e){ console.warn('[shell] timetable load:', e); return 'error'; }
   }
   window.niyamLoadTimetable = loadFamilyTimetable;
 
@@ -411,18 +440,58 @@
     $('ns-onboard').style.display='none';
     $('ns-topbtns').style.display='flex';
     if(profile && profile.child_name){ var nm=$('ns-pz-name'); if(nm) nm.textContent=profile.child_name; }
-    var ar=document.getElementById('app-root'); if(ar) ar.style.display='';
     if(!booted){
       booted=true;
-      Promise.all([loadFamilyTimetable(), loadFamilyRewards()]).then(function(){
-        if(typeof window.bootApp==='function') window.bootApp();
-        // Anything queued to run once the timetable is really loaded.
+      bootCover(true);
+      var ar=document.getElementById('app-root'); if(ar) ar.style.display='';
+      var timedOut=false, load=Promise.all([loadFamilyTimetable(), loadFamilyRewards()]);
+      var wait=new Promise(function(res){ setTimeout(function(){ timedOut=true; res(null); }, 12000); });
+      Promise.race([load, wait]).then(async function(res){
+        var ttState = res ? res[0] : 'timeout', problem = null;
+        // A family whose setup finished without a saved timetable (e.g. the page was
+        // closed half way): build it from their class now, so the day is never empty.
+        if(ttState === 'none'){ try{ await healTimetable(); }catch(e){ console.error('[shell] timetable repair:', e); } }
+        try{ if(typeof window.bootApp==='function') window.bootApp(); }
+        catch(e){ problem = e; console.error('[shell] boot failed:', e); try{ if(typeof ttRender==='function') ttRender(); }catch(e2){} }
         if(typeof window.__niyamAfterBoot === 'function'){
-          var fn = window.__niyamAfterBoot; window.__niyamAfterBoot = null; fn();
+          var fn = window.__niyamAfterBoot; window.__niyamAfterBoot = null; try{ fn(); }catch(e){ console.error(e); }
+        }
+        setTimeout(function(){ bootCover(false); }, 250);
+        if(problem) notice('Something went wrong while opening the app. Please refresh the page. If it keeps happening, let us know.', true);
+        else if(timedOut){
+          notice('The connection is slow, so NIYAM’s timetable for the class is showing for now. Your own timetable appears as soon as it loads.', true);
+          load.then(function(r){ if(r && r[0] === 'ok'){ try{ if(typeof ttRender==='function') ttRender(); if(window.niyamToday) window.niyamToday.refresh(); }catch(e){} } });
+        }
+        else if(window.__niyamWelcome){
+          notice(window.__niyamWelcome + '’s day is ready. You can review or change the timetable any time in Parent Zone → Timetable.', false, 9000);
+          window.__niyamWelcome = null;
         }
       });
-    }
+    } else { var ar2=document.getElementById('app-root'); if(ar2) ar2.style.display=''; }
   }
+  async function healTimetable(){
+    var pd = (profile && profile.profile_data) || {}; if(typeof pd === 'string'){ try{ pd = JSON.parse(pd); }catch(e){ pd = {}; } }
+    var cls = (profile && profile.child_class) || pd.grade;
+    if(!cls || typeof window.niyamBuildTimetable !== 'function') return;
+    var tt = window.niyamBuildTimetable(cls, typeof pd.day_start_hour === 'number' ? pd.day_start_hour : undefined);
+    await saveFamilyTimetable(tt.weekday, tt.weekend);
+    console.log('[shell] timetable built from ' + cls + ' (none was saved)');
+  }
+  function bootCover(on){
+    var c = $('ns-boot'); if(!c) return;
+    if(on){
+      var nm = (profile && profile.child_name) || '';
+      $('ns-boot-h').innerHTML = nm ? 'Getting <em>' + String(nm).replace(/[<>&]/g, '') + '’s</em> day ready' : 'Getting the day ready';
+      c.style.opacity = '1'; c.style.display = 'flex';
+    } else { c.style.opacity = '0'; setTimeout(function(){ c.style.display = 'none'; }, 380); }
+  }
+  // A message that stays until it is read (or for a while), for things a parent must know.
+  function notice(msg, warn, ms){
+    var n = $('ns-notice'); if(!n) return;
+    $('ns-notice-t').textContent = msg; n.className = warn ? 'warn' : ''; n.style.display = 'flex';
+    clearTimeout(n._h); if(ms) n._h = setTimeout(function(){ n.style.display = 'none'; }, ms);
+  }
+  window.niyamNotice = notice;
 
   async function route(){
     if(!window.sb){ screen('ns-login'); showErr('ns-login-err','Could not load the login system — check your connection and refresh.'); return; }
@@ -441,12 +510,21 @@
 
     screen('ns-onboard');
     $('ns-ob-done') && ($('ns-ob-done').style.display='none');
+    // Setup answers are saved as the parent goes (profile_data.setup_draft, with a
+    // copy on this device), so a closed tab, the back button or a new login
+    // continues from the same step with the answers filled in.
+    var draft = pd.setup_draft || (window.__nsLocalDraft ? window.__nsLocalDraft() : null);
+    if(draft && window.__nsRestore) window.__nsRestore(draft);
     if(window.__nsShow){
       // S2 consent -> S3/S4/S5 -> S6 PIN -> S7 what's included
-      if(!c)        window.__nsShow('ns-ob-consent');
-      else if(!ch)  window.__nsShow(window.__nsFirstPage || 'ns-pp1');
-      else if(!p)   window.__nsShow('ns-ob-pin');
-      else          window.__nsShow(window.__nsLastPage || 'ns-pp4');
+      var target;
+      if(!c) target = 'ns-ob-consent';
+      else if(draft && draft.step && $(draft.step) && draft.step !== 'ns-ob-consent') target = draft.step;
+      else if(!ch) target = window.__nsFirstPage || 'ns-pp1';
+      else if(!p) target = 'ns-ob-pin';
+      else target = window.__nsLastPage || 'ns-pp4';
+      if(target === 'ns-ob-pin' && p) target = window.__nsLastPage || 'ns-pp4';   // the PIN is already saved
+      window.__nsShow(target);
     }
     else if(!c){ $('ns-ob-consent').style.display='block'; }
   }
@@ -477,6 +555,7 @@
     if(a!==b) return showErr('ns-pin-err','The two PINs do not match.');
     try{
       await saveProfile({ parent_pin:a });
+      if(window.__nsSaveDraft) window.__nsSaveDraft(window.__nsLastPage || 'ns-pp4');
       if(window.__nsShow && window.__nsLastPage) window.__nsShow(window.__nsLastPage);
       else route();
     }catch(e){ showErr('ns-pin-err', e.message); }
@@ -643,6 +722,40 @@
     renderRadios('opts-ns-pp1',GRADES,'child_class');
     renderRadios('opts-ns-pp3',STARTS,'day_start');
 
+    // ---- answers saved as the parent goes ----
+    function draftKey(){ return 'niyam_setup_' + ((currentUser && currentUser.id) || ''); }
+    function draftOf(step){
+      var nmEl=$('in-child_name'), nmv=nmEl ? nmEl.value.trim() : '';
+      return { child_name:nmv || Q.child_name || null, child_class:Q.child_class || null, day_start:Q.day_start || null,
+               features:Q.features, step:step, at:new Date().toISOString() };
+    }
+    async function saveDraft(step){
+      var d=draftOf(step);
+      try{ localStorage.setItem(draftKey(), JSON.stringify(d)); }catch(e){}
+      try{ await window.niyamSaveProfileData({ setup_draft:d }); }catch(e){ console.warn('[setup] answers saved on this device only:', e); }
+    }
+    function paintFeatures(){
+      Array.prototype.forEach.call(document.querySelectorAll('#ns-feat-wrap .ns-feat-tog'), function(b){
+        var k=b.getAttribute('data-k'), on=Q.features[k]!==false;
+        b.textContent = on ? 'On' : 'Off';
+        b.style.background = on ? '#e4f6ed' : '#f1f2f6';
+        b.style.color      = on ? '#1d7a53' : '#9aa0ad';
+        var row=b.closest('.ns-feat-row'); if(row) row.style.opacity = on ? '1' : '.55';
+      });
+    }
+    window.__nsSaveDraft = saveDraft;
+    window.__nsLocalDraft = function(){ try{ return JSON.parse(localStorage.getItem(draftKey()) || 'null'); }catch(e){ return null; } };
+    window.__nsRestore = function(d){
+      if(!d) return;
+      if(d.child_name){ Q.child_name=d.child_name; var i=$('in-child_name'); if(i) i.value=d.child_name; }
+      if(d.child_class) Q.child_class=d.child_class;
+      if(d.day_start) Q.day_start=d.day_start;
+      if(d.features) Q.features=Object.assign({}, Q.features, d.features);
+      renderRadios('opts-ns-pp1',GRADES,'child_class');
+      renderRadios('opts-ns-pp3',STARTS,'day_start');
+      paintFeatures();
+    };
+
     // feature on/off toggles
     var fwrap=$('ns-feat-wrap');
     if(fwrap) fwrap.addEventListener('click',function(e){
@@ -653,10 +766,13 @@
       b.style.color      = Q.features[k] ? '#1d7a53' : '#9aa0ad';
       var row=b.closest('.ns-feat-row');
       if(row) row.style.opacity = Q.features[k] ? '1' : '.55';
+      saveDraft('ns-pp4');
     });
 
     function visiblePage(){ for(var i=0;i<ALLIDS.length;i++){ var e=$(ALLIDS[i]); if(e && e.style.display!=='none') return ALLIDS[i]; } return null; }
-    function showCard(id){
+    function showCard(id, fromHistory){
+      // the browser's back button walks back through setup instead of leaving it
+      if(!fromHistory){ try{ history.pushState({ nsStep:id }, ''); }catch(e){} }
       ALLIDS.forEach(function(x){ var e=$(x); if(e) e.style.display='none'; });
       var el=$(id); if(!el) return;
       var p=byId[id];
@@ -667,6 +783,12 @@
       el.style.display='block'; el.classList.remove('ns-in'); void el.offsetWidth; el.classList.add('ns-in'); window.scrollTo(0,0);
     }
     window.__nsShow=showCard;
+    window.addEventListener('popstate', function(e){
+      var ob=$('ns-onboard'); if(!ob || ob.style.display==='none') return;
+      var st=e.state && e.state.nsStep;
+      if(st && $(st) && st!=='ns-ob-done'){ showCard(st, true); return; }
+      var cur=visiblePage(); if(cur){ try{ history.pushState({ nsStep:cur }, ''); }catch(err){} }   // nothing earlier: stay
+    });
 
     function back(){
       var cur=visiblePage();
@@ -703,9 +825,9 @@
         day_start:Q.day_start||null, day_start_hour:sh,
         features:Q.features, setup_done:true, setup_at:new Date().toISOString()
       };
-      await saveProfile({ child_name:Q.child_name, child_class:cls, profile_data:pd });
-
-      // Build this family's starting timetable from their class band.
+      // Build this family's starting timetable from their class band FIRST, and
+      // only then mark setup as done: a page closed half way never leaves a
+      // family "set up" without a timetable.
       // This must not fail quietly \u2014 if it does, the family silently gets
       // the old built-in default instead of their class band.
       if(typeof window.niyamBuildTimetable !== 'function'){
@@ -717,22 +839,17 @@
         + tt.weekday.length + ' weekday blocks, ' + tt.weekend.length + ' weekend blocks');
       await saveFamilyTimetable(tt.weekday, tt.weekend);
       console.log('[setup] timetable saved for class ' + cls);
+      await saveProfile({ child_name:Q.child_name, child_class:cls, profile_data:pd });
+      try{ localStorage.removeItem(draftKey()); }catch(e){}
 
       // Remember these so the preview can fall back to the band if needed.
       window.__niyamClass = cls; window.__niyamStartHour = sh;
 
-      ALLIDS.forEach(function(x){ var e=$(x); if(e) e.style.display='none'; });
-      $('ns-ob-done').style.display='block';
-      $('ns-done-msg').textContent='Building '+Q.child_name+'\u2019s first day\u2026';
-      setTimeout(function(){
-        // Queue the preview so it opens only once the timetable is loaded.
-        window.__niyamAfterBoot = function(){
-          if(typeof window.niyamOpenTomorrowsPlan === 'function'){
-            window.niyamOpenTomorrowsPlan({ name: Q.child_name });
-          }
-        };
-        enterApp();
-      },1300);
+      // Straight to the child's new Today page, behind a calm cover until it is
+      // drawn (the old "Tomorrow's plan" preview flashed the old design; the
+      // timetable can be reviewed any time in Parent Zone → Timetable).
+      window.__niyamWelcome = Q.child_name;
+      enterApp();
     }
 
     var ob=$('ns-onboard');
@@ -746,8 +863,9 @@
       if(page!==null){ clearErr(page+'-err'); var msg=validate(page); if(msg){ showErr(page+'-err', msg); return; } }
       if(fin!==null){ try{ await finish(); }catch(err){ showErr((page||'ns-pp4')+'-err', err.message); } return; }
       if(next!==null){
-        if(page===PIN_AFTER){ showCard('ns-ob-pin'); return; }   // PIN sits here
-        showCard(next);
+        var to = (page===PIN_AFTER) ? 'ns-ob-pin' : next;   // PIN sits after the day-start question
+        saveDraft(to);
+        showCard(to);
       }
     });
 
@@ -758,6 +876,36 @@
 
   $('ns-pz-logout').onclick=async function(){ try{ await window.sb.auth.signOut(); }catch(e){} try{ var _rm=[]; for(var _i=0;_i<localStorage.length;_i++){ var _k=localStorage.key(_i); if(_k && _k.indexOf('sb-')!==0) _rm.push(_k);} _rm.forEach(function(_k){ localStorage.removeItem(_k); }); sessionStorage.clear(); }catch(e){} location.reload(); };
 
+  // ---- Forgot PIN / forgot password -------------------------------------
+  window.niyamAccountEmail = function(){ return (currentUser && currentUser.email) || ''; };
+  window.niyamReauth = async function(pw){
+    var r = await window.sb.auth.signInWithPassword({ email:(currentUser && currentUser.email) || '', password:pw });
+    if(r.error) throw r.error; return true;
+  };
+  window.niyamSendPasswordReset = async function(email){
+    var r = await window.sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+    if(r.error) throw r.error; return true;
+  };
+  $('ns-forgot').onclick = async function(){
+    clearErr('ns-login-err'); var ok=$('ns-login-ok'); ok.style.display='none';
+    var em = $('ns-email').value.trim();
+    if(!em) return showErr('ns-login-err', 'Type your email above, then tap “Forgot your password?” again.');
+    try{ await window.niyamSendPasswordReset(em); ok.textContent='We have sent a link to ' + em + '. Open it on this device to choose a new password.'; ok.style.display='block'; }
+    catch(e){ showErr('ns-login-err', 'Could not send the link: ' + e.message); }
+  };
+  // The emailed link opens the app in "recovery" mode: choose a new password.
+  try{ if(window.sb && window.sb.auth.onAuthStateChange) window.sb.auth.onAuthStateChange(function(ev){ if(ev === 'PASSWORD_RECOVERY'){ clearErr('ns-newpw-err'); $('ns-newpw').style.display='block'; } }); }catch(e){}
+  $('ns-newpw-save').onclick = async function(){
+    clearErr('ns-newpw-err');
+    var a=$('ns-newpw1').value, b=$('ns-newpw2').value;
+    if(a.length < 6) return showErr('ns-newpw-err', 'Please use at least 6 characters.');
+    if(a !== b) return showErr('ns-newpw-err', 'The two passwords are not the same.');
+    var r = await window.sb.auth.updateUser({ password:a });
+    if(r.error) return showErr('ns-newpw-err', r.error.message);
+    $('ns-newpw').style.display='none'; notice('Your new password is saved.', false, 5000); route();
+  };
+  $('ns-notice-x').onclick = function(){ $('ns-notice').style.display='none'; };
+
   // ---- Parent Zone (B2): per-family PIN gate + navy zone ----
   function hidePinPrompt(){ $('ns-pinprompt').style.display='none'; }
   $('ns-parent-btn').onclick=function(){ clearErr('ns-pinprompt-err'); $('ns-pinprompt-input').value=''; $('ns-pinprompt').style.display='block'; setTimeout(function(){ var i=$('ns-pinprompt-input'); if(i) i.focus(); },100); };
@@ -767,6 +915,7 @@
     if($('ns-pinprompt-input').value.trim() === (profile && profile.parent_pin)){ hidePinPrompt(); enterParentZone(); }
     else showErr('ns-pinprompt-err','Wrong PIN. Try again.');
   };
+  window.niyamEnterParentZone = function(){ hidePinPrompt(); enterParentZone(); };
   var _tpOrigParent=null, _tpOrigNext=null;
   function enterParentZone(){
     var tp=document.getElementById('tab-parent'), body=$('ns-pz-body');
