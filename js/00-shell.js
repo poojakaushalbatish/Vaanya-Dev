@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-10-30 · Safe setup (resume, no flash), Forgot PIN';
+  window.NIYAM_BUILD = '2026-10-30 · Password link fix';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   // Startup self-check: shout early if a required script tag is missing from
@@ -26,6 +26,7 @@
     }
   }, 800);
 
+  var _hash0 = String(location.hash || '');   // read before the login library tidies the address
   var isFile = location.protocol === 'file:'; // local test = memory session; https = persistent
   window.sb = (typeof supabase !== 'undefined')
     ? supabase.createClient(
@@ -894,7 +895,17 @@
     catch(e){ showErr('ns-login-err', 'Could not send the link: ' + e.message); }
   };
   // The emailed link opens the app in "recovery" mode: choose a new password.
-  try{ if(window.sb && window.sb.auth.onAuthStateChange) window.sb.auth.onAuthStateChange(function(ev){ if(ev === 'PASSWORD_RECOVERY'){ clearErr('ns-newpw-err'); $('ns-newpw').style.display='block'; } }); }catch(e){}
+  // The link's details arrive in the address (#...); read them before the
+  // login library tidies the address away.
+  var _hash = _hash0;
+  function showNewPw(){ clearErr('ns-newpw-err'); $('ns-newpw').style.display='block'; }
+  try{ if(window.sb && window.sb.auth.onAuthStateChange) window.sb.auth.onAuthStateChange(function(ev){ if(ev === 'PASSWORD_RECOVERY') showNewPw(); }); }catch(e){}
+  if(/type=recovery/.test(_hash)) setTimeout(showNewPw, 600);
+  if(/error_code=|error=access_denied/.test(_hash)){
+    var _why = /otp_expired/.test(_hash) ? 'This password link has expired or was already used.' : 'This link could not be used.';
+    setTimeout(function(){ notice(_why + ' On the login screen, type your email and tap “Forgot your password?” to get a new link. Each link works once, within an hour.', true); }, 500);
+    try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
+  }
   $('ns-newpw-save').onclick = async function(){
     clearErr('ns-newpw-err');
     var a=$('ns-newpw1').value, b=$('ns-newpw2').value;
