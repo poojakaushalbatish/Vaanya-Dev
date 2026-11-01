@@ -200,6 +200,30 @@
   + '#pz2 .bankline div+div{border-top:1px solid var(--line)}'
   + '#pz2 .bankline b{color:var(--ink);white-space:nowrap}'
   + '#pz2 .livebar{display:none}'
+  + '#pz2 .adj{margin-top:4px}'
+  + '#pz2 .adjbs{display:flex;gap:10px;flex-wrap:wrap;padding:8px 0 4px}'
+  + '#pz2 .adjb{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:10px 16px;font-weight:600;font-size:13.5px;border:1.5px solid;background:#fff}'
+  + '#pz2 .adjb.plus{border-color:#BFD9C8;color:var(--sage)}#pz2 .adjb.plus:hover{background:var(--sage-soft)}'
+  + '#pz2 .adjb.minus{border-color:#EBCFC5;color:var(--rust)}#pz2 .adjb.minus:hover{background:var(--rust-soft)}'
+  + '#pz2 .adji{display:flex;align-items:center;gap:12px;border-radius:12px;padding:9px 12px;margin:6px 0}'
+  + '#pz2 .adji.plus{background:var(--sage-soft)}#pz2 .adji.minus{background:var(--rust-soft)}'
+  + '#pz2 .adji b{font-family:Fraunces,serif;font-weight:600;font-size:18px;min-width:44px}'
+  + '#pz2 .adji.plus b{color:var(--sage)}#pz2 .adji.minus b{color:var(--rust)}'
+  + '#pz2 .adji span{flex:1;font-size:13.5px;color:var(--ink2)}'
+  + '#pz2 .adji button{border:0;background:rgba(255,255,255,.7);border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:var(--mute);padding:0}'
+  + '#pz2 .adjf{border-radius:16px;padding:14px 16px;margin:8px 0 4px;border:1.5px solid}'
+  + '#pz2 .adjf.plus{background:#F4FAF6;border-color:#BFD9C8}#pz2 .adjf.minus{background:#FCF4F1;border-color:#EBCFC5}'
+  + '#pz2 .adjh{font-family:Fraunces,serif;font-size:19px;font-weight:500}'
+  + '#pz2 .adjamt{display:flex;gap:8px;flex-wrap:wrap;align-items:center}'
+  + '#pz2 .adjamt button{border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:8px 14px;font-weight:700;font-size:14px;min-width:56px}'
+  + '#pz2 .adjf.plus .adjamt button.on{background:var(--sage);border-color:var(--sage);color:#fff}'
+  + '#pz2 .adjf.minus .adjamt button.on{background:var(--rust);border-color:var(--rust);color:#fff}'
+  + '#pz2 .adjamt input{width:96px!important;padding:8px 10px!important}'
+  + '#pz2 .adjwhy{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}'
+  + '#pz2 .adjwhy button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 11px;font-size:12.5px;color:var(--ink2)}'
+  + '#pz2 .adjwhy button:hover{border-color:#CFC9BB}'
+  + '#pz2 .adjtell{margin-top:10px;font-size:12.5px;color:var(--ink2);line-height:1.5}'
+  + '#pz2 .adjerr{margin-top:8px;color:var(--rust);font-weight:600;font-size:13px}'
   + '#pz2 .notice{display:flex;align-items:center;gap:10px;background:var(--rust-soft);border:1px solid #EBCFC5;color:#7A3524;border-radius:14px;padding:10px 14px;margin-bottom:14px;font-size:13.5px}'
   + '#pz2 .notice b{color:#6B2C1D}'
   + '#pz2 .dbadge{width:58px;height:62px;border-radius:16px;background:var(--paper);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:0 0 auto}'
@@ -449,7 +473,8 @@
     var m = R().model(d), E = m.E, kr = kindFor(d.date), kv = kr ? PZ.kind[kr.id] : undefined;
     var kpts = (typeof kv === 'number') ? kv : 0, bonus = R().gradeBonus(d.date, E.grade);
     var toScore = m.parents.filter(function(r){ return r.award === undefined; }).length + (kr && kv === undefined ? 1 : 0);
-    return { m:m, E:E, kr:kr, kv:kv, kpts:kpts, bonus:bonus, total:m.pts + bonus + kpts, toScore:toScore };
+    var adj = R().adjustSum ? R().adjustSum(E.adjust) : 0;
+    return { m:m, E:E, kr:kr, kv:kv, kpts:kpts, bonus:bonus, adj:adj, total:m.pts + bonus + kpts + adj, toScore:toScore };
   }
   function segHtml(vals, on, act, date, id, labels){
     return '<div class="seg">' + vals.map(function(v, i){
@@ -492,7 +517,7 @@
     var run = R().aRunBefore(d.date);
     var gradeRow = '<div class="srow"><div class="nm">Grade for the day<small>Optional · ' + (C.bonus ? 'this A completes 5 in a row: +100 bonus' : (run % 5) + ' A’s in a row · 5 in a row earn +100') + '</small></div>'
       + '<div class="gch">' + ['A', 'B', 'C', 'D'].map(function(g){ return '<button class="' + (E.grade === g ? 'on' : '') + '" data-pz="grade" data-date="' + d.date + '" data-g="' + g + '">' + g + '</button>'; }).join('') + '</div></div>';
-    h += '<div class="dsec">' + (rows ? '<div class="lab"><span>Parent’s score</span><small>only you can judge these</small></div>' + rows : '')
+    h += '<div class="dsec">' + (rows ? '<div class="lab"><span>Parent’s score</span><small>only you can judge these</small></div>' + rows : '') + adjBlock(d.date, E.adjust || [], false)
       + (open ? '' : gradeRow) + '</div>';
 
     if(open){
@@ -531,6 +556,39 @@
       + '<button class="btn dark" data-pz="approve" data-date="' + d.date + '"' + (PZ.busy ? ' disabled' : '') + '>' + I('tick') + 'Approve · ' + fmtN(C.total) + ' points</button></div></div>';
     return h;
   }
+  // ---- Bonus or deduction: for anything outside the timetable ----
+  var ADJ_WHY = { '1':['Helped without being asked','Extra reading','Kind to a sibling or friend','Great effort at school','Tidied up on their own'],
+                  '-1':['Rude or unkind words','Too much screen time','Did not keep a promise','Fought with a sibling','Did not tell the truth'] };
+  function adjBlock(date, list, approved){
+    var F = PZ.adj && PZ.adj.date === date ? PZ.adj : null, nm = esc(first());
+    var h = '<div class="adj"><div class="lab"><span>Bonus or deduction</span><small>for anything outside the timetable</small></div>';
+    list.forEach(function(x, i){
+      var v = num(x.pts);
+      h += '<div class="adji ' + (v >= 0 ? 'plus' : 'minus') + '"><b>' + (v >= 0 ? '+' : '−') + Math.abs(v) + '</b><span>' + (v >= 0 ? 'Bonus' : 'Deducted') + ' · ' + esc(x.reason || '') + '</span>'
+        + '<button data-pz="adjdel" data-date="' + date + '" data-i="' + i + '" data-ap="' + (approved ? 1 : 0) + '" title="Remove" aria-label="Remove">' + I('x', 'width:14px;height:14px') + '</button></div>';
+    });
+    if(!F){
+      return h + '<div class="adjbs"><button class="adjb plus" data-pz="adjopen" data-date="' + date + '" data-s="1">' + I('plus', 'width:16px;height:16px') + 'Give a bonus</button>'
+        + '<button class="adjb minus" data-pz="adjopen" data-date="' + date + '" data-s="-1"><span style="font-size:18px;line-height:1">−</span>Deduct points</button></div></div>';
+    }
+    var plus = F.s === 1, amts = [5, 10, 20, 50];
+    var tell = plus
+      ? (approved ? 'These points go to ' + nm + '’s Star Bank straight away.' : 'These points are added to this day and reach ' + nm + '’s Star Bank when you approve.') + ' ' + nm + ' sees your reason, so they know exactly what they did well.'
+      : (approved ? 'These points are taken from ' + nm + '’s Star Bank straight away.' : 'These points come off this day’s total when you approve. If the day has fewer points, the rest comes from the Star Bank.') + ' ' + nm + ' sees your reason, so keep it calm and clear, and say how to make it right.';
+    h += '<div class="adjf ' + (plus ? 'plus' : 'minus') + '"><div class="adjh">' + (plus ? '🌟 Give ' + nm + ' a bonus' : '⚖️ Deduct points') + '</div>'
+      + '<div class="fl" style="margin-top:8px">How many points</div><div class="adjamt">' + amts.map(function(a){ return '<button class="' + (F.amt === a ? 'on' : '') + '" data-pz="adjamt" data-v="' + a + '">' + (plus ? '+' : '−') + a + '</button>'; }).join('')
+      + '<input type="number" id="pz2-adj-amt" min="1" max="100" placeholder="other" value="' + (F.amt && amts.indexOf(F.amt) < 0 ? F.amt : '') + '"></div>'
+      + '<div class="fl">Reason <span style="text-transform:none;letter-spacing:0;font-weight:500">· ' + nm + ' will see this</span></div>'
+      + '<input type="text" id="pz2-adj-why" maxlength="120" placeholder="' + (plus ? 'e.g. Helped Dadi carry the shopping' : 'e.g. Shouted at his sister') + '" value="' + esc(F.why || '') + '">'
+      + '<div class="adjwhy">' + ADJ_WHY[String(F.s)].map(function(w){ return '<button data-pz="adjwhy" data-v="' + esc(w) + '">' + esc(w) + '</button>'; }).join('') + '</div>'
+      + '<div class="adjtell">' + tell + '</div>'
+      + (F.err ? '<div class="adjerr">' + esc(F.err) + '</div>' : '')
+      + '<div style="display:flex;gap:10px;margin-top:12px"><button class="btn ' + (plus ? 'dark' : 'red') + '" data-pz="adjadd" data-date="' + date + '" data-ap="' + (approved ? 1 : 0) + '"' + (PZ.busy ? ' disabled' : '') + '>'
+      + (plus ? 'Add bonus' : 'Deduct') + (F.amt ? ' · ' + (plus ? '+' : '−') + F.amt : '') + '</button><button class="btn" data-pz="adjclose">Cancel</button></div></div>';
+    return h + '</div>';
+  }
+  function adjRead(){ var F = PZ.adj; if(!F) return; var a = $('pz2-adj-amt'), w = $('pz2-adj-why'); if(a && a.value !== '') F.amt = num(a.value); if(w) F.why = w.value; }
+
   function carriedCard(c){
     var key = c.date + '|' + c.it.id, sel = PZ.carry[key], ch = R().chips(c.it.kind, num(c.it.max));
     return '<div class="srow"><div class="nm">' + esc(c.it.name) + '<small>Left for later · ' + shortDay(c.date) + (c.it.info ? ' · ' + esc(c.it.info) : '') + '</small></div>'
@@ -554,7 +612,8 @@
     var C = dayCalc(d), E = C.E, u = E.undone, dn = E.done;
     E.undone = {}; E.done = {};
     var base; try{ base = R().model(d); } finally { E.undone = u; E.done = dn; }
-    return { C:C, child:base.tt, changed:C.m.tt - base.tt, brain:C.m.brain, parent:C.m.awards, kind:C.kpts, bonus:C.bonus, total:C.total };
+    var plus = 0, minus = 0; (C.E.adjust || []).forEach(function(x){ var v = num(x.pts); if(v > 0) plus += v; else minus += v; });
+    return { C:C, child:base.tt, changed:C.m.tt - base.tt, brain:C.m.brain, parent:C.m.awards, kind:C.kpts, bonus:C.bonus, plus:plus, minus:minus, total:C.total };
   }
   function liveCard(){
     var d = focusDay(), b = bank(), pend = []; try{ pend = R().pending(); }catch(e){}
@@ -574,6 +633,8 @@
       + ln('Parent’s score', L.parent, L.parent ? 'pos' : '')
       + (L.C.kr ? ln('Act of Kindness', L.kind, L.kind ? 'pos' : '') : '')
       + (L.bonus ? ln('A-grade streak bonus', L.bonus, 'pos') : '')
+      + (L.plus ? ln('Bonus from you', L.plus, 'pos') : '')
+      + (L.minus ? ln('Deducted by you', L.minus, 'neg') : '')
       + '<div class="tot"><span>Total to be credited</span><span class="big">' + fmtN(L.total) + '</span></div>'
       + '<div class="bankline"><div><span>Current Star Bank balance</span><b>' + fmtN(b) + ' ★</b></div><div><span>Balance after approval</span><b>' + fmtN(b + L.total) + ' ★</b></div></div>';
     var left = L.C.toScore; if(left) h += '<div style="color:#8A6326;font-size:12.5px;margin-top:8px;font-weight:600">' + plural(left, 'item awaits', 'items await') + ' your assessment</div>';
@@ -704,6 +765,8 @@
       });
       if(rows) h += '<div class="lab" style="margin-top:12px"><span>The day</span></div>' + rows;
     }
+    var rvA = Array.isArray(rv.adjust) ? rv.adjust : [];
+    h += adjBlock(d.date, rvA, true);
     h += '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn sm" data-pz="reopen" data-date="' + d.date + '">' + I('pen', 'width:15px;height:15px') + 'Open again for review</button>'
       + '<button class="btn sm red" data-pz="del" data-date="' + d.date + '">' + I('trash', 'width:15px;height:15px') + 'Delete this day</button></div>';
     return h;
@@ -1167,6 +1230,38 @@
     if(act === 'kind'){ if(date) PZ.focus = date; var kv = v === 'redo' ? 'redo' : num(v); PZ.kind[id] = PZ.kind[id] === kv ? undefined : kv; if(PZ.kind[id] === undefined) delete PZ.kind[id]; render(); return; }
     if(act === 'grade'){ PZ.focus = date; E = R().edits(date); var g = b.getAttribute('data-g'); E.grade = E.grade === g ? '' : g; render(); return; }
     if(act === 'open'){ PZ.open[date] = !PZ.open[date]; render(); return; }
+    if(act === 'adjopen'){ PZ.adj = { date:date, s:num(b.getAttribute('data-s')), amt:0, why:'' }; PZ.focus = date; render(); var f = $('pz2-adj-why'); if(f) f.focus(); return; }
+    if(act === 'adjclose'){ PZ.adj = null; render(); return; }
+    if(act === 'adjamt'){ adjRead(); PZ.adj.amt = num(v); var ai = $('pz2-adj-amt'); if(ai) ai.value = ''; render(); return; }
+    if(act === 'adjwhy'){ adjRead(); PZ.adj.why = v; render(); return; }
+    if(act === 'adjadd'){
+      adjRead(); var F = PZ.adj; if(!F) return;
+      if(!(F.amt >= 1 && F.amt <= 100)){ F.err = 'Choose how many points (1 to 100).'; render(); return; }
+      if(String(F.why || '').trim().length < 3){ F.err = 'Please write a short reason. ' + first() + ' will see it.'; render(); return; }
+      var pts = F.s * F.amt, why = String(F.why).trim();
+      if(b.getAttribute('data-ap') === '1'){
+        if(!confirm((pts > 0 ? 'Add a bonus of ' + pts : 'Deduct ' + (-pts)) + ' points?\n\n“' + why + '”\n\nThis changes ' + first() + '’s Star Bank now.')) return;
+        PZ.busy = true; render();
+        try{ await R().adjustApproved(date, pts, why); toast(pts > 0 ? '+' + pts + ' bonus points added' : (-pts) + ' points deducted'); PZ.adj = null; }
+        catch(err){ alert('Could not save: ' + (err && err.message ? err.message : err)); }
+        finally{ PZ.busy = false; render(); }
+        return;
+      }
+      R().edits(date).adjust.push({ pts:pts, reason:why, at:new Date().toISOString() }); PZ.adj = null; PZ.focus = date; render();
+      toast(pts > 0 ? 'Bonus of +' + pts + ' added to this day — it counts when you approve' : (-pts) + ' points will be deducted when you approve');
+      return;
+    }
+    if(act === 'adjdel'){
+      var ix = num(b.getAttribute('data-i'));
+      if(b.getAttribute('data-ap') === '1'){
+        if(!confirm('Remove this bonus or deduction? ' + first() + '’s Star Bank changes back now.')) return;
+        PZ.busy = true; render();
+        try{ await R().adjustApproved(date, null, null, ix); toast('Removed'); }catch(err){ alert('Could not save: ' + (err && err.message ? err.message : err)); }
+        finally{ PZ.busy = false; render(); }
+        return;
+      }
+      R().edits(date).adjust.splice(ix, 1); render(); return;
+    }
     if(act === 'exp'){ PZ.exp[date] = !PZ.exp[date]; if(PZ.exp[date]) PZ.focus = date; if(!PZ.exp[date]) delete PZ.open[date]; render(); return; }
     if(act === 'apopen'){ PZ.apOpen = PZ.apOpen || {}; PZ.apOpen[date] = !PZ.apOpen[date]; render(); return; }
     if(act === 'apw'){ PZ.apw = Math.min(0, (PZ.apw || 0) + num(v)); PZ.apOpen = {}; render(); return; }
@@ -1263,6 +1358,7 @@
   function onInput(e){
     var t = e.target; if(!t || !t.getAttribute) return;
     var nd = t.getAttribute('data-pz-note'); if(nd){ try{ R().edits(nd).note = t.value; }catch(err){} }
+    if(t.id === 'pz2-adj-amt' || t.id === 'pz2-adj-why'){ adjRead(); if(t.id === 'pz2-adj-amt'){ Array.prototype.forEach.call(document.querySelectorAll('#pz2 .adjamt button'), function(x){ x.classList.remove('on'); }); var bb = document.querySelector('#pz2 [data-pz="adjadd"]'); if(bb && PZ.adj) bb.textContent = (PZ.adj.s > 0 ? 'Add bonus' : 'Deduct') + (PZ.adj.amt ? ' · ' + (PZ.adj.s > 0 ? '+' : '−') + PZ.adj.amt : ''); } }
   }
 
   // ---- open ---------------------------------------------------------------------------------------
@@ -1276,7 +1372,7 @@
   }
   function openZone(){
     if(!window.niyamReview || !build()) return;
-    PZ.T = null; PZ.tdraft = null; PZ.terr = '';
+    PZ.T = null; PZ.tdraft = null; PZ.terr = ''; PZ.adj = null;
     PZ.page = 'today'; try{ var lp = sessionStorage.getItem('pz2-page'); if(/^(today|progress|timetable|rewards|settings)$/.test(lp || '')) PZ.page = lp; }catch(e){}
     PZ.exp = {}; PZ.open = {}; PZ.apOpen = {}; PZ.apw = 0; PZ.sel = null; PZ.rw = null; PZ.pin = null; PZ.month = null; PZ.tt = null;
     render();
