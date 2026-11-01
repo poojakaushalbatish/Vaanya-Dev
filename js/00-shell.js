@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-10-31 · Welcome on Day 1 (join date)';
+  window.NIYAM_BUILD = '2026-11-01 · Bonus & deductions, Enter key, clearer messages';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   // Startup self-check: shout early if a required script tag is missing from
@@ -920,6 +920,21 @@
     $('ns-newpw').style.display='none'; notice('Your new password is saved.', false, 5000); route();
   };
   $('ns-notice-x').onclick = function(){ $('ns-notice').style.display='none'; };
+
+  // Enter = the main (gold) button of the screen that is showing: Log in /
+  // Create account, Continue, Save PIN, Finish setup, Save new password.
+  // A focused button keeps its own Enter, and the other buttons (Back, the
+  // "Create an account" link) are only ever tapped.
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+    var a = document.activeElement, tag = a && a.tagName;
+    if(tag === 'BUTTON' || tag === 'TEXTAREA' || tag === 'A' || tag === 'SELECT') return;
+    var scr = ['ns-newpw', 'ns-login', 'ns-onboard'].map($).filter(function(x){ return x && x.style.display === 'block'; })[0];
+    if(!scr) return;
+    var btn = Array.prototype.filter.call(scr.querySelectorAll('.ns-primary'), function(b){ return b.offsetParent !== null && !b.disabled; })[0];
+    if(!btn) return;
+    e.preventDefault(); btn.click();
+  });
 
   // ---- Parent Zone (B2): per-family PIN gate + navy zone ----
   function hidePinPrompt(){ $('ns-pinprompt').style.display='none'; }
