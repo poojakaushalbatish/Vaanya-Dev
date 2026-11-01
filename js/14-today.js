@@ -51,6 +51,13 @@
   function levelOf(pts){ var l = LEVELS[0], i = 0; LEVELS.forEach(function(x, k){ if(pts >= x[0]){ l = x; i = k; } }); return { n:i + 1, name:l[1] }; }
   function mood(){ var h = nowH(); return h >= 5 && h < 12 ? 'morning' : h >= 12 && h < 17 ? 'afternoon' : h >= 17 && h < 19.5 ? 'evening' : 'night'; }
   function rec(date){ return days().find(function(d){ return d.date === date; }); }
+  // The day the child joined (js/00-shell.js), or their first saved day for older families.
+  function num(v){ var n = parseInt(v, 10); return isNaN(n) ? 0 : n; }
+  function joined(){
+    var j = window.niyamJoinDate || '', e = days().map(function(d){ return d && d.date; }).filter(Boolean).sort()[0] || '';
+    if(!j) return e || today(); return (e && e < j) ? e : j;
+  }
+  function dayNo(date){ return Math.round((new Date(date + 'T12:00:00') - new Date(joined() + 'T12:00:00')) / 86400000) + 1; }
   function brainOn(){ return !(window.niyamFeatures && window.niyamFeatures.brainlab === false); }   // switched off in the Parent Zone
 
   // When each block starts and ends (the end is the next block's start).
@@ -175,6 +182,23 @@
   + '#td-root .td-nowline span{position:absolute;left:-66px;top:-10px;background:#F43F5E;color:#fff;border-radius:99px;padding:2px 7px;font-size:11px;font-weight:900}'
   // side
   + '#td-root .side .card{background:#fff;border:1.5px solid #ECE9F6;border-radius:22px;padding:14px 16px;margin-top:14px}'
+  + '#td-root .side .card.guide{background:linear-gradient(160deg,#FFF8E1,#FFFDF7 60%,#F3EEFF);border:2px solid #F5D48A;box-shadow:0 14px 30px -18px rgba(180,120,0,.45)}'
+  + '#td-root .guide .gh{display:flex;gap:12px;align-items:center}'
+  + '#td-root .guide .gh>span{font-size:30px}'
+  + '#td-root .guide .gt{font-family:"Rozha One",Georgia,serif!important;font-size:21px;line-height:1.2;color:#1E1B3A}'
+  + '#td-root .guide .gbar{height:8px;border-radius:99px;background:#F1E7C8;margin-top:12px;overflow:hidden}'
+  + '#td-root .guide .gbar i{display:block;height:100%;background:linear-gradient(90deg,#FFC83D,#16A34A);border-radius:99px;transition:width .4s}'
+  + '#td-root .guide .gn{font-size:12px;font-weight:800;color:#8A6326;margin-top:5px}'
+  + '#td-root .guide .gs{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;background:#fff;border:1.5px solid #F1E7C8;border-radius:14px;padding:10px 12px;margin-top:8px;color:#1E1B3A}'
+  + '#td-root .guide .gs:hover{border-color:#F5C04A}'
+  + '#td-root .guide .gs .gi{width:32px;height:32px;border-radius:10px;background:#FFF3C4;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto}'
+  + '#td-root .guide .gs b{display:block;font-size:14px}'
+  + '#td-root .guide .gs small{display:block;font-size:12px;color:#6B6788;font-weight:600}'
+  + '#td-root .guide .gs.ok{background:#F0FBF4;border-color:#BFE9CC}'
+  + '#td-root .guide .gs.ok .gi{background:#16A34A;color:#fff;font-weight:900}'
+  + '#td-root .guide .gs.ok b{text-decoration:line-through;color:#15803D}'
+  + '#td-root .guide .gf{margin-top:10px;font-size:12.5px;font-weight:600;color:#6B6788;line-height:1.45}'
+  + '#td-root .guide .gx{margin-top:10px;width:100%;border:0;background:transparent;color:#8A6326;font-weight:800;font-size:13px;padding:6px}'
   + '#td-root #td-kind-slot #kd-bar{margin:14px 0 0}'
   + '#td-root #td-kind-slot #kd-bar .closed{flex-wrap:wrap}'
   + '#td-root #td-kind-slot #kd-bar .closed>div:nth-child(2){flex:1 1 150px!important;min-width:150px!important}'
@@ -304,7 +328,7 @@
     addStyles();
     var r = document.createElement('div'); r.id = 'td-root';
     r.innerHTML = '<div id="td-hero"></div><div class="cols"><div><div class="cap tl-cap">My day</div><div id="td-tl"></div></div>'
-      + '<div class="side"><div id="td-kind-slot"></div><div id="td-also"></div><div id="td-thought"></div></div></div><div class="foot" id="td-foot"></div>';
+      + '<div class="side"><div id="td-guide"></div><div id="td-kind-slot"></div><div id="td-also"></div><div id="td-thought"></div></div></div><div class="foot" id="td-foot"></div>';
     var lock = $('locked-banner');
     tab.insertBefore(r, lock ? lock.nextSibling : tab.firstChild);
     $('td-tl').appendChild(tl);
@@ -341,10 +365,13 @@
     var name = childName(), inp = $('rpt-date');   // the date picker is kept and put back after the sky is redrawn
     var greet = { morning:'Good morning', afternoon:'Good afternoon', evening:'Good evening', night:'Good night soon' }[m] + (name ? ',<br>' + esc(name) : '') + ' ' + { morning:'🌤️', afternoon:'☀️', evening:'🌇', night:'🌙' }[m];
     if(!isToday) greet = (approved ? 'Approved day' : 'Looking back') + (name ? ',<br>' + esc(name) : '') + ' 📖';
+    var dn = dayNo(date);
+    if(isToday && dn === 1) greet = 'Welcome to NIYAM' + (name ? ',<br>' + esc(name) : '') + ' 🎉';
     var T = times(), first = T.find(function(t){ return t.b.type !== 'locked-until-3pm' && typeof t.start === 'number'; });
     var weekend = false; try{ weekend = ttIsWeekendSchedule(); }catch(e){}
     var natural = [0, 6].indexOf(new Date(date + 'T12:00:00').getDay()) >= 0;
     var dayType = (first ? 'Your day starts at ' + hm(first.start) : '') + (isToday ? (first ? ' · ' : '') + 'now ' + hm(nowH()) : '');
+    if(dn >= 1 && dn <= 7) dayType = 'Day ' + dn + ' of your NIYAM journey' + (dn === 1 ? ' ✨' : '') + (dayType ? ' · ' + dayType : '');
     var toggle = '<div class="sched">'
       + '<button class="' + (weekend ? '' : 'on') + '" data-act="sched" data-m="weekday"' + (isToday ? '' : ' disabled') + '><span class="i">🏫</span><span>School day<small>Mon – Fri timetable</small></span></button>'
       + '<button class="' + (weekend ? 'on' : '') + '" data-act="sched" data-m="holiday"' + (isToday ? '' : ' disabled') + '><span class="i">☀️</span><span>Holiday<small>Sat · Sun · holidays</small></span></button></div>';
@@ -402,7 +429,30 @@
     }
   }
 
+  // ---- Day 1: a short guide that ticks itself off ----
+  function renderGuide(){
+    var g = $('td-guide'); if(!g) return;
+    var t = today(), off = false; try{ off = localStorage.getItem('niyam_guide_done') === t; }catch(e){}
+    if(dateOpen() !== t || dayNo(t) !== 1 || off){ g.innerHTML = ''; return; }
+    var ticked = false; try{ Object.keys(ttBlockStates || {}).forEach(function(k){ var st = ttBlockStates[k] || {}, c = st.checkedActs || {}; if(num(st.pts) > 0) ticked = true; for(var a in c) if(c[a]) ticked = true; }); }catch(e){}
+    var kind = false; try{ kind = localStorage.getItem('niyam_kind_open') === t; }catch(e){}
+    var brain = false; try{ var BL = window.niyamBrainLab && window.niyamBrainLab.state && window.niyamBrainLab.state();
+      if(BL && BL.date === t) brain = !!BL.sudoku.level || ['riddle','logic','maths'].some(function(x){ return BL[x] && Object.keys(BL[x].ans || {}).length; }); }catch(e){}
+    var word = false; try{ Object.keys(ttBlockStates || {}).forEach(function(k){ var w = (ttBlockStates[k] || {}).words || {}; Object.keys(w).forEach(function(a){ if((w[a] || []).some(function(x){ return x && x.w; })) word = true; }); }); }catch(e){}
+    var steps = [[ticked, '✅', 'Tick a task when you finish it', 'It turns green and earns points.', 'tick'],
+                 [kind, '🎁', 'Open today’s surprise', 'One Act of Kindness, just for today.', 'kind']];
+    if(brainOn()) steps.push([brain, '🧠', 'Try the Brain Lab', 'Four thinking challenges from great Indian thinkers.', 'brain']);
+    steps.push([word, '📖', 'Add a new word', 'Start your very own dictionary.', 'word']);
+    var done = steps.filter(function(x){ return x[0]; }).length, all = done === steps.length;
+    g.innerHTML = '<div class="card guide"><div class="gh"><span>🎉</span><div><div class="cap" style="color:#B45309">Day 1 · Welcome aboard</div>'
+      + '<div class="gt">' + (all ? 'Day 1 complete! You are a natural 🌟' : 'Here is how NIYAM works, ' + esc(String(childName()).split(' ')[0] || 'superstar') + '!') + '</div></div></div>'
+      + '<div class="gbar"><i style="width:' + Math.round(done / steps.length * 100) + '%"></i></div><div class="gn">' + done + ' of ' + steps.length + ' done</div>'
+      + steps.map(function(x){ return '<button class="gs' + (x[0] ? ' ok' : '') + '" data-act="guide" data-g="' + x[4] + '"><span class="gi">' + (x[0] ? '✓' : x[1]) + '</span><span><b>' + x[2] + '</b><small>' + x[3] + '</small></span></button>'; }).join('')
+      + '<div class="gf">⭐ Tonight your parent checks your day, and your points go into your <b>Star Bank</b>.</div>'
+      + '<button class="gx" data-act="guidex">' + (all ? 'Yay! Close this' : 'Got it — hide this') + '</button></div>';
+  }
   function renderSide(){
+    renderGuide();
     var el = $('td-also'); if(!el) return;
     var rows = [];
     if(brainOn()) try{
@@ -465,6 +515,15 @@
       if((mode === 'holiday') !== w && typeof lp_setSchedule === 'function') lp_setSchedule(mode);
       light(); return; }
     if(act === 'tab'){ goTab(b.getAttribute('data-t')); return; }
+    if(act === 'reveal'){ setTimeout(renderGuide, 80); return; }   // the kindness surprise was opened (js/13-kindness.js)
+    if(act === 'guidex'){ try{ localStorage.setItem('niyam_guide_done', today()); }catch(err){} renderGuide(); return; }
+    if(act === 'guide'){
+      var g = b.getAttribute('data-g'), to = g === 'tick' ? $('td-tl') : g === 'kind' ? $('kd-bar') : null;
+      if(g === 'brain'){ goTab('brain'); return; }
+      if(g === 'word'){ goTab('wordbook'); return; }
+      if(to && to.scrollIntoView) to.scrollIntoView({ behavior:'smooth', block:'start' });
+      return;
+    }
   }
 
   // ---- Parent Zone: Clear lives here now ------------------------------------------------------
