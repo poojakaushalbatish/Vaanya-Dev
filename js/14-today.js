@@ -182,6 +182,12 @@
   + '#td-root .td-nowline span{position:absolute;left:-66px;top:-10px;background:#F43F5E;color:#fff;border-radius:99px;padding:2px 7px;font-size:11px;font-weight:900}'
   // side
   + '#td-root .side .card{background:#fff;border:1.5px solid #ECE9F6;border-radius:22px;padding:14px 16px;margin-top:14px}'
+  + '#td-root .pnote .pn{display:flex;gap:12px;align-items:flex-start;border-radius:14px;padding:10px 12px;margin-top:8px}'
+  + '#td-root .pnote .pn.up{background:#ECFDF3}#td-root .pnote .pn.dn{background:#FFF1EE}'
+  + '#td-root .pnote .pn b{font-family:"Rozha One",Georgia,serif!important;font-weight:400!important;font-size:22px;line-height:1.1;min-width:46px}'
+  + '#td-root .pnote .pn.up b{color:#15803D}#td-root .pnote .pn.dn b{color:#C2410C}'
+  + '#td-root .pnote .pn span{font-weight:700;font-size:14px;color:#1E1B3A}'
+  + '#td-root .pnote .pn small{display:block;font-weight:600;font-size:12px;color:#6B6788;margin-top:2px}'
   + '#td-root .side .card.guide{background:linear-gradient(160deg,#FFF8E1,#FFFDF7 60%,#F3EEFF);border:2px solid #F5D48A;box-shadow:0 14px 30px -18px rgba(180,120,0,.45)}'
   + '#td-root .guide .gh{display:flex;gap:12px;align-items:center}'
   + '#td-root .guide .gh>span{font-size:30px}'
@@ -328,7 +334,7 @@
     addStyles();
     var r = document.createElement('div'); r.id = 'td-root';
     r.innerHTML = '<div id="td-hero"></div><div class="cols"><div><div class="cap tl-cap">My day</div><div id="td-tl"></div></div>'
-      + '<div class="side"><div id="td-guide"></div><div id="td-kind-slot"></div><div id="td-also"></div><div id="td-thought"></div></div></div><div class="foot" id="td-foot"></div>';
+      + '<div class="side"><div id="td-guide"></div><div id="td-pnote"></div><div id="td-kind-slot"></div><div id="td-also"></div><div id="td-thought"></div></div></div><div class="foot" id="td-foot"></div>';
     var lock = $('locked-banner');
     tab.insertBefore(r, lock ? lock.nextSibling : tab.firstChild);
     $('td-tl').appendChild(tl);
@@ -451,8 +457,29 @@
       + '<div class="gf">⭐ Tonight your parent checks your day, and your points go into your <b>Star Bank</b>.</div>'
       + '<button class="gx" data-act="guidex">' + (all ? 'Yay! Close this' : 'Got it — hide this') + '</button></div>';
   }
+  // Bonuses and deductions a parent gave in the last 3 days, with the reason.
+  function renderParentNote(){
+    var el = $('td-pnote'); if(!el) return;
+    var since = new Date(); since.setDate(since.getDate() - 3); since = since.toLocaleDateString('en-CA');
+    var items = [];
+    days().forEach(function(d){
+      if(!d || d.approved !== true || d.date < since || !d.reviewJSON) return;
+      var rv = {}; try{ rv = JSON.parse(d.reviewJSON) || {}; }catch(e){}
+      (rv.adjust || []).forEach(function(x){ items.push({ date:d.date, pts:num(x.pts), why:x.reason || '' }); });
+    });
+    if(!items.length){ el.innerHTML = ''; return; }
+    items.sort(function(a, b){ return a.date < b.date ? 1 : -1; });
+    var nm = esc(String(childName()).split(' ')[0] || '');
+    el.innerHTML = '<div class="card pnote"><div class="cap" style="color:#5B2A9B">From your parent</div>'
+      + items.slice(0, 4).map(function(x){
+          var up = x.pts >= 0, dd = new Date(x.date + 'T12:00:00');
+          return '<div class="pn ' + (up ? 'up' : 'dn') + '"><b>' + (up ? '+' : '−') + Math.abs(x.pts) + '</b><span>' + esc(x.why) + '<small>'
+            + (up ? 'Bonus · well done' + (nm ? ', ' + nm : '') + '! 🌟' : 'Points taken off · tomorrow is a new chance 💪') + ' · ' + dd.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' }) + '</small></span></div>';
+        }).join('') + '</div>';
+  }
   function renderSide(){
     renderGuide();
+    renderParentNote();
     var el = $('td-also'); if(!el) return;
     var rows = [];
     if(brainOn()) try{
