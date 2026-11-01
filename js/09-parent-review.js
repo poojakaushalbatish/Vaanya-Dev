@@ -48,7 +48,8 @@
   function pts(n){ return n + (n===1 ? ' pt' : ' pts'); }
 
   function editsFor(date){
-    if(!RV.edits[date]) RV.edits[date] = { undone:{}, done:{}, awards:{}, later:{}, open:{}, grade:'', note:null };
+    if(!RV.edits[date]) RV.edits[date] = { undone:{}, done:{}, awards:{}, later:{}, open:{}, grade:'', note:null, adjust:[] };
+    if(!RV.edits[date].adjust) RV.edits[date].adjust = [];
     return RV.edits[date];
   }
   function pendingDays(){
@@ -148,6 +149,8 @@
         Object.keys(pp).forEach(function(id){ if(E.awards[id] === undefined) E.awards[id] = num(pp[id]); });
       });
       if(!E.grade && d.parentGrade) E.grade = d.parentGrade;
+      // a day opened again keeps the bonuses and deductions given last time
+      if(!E.adjust.length){ var rvOld = parse(d.reviewJSON, {}); if(Array.isArray(rvOld.adjust)) E.adjust = rvOld.adjust.slice(); }
     }
     var S = scheduleFor(d, states), brLeft = {};
     var m = { d:d, E:E, blocks:[], parents:[], extra:[], wrote:[],
@@ -635,14 +638,14 @@
         later.push({ id:r.id, blockId:r.b.id, name:r.name, kind:r.kind, max:r.max, info:String(info||'').substring(0,300) });
       }
     });
-    var bonus = gradeBonus(d.date, E.grade), total = m.pts + bonus;
+    var bonus = gradeBonus(d.date, E.grade), adj = adjustSum(E.adjust), total = m.pts + bonus + adj;
     var rec = Object.assign({}, d, {
       pts: total, approved: true, savedAt: new Date().toISOString(),
       parentGrade: E.grade || '', gradeBonus: bonus, parentRating: 0,
       parentComment: String(E.note === null ? (d.parentComment||'') : E.note).substring(0, 2000),
       shlokaPtsAwarded: shloka, creativePtsAwarded: creative,
       ttBlockStatesJSON: JSON.stringify(correctedStates(d, m)),
-      reviewJSON: JSON.stringify({ v:1, tt:m.tt, brain:m.brain, awards:awards, later:later, bonus:bonus,
+      reviewJSON: JSON.stringify({ v:1, tt:m.tt, brain:m.brain, awards:awards, later:later, bonus:bonus, adjust:(E.adjust || []).slice(),
                                    undone:Object.keys(E.undone), done:Object.keys(E.done) })
     });
     putDay(rec);
@@ -660,6 +663,27 @@
     if(mastered) await masterShloka();
     delete RV.edits[date];
     return { ok:ok, pts:total, bonus:bonus, later:later.length };
+  }
+
+  // ---- bonus points and deductions from the parent ----------------------------------
+  // [{ pts:+20 or -10, reason:'…', at:'ISO time' }]. On a day waiting for approval they
+  // are kept with the review and counted when the day is approved; on a day already
+  // approved they change its points straight away.
+  function adjustSum(list){ return (list || []).reduce(function(a, x){ return a + num(x.pts); }, 0); }
+  async function adjustApproved(date, pts, reason, removeIndex){
+    var d = findDay(date); if(!d || d.approved !== true) return false;
+    var rv = parse(d.reviewJSON, {}), list = Array.isArray(rv.adjust) ? rv.adjust.slice() : [], change;
+    if(removeIndex !== undefined && removeIndex !== null){
+      var gone = list.splice(removeIndex, 1)[0]; if(!gone) return false; change = -num(gone.pts);
+    } else {
+      list.push({ pts:num(pts), reason:String(reason || '').substring(0, 160), at:new Date().toISOString() }); change = num(pts);
+    }
+    rv.adjust = list;
+    var rec = Object.assign({}, d, { pts: num(d.pts) + change, reviewJSON: JSON.stringify(rv) });
+    putDay(rec);
+    var ok = await saveToSupabase(rec);
+    afterBankChange();
+    return ok;
   }
 
   async function saveCarried(key){
@@ -800,6 +824,7 @@
     gradeBonus: gradeBonus, aRunBefore: aRunBefore, chips: chipsFor, shloka: shlokaInfo,
     carried: carriedItems, freshen: freshen, after: afterBankChange,
     saveCarried: function(key, v){ RV.carried[key] = v; return saveCarried(key); },
-    forget: function(date){ delete RV.edits[date]; }
+    forget: function(date){ delete RV.edits[date]; },
+    adjustSum: adjustSum, adjustApproved: adjustApproved
   };
 })();
