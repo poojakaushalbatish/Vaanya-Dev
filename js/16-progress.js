@@ -121,6 +121,7 @@
   + '#pg-root .sun .o.q{background:rgba(255,211,107,.28)}'
   + '#pg-root .sun .o.t{border:2.5px dashed #fff}'
   + '#pg-root .sun .o b{position:absolute;right:-7px;top:-7px;font-size:15px}'
+  + '#pg-root .skey{margin-top:12px;font-size:12.5px;font-weight:600;opacity:.85}'
   + '#pg-root .orbs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}'
   + '#pg-root .orb{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:22px;padding:14px 10px;text-align:center}'
   + '#pg-root .orb .i{font-size:24px}'
@@ -223,11 +224,26 @@
       if(k === 'st') starsWeek++;
       var lw = rec(addDays(dt, -7)); if(!future && !(isT && !r) && lw && addDays(dt, -7) >= J) ptsLast += num(lw.pts);
     }
+    // Messages say what really happened, in plain words (Pooja, 1 Nov 2026).
     var nm = esc(first()), title, line, eyebrow = 'My Journey · this week', newWeek = J > mon;
-    if(dn <= 1){ eyebrow = 'My Journey · Day 1'; title = 'Welcome to NIYAM, <em>' + nm + '</em>! 🎉'; line = 'Today your journey begins. Every task you tick lights up today’s sun — let’s make it glow! ☀️'; }
-    else if(!counted){ title = 'A new week begins, ' + nm + '!'; line = 'Every sun you light up is a day you worked on your habits.'; }
-    else if(newWeek){ eyebrow = 'My Journey · Day ' + dn; title = 'You showed up on <em>' + shown + ' of ' + counted + '</em> ' + (counted === 1 ? 'day' : 'days') + ' since you joined, ' + nm + '!'; line = 'What a start! Every sun is a day you worked on your habits.'; }
-    else { title = 'You showed up on <em>' + shown + ' of ' + counted + '</em> ' + (counted === 1 ? 'day' : 'days') + ' this week, ' + nm + '!'; line = 'Every sun is a day you worked on your habits. A full, glowing sun is a great day.'; }
+    var tRec = rec(t), todayDone = !!(tRec && num(tRec.pts) > 0), y = addDays(t, -1), yRec = rec(y), yDone = !!(yRec && num(yRec.pts) > 0), yCounts = y >= J;
+    var span = newWeek ? 'since you joined' : 'this week', of = '<em>' + shown + ' of ' + counted + '</em> ' + (counted === 1 ? 'day' : 'days');
+    var nudge = todayDone ? 'Today’s sun is already shining — keep going!' : 'Tick your first task today and today’s sun starts to shine.';
+    if(dn <= 1){
+      eyebrow = 'My Journey · Day 1'; title = 'Welcome to NIYAM, <em>' + nm + '</em>! 🎉';
+      line = todayDone ? 'You have started your very first day. Keep ticking your tasks!' : 'This is your first day. Tick your tasks as you finish them, and watch today’s sun light up!';
+    }
+    else if(!counted){ title = 'A new week begins, ' + nm + '!'; line = nudge; }
+    else if(shown === 0){ title = 'Let’s light up your first sun, ' + nm + '!'; line = nudge; }
+    else if(shown === counted){
+      title = 'You did your tasks every day ' + span + ', ' + nm + '! 🌟';
+      line = todayDone ? 'Brilliant! Today’s sun is shining too.' : 'Brilliant! Now tick a task today to keep it going.';
+    }
+    else {
+      title = 'You did your tasks on ' + of + ' ' + span + ', ' + nm + '.';
+      line = (yCounts && !yDone) ? 'Yesterday had no ticks. Today is a fresh start — ' + (todayDone ? 'and you have already begun! 💪' : 'let’s make today’s sun shine! 💪') : nudge;
+    }
+    if(dn > 1) eyebrow = newWeek ? 'My Journey · Day ' + dn : 'My Journey · this week';
     var st = streakNow(), best = longestStreak().n, diff = ptsWeek - ptsLast;
     var stNote = dn <= 1 ? 'Your first streak starts today' : best > st ? 'Best ever: ' + best : (st ? 'Your best ever!' : 'Start today!');
     var ptNote = dn <= 1 ? (ptsWeek ? 'Your very first points!' : 'Tick a task to earn points') : (ptsLast ? (diff >= 0 ? '▲ ' + fmtN(diff) + ' more than last week' : 'Last week: ' + fmtN(ptsLast)) : 'Keep going!');
@@ -241,7 +257,8 @@
       : bestD && num(bestD.pts) > 0 && bestD.date !== t
       ? '“' + WD[dObj(bestD.date).getDay()] + ' ' + dObj(bestD.date).getDate() + ' was your best day this month — ' + fmtN(bestD.pts) + ' points. You can do it again!” 🌟'
       : '“Small habits, every day. That is how big things grow.” 🌱';
-    return '<div class="hero"><div class="pgstars"></div><div class="hgrid"><div><div class="eyebrow">' + eyebrow + '</div><h1 class="r">' + title + '</h1><p>' + line + '</p><div class="suns">' + suns + '</div></div>'
+    return '<div class="hero"><div class="pgstars"></div><div class="hgrid"><div><div class="eyebrow">' + eyebrow + '</div><h1 class="r">' + title + '</h1><p>' + line + '</p><div class="suns">' + suns + '</div>'
+      + '<div class="skey">Each circle is one day. ☀️ most tasks done · 🌤️ half done · ⛅ a start · empty = no tasks</div></div>'
       + '<div>' + orbs + '<div class="note k">' + note + '</div></div></div></div>';
   }
 
