@@ -41,6 +41,12 @@
   function first(){ return String(window.niyamChildName || '').split(' ')[0] || 'Superstar'; }
   function plural(n, a, b){ return n + ' ' + (n === 1 ? a : b); }
   function shortDay(d){ var x = dObj(d); return WD[x.getDay()] + ' ' + x.getDate() + ' ' + MONTHS[x.getMonth()].slice(0, 3); }
+  // The day the child joined (js/00-shell.js), or the first saved day for older families.
+  function joined(){
+    var j = window.niyamJoinDate || '', e = days().map(function(d){ return d && d.date; }).filter(Boolean).sort()[0] || '';
+    if(!j) return e || today(); return (e && e < j) ? e : j;
+  }
+  function dayNo(date){ return Math.round((dObj(date) - dObj(joined())) / 86400000) + 1; }
   function weekend(date){ var g = dObj(date).getDay(); return g === 0 || g === 6; }
 
   // ---- the child's own full day -------------------------------------------------------
@@ -150,6 +156,8 @@
   + '#pg-root .cal .c.w{background:#fff;border:1.5px dashed #F5C04A;color:#B45309}'
   + '#pg-root .cal .c.t{box-shadow:0 0 0 2.5px #5B2A9B}'
   + '#pg-root .cal .c.e{background:transparent;border:0}'
+  + '#pg-root .cal .c.j{background:linear-gradient(160deg,#FFF3C4,#FDE7F3);border-color:#F5C04A;color:#B45309}'
+  + '#pg-root .sun.pre{opacity:.35}#pg-root .sun.pre .o{border-style:dotted}'
   + '#pg-root .mnav{display:flex;align-items:center;gap:6px}'
   + '#pg-root .mnav button{width:34px;height:34px;border-radius:11px;border:1.5px solid #ECE9F6;background:#fff;font-size:16px;font-weight:800;color:#5B2A9B}'
   + '#pg-root .mnav button:disabled{opacity:.35;cursor:default}'
@@ -201,32 +209,39 @@
   // ---- 1. the week ------------------------------------------------------------------------------
   function heroHtml(){
     var t = today(), x = dObj(t), mon = addDays(t, -((x.getDay() + 6) % 7));
-    var suns = '', shown = 0, counted = 0, ptsWeek = 0, ptsLast = 0, starsWeek = 0;
+    var suns = '', shown = 0, counted = 0, ptsWeek = 0, ptsLast = 0, starsWeek = 0, J = joined(), dn = dayNo(t);
     for(var i = 0; i < 7; i++){
-      var dt = addDays(mon, i), r = rec(dt), k = kindOf(r), isT = dt === t, future = dt > t;
+      var dt = addDays(mon, i), r = rec(dt), k = kindOf(r), isT = dt === t, future = dt > t, before = dt < J;
       var cls = k === 'st' || k === 'gr' ? 'f' : k === 'go' ? 'h' : k === 'sm' ? 'q' : '';
       if(isT && !cls) cls = 't';
+      if(before && !r){ suns += '<div class="sun pre"><div class="o"></div>' + WD[(i + 1) % 7].slice(0, 3) + '</div>'; continue; }   // before joining: not counted
+      if(dt === J && !cls) cls = 't';
       var ic = cls === 'f' ? '☀️' : cls === 'h' ? '🌤️' : cls === 'q' ? '⛅' : '';
       suns += '<div class="sun"><div class="o ' + cls + '">' + ic + (k === 'st' ? '<b>⭐</b>' : '') + '</div>' + WD[(i + 1) % 7].slice(0, 3) + '</div>';
       if(!future && !(isT && !r)) counted++;
       if(r && num(r.pts) > 0 && !future){ shown++; ptsWeek += num(r.pts); }
       if(k === 'st') starsWeek++;
-      var lw = rec(addDays(dt, -7)); if(!future && !(isT && !r) && lw) ptsLast += num(lw.pts);
+      var lw = rec(addDays(dt, -7)); if(!future && !(isT && !r) && lw && addDays(dt, -7) >= J) ptsLast += num(lw.pts);
     }
-    var nm = esc(first()), title, line;
-    if(!counted){ title = 'A new week begins, ' + nm + '!'; line = 'Every sun you light up is a day you worked on your habits.'; }
+    var nm = esc(first()), title, line, eyebrow = 'My Journey · this week', newWeek = J > mon;
+    if(dn <= 1){ eyebrow = 'My Journey · Day 1'; title = 'Welcome to NIYAM, <em>' + nm + '</em>! 🎉'; line = 'Today your journey begins. Every task you tick lights up today’s sun — let’s make it glow! ☀️'; }
+    else if(!counted){ title = 'A new week begins, ' + nm + '!'; line = 'Every sun you light up is a day you worked on your habits.'; }
+    else if(newWeek){ eyebrow = 'My Journey · Day ' + dn; title = 'You showed up on <em>' + shown + ' of ' + counted + '</em> ' + (counted === 1 ? 'day' : 'days') + ' since you joined, ' + nm + '!'; line = 'What a start! Every sun is a day you worked on your habits.'; }
     else { title = 'You showed up on <em>' + shown + ' of ' + counted + '</em> ' + (counted === 1 ? 'day' : 'days') + ' this week, ' + nm + '!'; line = 'Every sun is a day you worked on your habits. A full, glowing sun is a great day.'; }
     var st = streakNow(), best = longestStreak().n, diff = ptsWeek - ptsLast;
-    var orbs = '<div class="orbs"><div class="orb"><div class="i">🔥</div><b>' + st + '</b><span>' + (st === 1 ? 'day' : 'days') + ' in a row</span><small>' + (best > st ? 'Best ever: ' + best : (st ? 'Your best ever!' : 'Start today!')) + '</small></div>'
-      + '<div class="orb"><div class="i">⭐</div><b>' + fmtN(ptsWeek) + '</b><span>points this week</span><small>' + (ptsLast ? (diff >= 0 ? '▲ ' + fmtN(diff) + ' more than last week' : 'Last week: ' + fmtN(ptsLast)) : 'Keep going!') + '</small></div>'
+    var stNote = dn <= 1 ? 'Your first streak starts today' : best > st ? 'Best ever: ' + best : (st ? 'Your best ever!' : 'Start today!');
+    var ptNote = dn <= 1 ? (ptsWeek ? 'Your very first points!' : 'Tick a task to earn points') : (ptsLast ? (diff >= 0 ? '▲ ' + fmtN(diff) + ' more than last week' : 'Last week: ' + fmtN(ptsLast)) : 'Keep going!');
+    var orbs = '<div class="orbs"><div class="orb"><div class="i">🔥</div><b>' + st + '</b><span>' + (st === 1 ? 'day' : 'days') + ' in a row</span><small>' + stNote + '</small></div>'
+      + '<div class="orb"><div class="i">⭐</div><b>' + fmtN(ptsWeek) + '</b><span>points ' + (newWeek ? 'since you joined' : 'this week') + '</span><small>' + ptNote + '</small></div>'
       + '<div class="orb"><div class="i">🏅</div><b>' + starsWeek + '</b><span>Star ' + (starsWeek === 1 ? 'Day' : 'Days') + ' this week</span><small>' + (starsWeek ? 'Shining bright!' : 'Almost all tasks = a Star Day') + '</small></div></div>';
     // the best day of this month, as a note
     var mk = t.slice(0, 7), bestD = null;
     days().forEach(function(d){ if(d && d.approved === true && d.date.slice(0, 7) === mk && (!bestD || num(d.pts) > num(bestD.pts))) bestD = d; });
-    var note = bestD && num(bestD.pts) > 0
+    var note = dn <= 1 ? '“Welcome aboard! Tonight your parent checks your day, and your points go into your Star Bank. Then your first sticker appears!” 🌱'
+      : bestD && num(bestD.pts) > 0 && bestD.date !== t
       ? '“' + WD[dObj(bestD.date).getDay()] + ' ' + dObj(bestD.date).getDate() + ' was your best day this month — ' + fmtN(bestD.pts) + ' points. You can do it again!” 🌟'
       : '“Small habits, every day. That is how big things grow.” 🌱';
-    return '<div class="hero"><div class="pgstars"></div><div class="hgrid"><div><div class="eyebrow">My Journey · this week</div><h1 class="r">' + title + '</h1><p>' + line + '</p><div class="suns">' + suns + '</div></div>'
+    return '<div class="hero"><div class="pgstars"></div><div class="hgrid"><div><div class="eyebrow">' + eyebrow + '</div><h1 class="r">' + title + '</h1><p>' + line + '</p><div class="suns">' + suns + '</div></div>'
       + '<div>' + orbs + '<div class="note k">' + note + '</div></div></div></div>';
   }
 
@@ -239,8 +254,11 @@
       return '<div class="md" style="--bg:' + bg + ';--bd:' + bd + ';--c:' + cc + ';--rb:' + rb + ';--sh:' + sh + '"><div class="m">' + ic + '</div><b>' + n + '</b><div class="n">' + name + '</div><div class="d">' + desc + '</div></div>';
     };
     var goal = 7, left = Math.max(0, goal - c.st);
-    var next = left ? left + ' more Star ' + (left === 1 ? 'Day' : 'Days') + ' this month and you earn the <b>Shining Month</b> badge.' : 'You earned the <b>Shining Month</b> badge this month! 🏅';
-    var h = '<div class="card"><h2 class="r">My medal shelf</h2><div class="sub">' + MONTHS[+mk.slice(5) - 1] + '. Every day is measured against <b>your own</b> full day — ' + fmtN(full) + ' points on a school day.</div><div class="medals">'
+    var tt0 = today(), endM = new Date(+tt0.slice(0, 4), +tt0.slice(5, 7), 0).getDate(), daysLeft = endM - (+tt0.slice(8)) + 1;
+    var next = (left && left > daysLeft) ? (c.st ? 'Lovely! Keep going for more Star Days next month — 7 in a month earns the <b>Shining Month</b> badge.' : 'Aim for your first <b>Star Day</b> ⭐ — tick almost every task in one day.')
+      : left ? left + ' more Star ' + (left === 1 ? 'Day' : 'Days') + ' this month and you earn the <b>Shining Month</b> badge.' : 'You earned the <b>Shining Month</b> badge this month! 🏅';
+    var J = joined(), since = J.slice(0, 7) === mk ? 'Since you joined on ' + dObj(J).getDate() + ' ' + MONTHS[dObj(J).getMonth()].slice(0, 3) + '.' : MONTHS[+mk.slice(5) - 1] + '.';
+    var h = '<div class="card"><h2 class="r">My medal shelf</h2><div class="sub">' + since + ' Every day is measured against <b>your own</b> full day — ' + fmtN(full) + ' points on a school day.</div><div class="medals">'
       + md('st', c.st, 'Star ' + (c.st === 1 ? 'Day' : 'Days'), 'almost everything done', '#FFF8E1', '#FCE7A8', 'radial-gradient(circle at 35% 30%,#FFF3C4,#FFC83D 55%,#E09B00)', '#5B2A9B', 'rgba(224,155,0,.6)', '⭐')
       + md('gr', c.gr, 'Great ' + (c.gr === 1 ? 'Day' : 'Days'), 'three-quarters done', '#F4F6FA', '#DDE3EC', 'radial-gradient(circle at 35% 30%,#FFFFFF,#CBD5E1 55%,#94A3B8)', '#0EA5E9', 'rgba(100,116,139,.5)', '🌈')
       + md('go', c.go, 'Good ' + (c.go === 1 ? 'Day' : 'Days'), 'half the day done', '#FDF2EA', '#F6D7BF', 'radial-gradient(circle at 35% 30%,#FFE3C8,#F2A66A 55%,#C2703A)', '#16A34A', 'rgba(194,112,58,.5)', '👍')
@@ -255,7 +273,7 @@
     if(four) pbs.push(['🧠', 'All four', 'Brain Lab challenges on ' + plural(four, 'day', 'days')]);
     h += '<h3 class="r" style="margin:20px 0 4px;font-size:20px;color:#5B2A9B">My personal bests</h3>'
       + (pbs.length ? pbs.map(function(p){ return '<div class="pgb"><span>' + p[0] + '</span><div><b>' + p[1] + '</b>' + esc(p[2]) + '</div></div>'; }).join('')
-                    : '<div class="pgb"><span>🌱</span><div><b>Coming soon</b>your records appear here once your parent approves your days</div></div>');
+                    : '<div class="pgb"><span>🌱</span><div><b>Your first records are on their way</b>they appear here once your parent approves your days</div></div>');
     return h + '</div>';
   }
   function words(){ return (typeof wbWords !== 'undefined' && Array.isArray(wbWords)) ? wbWords : []; }
@@ -272,12 +290,13 @@
     for(var i = 0; i < lead; i++) c += '<div class="c e"></div>';
     for(var dn = 1; dn <= n; dn++){
       var ds = PG.month + '-' + String(dn).padStart(2, '0'), r = rec(ds), k = r ? (r.approved === true ? kindOf(r) : (num(r.pts) > 0 ? 'w' : '')) : '';
-      c += '<div class="c ' + k + (ds === t ? ' t' : '') + '">' + (k ? '<span class="s">' + STICK[k] + '</span>' : '') + '<span>' + dn + '</span></div>';
+      var isJ = ds === joined();
+      c += '<div class="c ' + k + (ds === t ? ' t' : '') + (isJ && !k ? ' j' : '') + '">' + (k ? '<span class="s">' + STICK[k] + '</span>' : (isJ ? '<span class="s">🚀</span>' : '')) + '<span>' + (isJ ? 'Day 1' : dn) + '</span></div>';
     }
     var first0 = days().map(function(d){ return d && d.date; }).filter(Boolean).sort()[0] || t;
     return '<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><h2 class="r">My sticker calendar</h2><div class="sub">' + MONTHS[mo] + ' ' + y + ' · a sticker for every day your parent approves</div></div>'
       + '<div class="mnav"><button data-pg="m" data-v="-1"' + (PG.month <= first0.slice(0, 7) ? ' disabled' : '') + ' aria-label="Earlier month">‹</button><button data-pg="m" data-v="1"' + (PG.month >= t.slice(0, 7) ? ' disabled' : '') + ' aria-label="Later month">›</button></div></div>'
-      + '<div class="cal">' + c + '</div><div class="legend"><span>⭐ Star Day</span><span>🌈 Great Day</span><span>👍 Good Day</span><span>🌱 a start</span><span>⏳ waiting for your parent</span></div></div>';
+      + '<div class="cal">' + c + '</div><div class="legend">' + (joined().slice(0, 7) === PG.month ? '<span>🚀 Day 1 · your first day</span>' : '') + '<span>⭐ Star Day</span><span>🌈 Great Day</span><span>👍 Good Day</span><span>🌱 a start</span><span>⏳ waiting for your parent</span></div></div>';
   }
 
   // ---- 4. the habit garden -------------------------------------------------------------------------------
@@ -298,7 +317,7 @@
         blocks[key].ids[b.id] = 1; blocks[key][we ? 'we' : 'wd'] = true;
       });
     });
-    var span = []; for(var i = 13; i >= 0; i--) span.push(addDays(t, -i));
+    var J = joined(), span = []; for(var i = 13; i >= 0; i--){ var sd = addDays(t, -i); if(sd >= J) span.push(sd); }
     var kRows = []; try{ var K = window.niyamKindness && window.niyamKindness.state(); kRows = (K && K.rows) || []; }catch(e){}
     // the habits of the timetable in use today (school day or holiday), not both at once
     var useWe = false; try{ useWe = ttIsWeekendSchedule(); }catch(e){ useWe = weekend(t); }
@@ -314,20 +333,27 @@
         seen.push(ok); if(ok) done++;
       });
       return { icon:B.icon, name:B.name, seen:seen, done:done };
-    }).filter(function(p){ return p.seen.length; });
+    });
     if(kRows.length || window.niyamKindness){
       var seenK = [], doneK = 0;
       span.forEach(function(ds){ var ok = kRows.some(function(r){ return r.week === ds && (r.status === 'done' || r.status === 'confirmed'); }); if(ds === t && !ok) return; seenK.push(ok); if(ok) doneK++; });
       plants.push({ icon:'💛', name:'Kindness', seen:seenK, done:doneK });
     }
     if(!plants.length) return '';
+    if(plants.every(function(p){ return !p.seen.length; })){
+      return '<div class="card"><h2 class="r">My habit garden</h2><div class="sub">Your garden is planted! 🌱 Every habit is a seed. Do it today and tomorrow, and watch it grow into a sapling 🌿 and then a tree 🌳.</div><div class="garden">'
+        + plants.map(function(p){ return '<div class="pl"><div class="p">🌱</div><div class="soil"></div><b>' + esc(p.icon) + ' ' + esc(p.name) + '</b><span>planted today</span></div>'; }).join('') + '</div></div>';
+    }
     var h = plants.map(function(p){
-      var n = p.seen.length, r = n ? p.done / n : 0, plant = r >= 0.75 ? '🌳' : r >= 0.4 ? '🌿' : '🌱', dry = n >= 3 && r < 0.4;
+      var n = p.seen.length, r = n ? p.done / n : 0, dry = n >= 3 && r < 0.4;
+      // plants grow over days, not in one go: a tree needs 5 good days, a sapling 2
+      var plant = (p.done >= 5 && r >= 0.75) ? '🌳' : (p.done >= 2 && r >= 0.4) ? '🌿' : '🌱';
+      if(!n) return '<div class="pl"><div class="p">🌱</div><div class="soil"></div><b>' + esc(p.icon) + ' ' + esc(p.name) + '</b><span>just planted</span></div>';
       return '<div class="pl' + (dry ? ' wilt' : '') + '">' + (dry ? '<span class="tag">💧 needs water</span>' : '') + '<div class="p">' + plant + '</div><div class="soil"></div>'
         + '<b>' + esc(p.icon) + ' ' + esc(p.name) + '</b><span>' + p.done + ' of ' + plural(n, 'day', 'days') + '</span>'
         + '<div class="dots">' + p.seen.map(function(x){ return '<i class="' + (x ? 'on' : '') + '"></i>'; }).join('') + '</div></div>';
     }).join('');
-    return '<div class="card"><h2 class="r">My habit garden</h2><div class="sub">Each habit is a plant. Do it often and it grows from a seed 🌱 to a sapling 🌿 to a tree 🌳. Last 14 days.</div><div class="garden">' + h + '</div></div>';
+    return '<div class="card"><h2 class="r">My habit garden</h2><div class="sub">Each habit is a plant. Do it often and it grows from a seed 🌱 to a sapling 🌿 to a tree 🌳. ' + (span.length < 14 ? 'Since you joined.' : 'Last 14 days.') + '</div><div class="garden">' + h + '</div></div>';
   }
 
   // ---- 5. collections ----------------------------------------------------------------------------------------
@@ -357,7 +383,8 @@
   // ---- 6. points, day by day ---------------------------------------------------------------------------------
   function chartHtml(){
     var t = today(), N = 30, W = 1000, H = 170, slot = W / N, bw = slot - 8, svg = '', top = 1;
-    var ds = []; for(var i = N - 1; i >= 0; i--) ds.push(addDays(t, -i));
+    var J = joined(), ds = []; for(var i = N - 1; i >= 0; i--){ var cd = addDays(t, -i); if(cd >= J) ds.push(cd); }
+    N = ds.length; slot = W / Math.max(N, 7); bw = Math.min(slot - 8, 60);
     ds.forEach(function(d){ var r = rec(d); top = Math.max(top, r ? num(r.pts) : 0, dayMax(d)); });
     var COL = { st:'#F4B400', gr:'#8B5CF6', go:'#60A5FA', sm:'#86EFAC' };
     ds.forEach(function(d, i){
@@ -372,7 +399,7 @@
       + '<text x="' + W + '" y="' + (fy - 6).toFixed(1) + '" text-anchor="end" font-size="12" font-weight="800" fill="#B45309" font-family="Plus Jakarta Sans,sans-serif">full school day · ' + full + '</text>'
       + '<line x1="0" x2="' + W + '" y1="' + gy.toFixed(1) + '" y2="' + gy.toFixed(1) + '" stroke="#5B2A9B" stroke-dasharray="5 5" stroke-width="1.4" opacity=".6"/>'
       + '<text x="' + W + '" y="' + (gy - 6).toFixed(1) + '" text-anchor="end" font-size="12" font-weight="800" fill="#5B2A9B" font-family="Plus Jakarta Sans,sans-serif">a great day · ' + good + '</text>';
-    return '<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap"><div><h2 class="r">My points, day by day</h2><div class="sub">Last 30 days</div></div>'
+    return '<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap"><div><h2 class="r">My points, day by day</h2><div class="sub">' + (N < 30 ? 'Since you joined' : 'Last 30 days') + '</div></div>'
       + '<div class="legend" style="margin:0"><span style="color:#B45309">■ Star Day</span><span style="color:#7C3AED">■ Great Day</span><span style="color:#2563EB">■ Good Day</span><span style="color:#16A34A">■ a start</span><span style="color:#B45309">▨ waiting</span></div></div>'
       + '<svg viewBox="0 -18 ' + W + ' ' + (H + 22) + '" width="100%" style="display:block;margin-top:12px"><defs><pattern id="pgw" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#FDE68A"/><rect width="4" height="8" fill="#FCD34D"/></pattern></defs>' + svg + '</svg>'
       + '<div style="display:flex;justify-content:space-between;color:#9C97B8;font-size:12px;font-weight:700;margin-top:6px"><span>' + shortDay(ds[0]) + '</span><span>Today</span></div></div>';
