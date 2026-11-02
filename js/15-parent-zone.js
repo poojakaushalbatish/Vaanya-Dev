@@ -499,10 +499,10 @@
     var rows = '';
     m.parents.forEach(function(r){
       var sub = r.child ? first() + ' ticked it' : 'Not ticked by ' + first();
-      if(r.kind === 'shloka'){ var sh = R().shloka(d); sub = (sh.name ? 'Learning ' + sh.name + '. ' : '') + 'Full marks also marks the shloka as mastered.'; }
+      if(r.kind === 'shloka'){ var sh = R().shloka(d); sub = (sh.name ? 'Learning ' + sh.name + '. ' : '') + (r.a && r.a.levels ? 'Choosing Mastered also marks it as mastered in the Geeta tab.' : 'Full marks also marks the shloka as mastered.'); }
       if(r.kind === 'creative' && d.creativeChosen) sub = 'Chose: ' + d.creativeChosen;
       if(r.a && r.a.note && r.kind === 'award') sub += ' · ' + r.a.note;
-      var ch = R().chips(r.kind, r.max);
+      var ch = R().chips(r.kind, r.max, r.a && r.a.levels);
       rows += '<div class="srow"><div class="nm">' + esc(r.name) + '<small>' + esc(sub) + '</small></div>'
         + segHtml(ch.map(function(c){ return c.v; }), r.award, 'award', d.date, r.id, ch.map(function(c){ return c.label; })) + '</div>';
     });
@@ -586,7 +586,7 @@
   function adjRead(){ var F = PZ.adj; if(!F) return; var a = $('pz2-adj-amt'), w = $('pz2-adj-why'); if(a && a.value !== '') F.amt = num(a.value); if(w) F.why = w.value; }
 
   function carriedCard(c){
-    var key = c.date + '|' + c.it.id, sel = PZ.carry[key], ch = R().chips(c.it.kind, num(c.it.max));
+    var key = c.date + '|' + c.it.id, sel = PZ.carry[key], ch = R().chips(c.it.kind, num(c.it.max), c.it.levels);
     return '<div class="srow"><div class="nm">' + esc(c.it.name) + '<small>Left for later · ' + shortDay(c.date) + (c.it.info ? ' · ' + esc(c.it.info) : '') + '</small></div>'
       + '<div class="seg">' + ch.map(function(x){ return '<button class="' + (sel === x.v ? 'on' : '') + '" data-pz="carry" data-k="' + esc(key) + '" data-v="' + x.v + '" title="' + esc(x.label) + '">' + x.v + '</button>'; }).join('') + '</div>'
       + '<button class="btn sm dark" data-pz="csave" data-k="' + esc(key) + '"' + (sel === undefined || PZ.busy ? ' disabled' : '') + '>Save</button></div>';
