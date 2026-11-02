@@ -108,8 +108,13 @@
     if(/shloka|geeta/i.test((b.name||'') + ' ' + (a.name||''))) return 'shloka';
     return 'award';
   }
-  // The points a parent can pick for a task they score.
-  function chipsFor(kind, max){
+  // The points a parent can pick for a task they score. A task can carry its own
+  // named levels (Class 6 shloka: Started 10 / Partly learned 15 / Mastered 30);
+  // they are used only while the last level is still the task's full marks.
+  function chipsFor(kind, max, levels){
+    if(Array.isArray(levels) && levels.length && num(levels[levels.length - 1].v) === num(max)){
+      return [{ v:0, label:'Not yet · 0' }].concat(levels.map(function(l){ return { v:num(l.v), label:String(l.label || l.v) + ' · ' + num(l.v) }; }));
+    }
     var raw = (kind === 'creative') ? [0, round5(max*0.4), round5(max*0.7), max] : [0, round5(max*0.4), max];
     var vals = [];
     raw.forEach(function(v){ if(v >= 0 && v <= max && vals.indexOf(v) === -1) vals.push(v); });
@@ -420,7 +425,7 @@
       body += '<div class="rv-need-d">' + (r.child ? esc(child()) + ' marked this as done.' : 'You opened this to award points.')
             + (r.a.note ? ' ' + esc(r.a.note) : '') + '</div>';
     }
-    var chips = chipsFor(r.kind, r.max).map(function(c){
+    var chips = chipsFor(r.kind, r.max, r.a && r.a.levels).map(function(c){
       return '<button type="button" class="rv-chip' + (r.award === c.v ? ' on' : '') + '" data-do="award" data-id="'
            + esc(r.id) + '" data-v="' + c.v + '">' + esc(c.label) + '</button>';
     }).join('');
@@ -436,7 +441,7 @@
 
   function carriedCard(c){
     var key = c.date + '|' + c.it.id, sel = RV.carried[key];
-    var chips = chipsFor(c.it.kind, num(c.it.max)).map(function(x){
+    var chips = chipsFor(c.it.kind, num(c.it.max), c.it.levels).map(function(x){
       return '<button type="button" class="rv-chip' + (sel === x.v ? ' on' : '') + '" data-do="caward" data-key="'
            + esc(key) + '" data-v="' + x.v + '">' + esc(x.label) + '</button>';
     }).join('');
@@ -635,7 +640,7 @@
         var info = '';
         if(r.kind === 'creative') info = [d.creativeChosen, String(d.creativeDesc||'').trim()].filter(Boolean).join(' — ');
         if(r.kind === 'shloka') info = shlokaInfo(d).name;
-        later.push({ id:r.id, blockId:r.b.id, name:r.name, kind:r.kind, max:r.max, info:String(info||'').substring(0,300) });
+        later.push({ id:r.id, blockId:r.b.id, name:r.name, kind:r.kind, max:r.max, levels:(r.a && r.a.levels) || undefined, info:String(info||'').substring(0,300) });
       }
     });
     var bonus = gradeBonus(d.date, E.grade), adj = adjustSum(E.adjust), total = m.pts + bonus + adj;
