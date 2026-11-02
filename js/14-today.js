@@ -164,6 +164,15 @@
   + '#td-root .cols{display:grid;grid-template-columns:minmax(0,1fr);gap:0}'
   // timeline
   + '#td-root .tl-cap{color:#6B6788;margin:18px 0 10px}'
+  + '#td-root .ttnote{display:flex;gap:14px;align-items:center;justify-content:space-between;background:#FFF8EC;border:1px solid #F1DDB5;border-radius:16px;padding:12px 14px;margin:18px 0 -4px;animation:tdNote .5s ease}'
+  + '#td-root .ttnote .tx b{display:block;color:#7C2D12;font-size:15px;font-weight:800}'
+  + '#td-root .ttnote .tx span{display:block;color:#5B4A3A;font-size:13.5px;font-weight:600;line-height:1.5;margin-top:2px}'
+  + '#td-root .ttnote .tx span b{display:inline;font-size:13.5px;color:#7C2D12}'
+  + '#td-root .ttnote .bt{display:flex;gap:6px;align-items:center;flex:none}'
+  + '#td-root .ttnote .bt button{border:0;border-radius:99px;background:#7C2D12;color:#fff;font-weight:800;font-size:13px;padding:8px 14px;cursor:pointer;white-space:nowrap}'
+  + '#td-root .ttnote .bt button.x{background:transparent;color:#9A6B3C;font-size:22px;line-height:1;padding:4px 8px}'
+  + '@keyframes tdNote{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}'
+  + '@media (max-width:640px){#td-root .ttnote{flex-direction:column;align-items:stretch}#td-root .ttnote .bt{justify-content:space-between}}'
   + '#td-root .tt-block.state-current{box-shadow:0 12px 30px rgba(14,165,233,.15)!important}'
   + '#td-root #tt-blocks-container{position:relative;padding-left:66px;margin:0}'
   + '#td-root #tt-blocks-container:before{content:"";position:absolute;left:52px;top:10px;bottom:10px;width:3px;border-radius:3px;background:#E4E0F2}'
@@ -333,7 +342,7 @@
     if($('td-root')) return true;
     addStyles();
     var r = document.createElement('div'); r.id = 'td-root';
-    r.innerHTML = '<div id="td-hero"></div><div class="cols"><div><div class="cap tl-cap">My day</div><div id="td-tl"></div></div>'
+    r.innerHTML = '<div id="td-hero"></div><div class="cols"><div><div id="td-ttnote"></div><div class="cap tl-cap">My day</div><div id="td-tl"></div></div>'
       + '<div class="side"><div id="td-guide"></div><div id="td-pnote"></div><div id="td-kind-slot"></div><div id="td-also"></div><div id="td-thought"></div></div></div><div class="foot" id="td-foot"></div>';
     var lock = $('locked-banner');
     tab.insertBefore(r, lock ? lock.nextSibling : tab.firstChild);
@@ -477,7 +486,21 @@
             + (up ? 'Bonus · well done' + (nm ? ', ' + nm : '') + '! 🌟' : 'Points taken off · tomorrow is a new chance 💪') + ' · ' + dd.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' }) + '</small></span></div>';
         }).join('') + '</div>';
   }
+  // For a new family: NIYAM's timetable is a starting point. The note stays until a parent
+  // reviews the timetable in the Parent Zone; closing it (child or parent) hides it for today only.
+  function renderTTNote(){
+    var el = $('td-ttnote'); if(!el) return;
+    var pd = {}; try{ pd = (window.niyamProfileData && window.niyamProfileData()) || {}; }catch(e){}
+    var t = today(), hid = false; try{ hid = localStorage.getItem('niyam_ttnote_hide') === t; }catch(e){}
+    if(pd.tt_review_pending !== true || hid || dateOpen() !== t){ el.innerHTML = ''; el._h = ''; return; }
+    var cls = String(window.niyamChildClass || '').trim(), nm = String(childName()).split(' ')[0] || 'your child';
+    var html = '<div class="ttnote" role="note"><div class="tx"><b>NIYAM’s recommended timetable' + (cls ? ' for ' + esc(cls) : '') + '</b>'
+      + '<span>This timetable is a starting point. A parent can edit, add or remove any block or task to suit ' + esc(nm) + '’s school and routine in <b>Parent Zone → Timetable</b>.</span></div>'
+      + '<div class="bt"><button data-act="ttnote-open">Review timetable</button><button class="x" data-act="ttnote-x" aria-label="Hide this note for today" title="Hide for today">×</button></div></div>';
+    if(el._h !== html){ el._h = html; el.innerHTML = html; }   // redraw only when it changes, so it never flickers
+  }
   function renderSide(){
+    renderTTNote();
     renderGuide();
     renderParentNote();
     var el = $('td-also'); if(!el) return;
@@ -531,6 +554,12 @@
   function onClick(e){
     var b = e.target.closest('[data-act]'); if(!b || b.disabled) return;
     var act = b.getAttribute('data-act');
+    if(act === 'ttnote-x'){ try{ localStorage.setItem('niyam_ttnote_hide', today()); }catch(e){} renderTTNote(); return; }
+    if(act === 'ttnote-open'){
+      try{ sessionStorage.setItem('pz2-page', 'timetable'); }catch(e){}
+      var pb = $('ns-parent-btn'); if(pb) pb.click();          // asks for the parent PIN, then opens the Timetable page
+      return;
+    }
     if(act === 'prev' || act === 'next'){
       var inp = $('rpt-date'); if(!inp) return;
       var d = new Date((inp.value || today()) + 'T12:00:00'); d.setDate(d.getDate() + (act === 'prev' ? -1 : 1));
