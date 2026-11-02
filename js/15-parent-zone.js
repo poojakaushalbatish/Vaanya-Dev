@@ -294,10 +294,6 @@
   + '#pz2 .cal .c.S{outline:2px solid var(--brass);outline-offset:2px}'
   + '#pz2 .cal .c.E{border:0}'
   + '#pz2 .cal .c span b{font-family:Inter;font-size:12px;color:var(--ink);font-weight:700}'
-  + '#pz2 .hb{display:grid;grid-template-columns:minmax(0,180px) 1fr 44px;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--line2)}'
-  + '#pz2 .hb .bar{height:8px;background:var(--paper2);border-radius:99px;overflow:hidden}'
-  + '#pz2 .hb .bar i{display:block;height:100%;background:var(--ink)}'
-  + '#pz2 .hb.low .bar i{background:var(--rust)}'
   + '#pz2 .shg{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px}'
   + '#pz2 .shg button{aspect-ratio:1/1;border-radius:10px;border:1px solid var(--line);background:#fff;font-family:Fraunces,serif;font-size:14px;color:var(--mute);padding:0}'
   + '#pz2 .shg button.m{background:var(--sage);border-color:var(--sage);color:#fff}'
@@ -837,7 +833,7 @@
     left += geetaCard();
     // right column
     var right = PZ.sel ? dayDetail(PZ.sel) : '';
-    right += trendCard(inMonth, nDays, mk) + habitsCard(appr);
+    right += trendCard(inMonth, nDays, mk);
     return h + '<div class="cols" style="grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)"><div class="stack">' + left + '</div><div class="stack">' + right + '</div></div>';
   }
   function trendCard(inMonth, nDays, mk){
@@ -853,24 +849,6 @@
       + '<polyline points="' + line + '" fill="none" stroke="#151A2C" stroke-width="2.2" stroke-linejoin="round"/>'
       + xy.map(function(p){ return '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3" fill="#151A2C"/>'; }).join('') + '</svg>'
       + '<div style="display:flex;justify-content:space-between;color:var(--mute);font-size:11.5px;margin-top:6px"><span>1 ' + MONTHS[+mk.slice(5) - 1].slice(0, 3) + '</span><span style="color:var(--brass)">— a good day · ' + goodDay() + '</span><span>' + nDays + ' ' + MONTHS[+mk.slice(5) - 1].slice(0, 3) + '</span></div></div>';
-  }
-  function habitsCard(appr){
-    if(!appr.length) return '';
-    var agg = {}, order = [];
-    appr.forEach(function(d){
-      var m; try{ m = R().model(d); R().forget(d.date); }catch(e){ return; }
-      m.blocks.forEach(function(B){
-        var rs = B.rows.filter(function(r){ return !r.info; }); if(!rs.length) return;
-        var name = B.b.name || ''; if(!agg[name]){ agg[name] = { s:0, n:0 }; order.push(name); }
-        var dn = rs.filter(function(r){ return r.parent ? (r.award || 0) > 0 : r.done; }).length;
-        agg[name].s += dn / rs.length; agg[name].n++;
-      });
-    });
-    var kc = kRows().filter(function(r){ return r.status === 'confirmed' && appr.some(function(d){ return d.date === r.week; }); }).length;
-    var rows = order.map(function(nm){ return [nm, Math.round(agg[nm].s / agg[nm].n * 100)]; });
-    if(kRows().length) rows.push(['Act of Kindness', Math.round(kc / appr.length * 100)]);
-    return '<div class="card"><div class="ch"><h2>How often each part was done</h2><small style="color:var(--mute)">approved days</small></div>'
-      + rows.map(function(r){ return '<div class="hb' + (r[1] < 70 ? ' low' : '') + '"><span style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(r[0]) + '</span><div class="bar"><i style="width:' + r[1] + '%"></i></div><b class="num" style="text-align:right;font-weight:500">' + r[1] + '%</b></div>'; }).join('') + '</div>';
   }
   function dayDetail(date){
     var d = rec(date); if(!d) return '';
