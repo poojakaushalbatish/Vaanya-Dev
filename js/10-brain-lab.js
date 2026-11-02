@@ -38,13 +38,18 @@
 (function(){
   'use strict';
 
-  var PTS   = { riddle:5, hintCost:2, logic:3, maths:3, sudoku:{ easy:15, medium:30, hard:40 }, bonus:10 };
+  var PTS   = { riddle:5, hintCost:2, logic:3, maths:3, up:5, sudoku:{ easy:15, medium:30, hard:40 }, bonus:10 };
   var COUNT = { riddle:2, logic:5, maths:10 };
-  var GIVEN = { easy:36, medium:30, hard:27 };       // numbers shown at the start of a Sudoku (fewer = harder)
+  // Per class (Pooja, 2 Nov 2026). given = numbers shown at the start of a Sudoku (fewer = harder);
+  // timer = Maths Sprint minutes to start with; up = how many Level Up questions a day (worth PTS.up).
+  // A child only ever gets the questions of their OWN class — there is no fallback to another class.
+  var CLASSCFG = {
+    4: { given:{ easy:36, medium:30, hard:27 }, timer:10, up:{ logic:0, maths:0 } },
+    6: { given:{ easy:32, medium:27, hard:24 }, timer:15, up:{ logic:1, maths:3 } }
+  };
   var SUDOKU_LEAVES = { easy:1, medium:2, hard:3 };
   var TIMER_CHOICES = [0, 5, 10, 15, 20];            // minutes; 0 = no timer
-  var TIMER_DEFAULT = 10;
-  var GAMES = ['riddle', 'logic', 'maths', 'sudoku'];
+  var GAMES = ['maths', 'logic', 'sudoku', 'riddle'];   // order on the page (Pooja, 23 Oct 2026): Maths Sprint, Logic, Sudoku, Riddles
   var LOOK = {
     riddle: { name:'Riddles',      c:'#7A1F2B', unit:'Riddle',   icon:'bulb',  who:'with Birbal & Tenali Rama' },
     logic:  { name:'Logic',        c:'#0E6B70', unit:'Puzzle',   icon:'logic', who:'with Chanakya' },
@@ -129,7 +134,34 @@
   // ---- helpers ----------------------------------------------------------------
   function $(id){ return document.getElementById(id); }
   function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-  function classNo(){ return parseInt(String(window.niyamChildClass || '').replace(/\D/g,''), 10) || 4; }
+  // The child's class. 0 = not known yet: then nothing is loaded (never another class's questions).
+  function classNo(){ return parseInt(String(window.niyamChildClass || '').replace(/\D/g,''), 10) || 0; }
+  function cfg(){ var c = classNo(); return CLASSCFG[c] || (c >= 6 ? CLASSCFG[6] : CLASSCFG[4]); }
+  // Points for one question: Level Up questions are worth more.
+  function qPts(g, q){ return g === 'riddle' ? PTS.riddle : (q && q.level === 'up') ? PTS.up : PTS[g]; }
+  // Most points a game can give today (from the questions once loaded, else from the class plan).
+  function gameMax(g){
+    if(g === 'riddle') return COUNT.riddle * PTS.riddle;
+    var Q = (BL && BL.loaded) ? list(g) : [];
+    if(Q.length) return Q.reduce(function(t, q){ return t + qPts(g, q); }, 0);
+    var up = cfg().up[g] || 0;
+    return (COUNT[g] - up) * PTS[g] + up * PTS.up;
+  }
+  // A picture in a question or an answer is an SVG drawing written by us; anything else is refused.
+  function isFig(t){ return /^\s*<svg[\s>]/i.test(String(t || '')); }
+  function svgSafe(t){
+    t = String(t || '').trim();
+    if(!isFig(t) || /<script|<foreignObject|<iframe|<image|<use|\son[a-z]+\s*=|javascript:|href\s*=/i.test(t)) return '';
+    return t;
+  }
+  // The Brain Lab task maxima in the timetable follow the child's class.
+  function syncMax(){
+    try{
+      if(typeof TT_BRAIN_GAMES === 'undefined' || !classNo()) return;
+      TT_BRAIN_GAMES.forEach(function(x){ if(x.key === 'maths') x.max = gameMax('maths'); if(x.key === 'logic') x.max = gameMax('logic'); });
+    }catch(e){}
+  }
+  function stateCls(st){ return (st && +st.cls) || 4; }   // days saved before 2 Nov 2026 were all Class 4 questions
   function today(){ return new Date().toLocaleDateString('en-CA'); }
   function dateOpen(){ return ($('rpt-date') && $('rpt-date').value) || today(); }
   function days(){ return (typeof savedDays !== 'undefined' && Array.isArray(savedDays)) ? savedDays : []; }
@@ -159,17 +191,17 @@
 
   // ---- state --------------------------------------------------------------------
   function fresh(date){
-    return { date:date, view:'home', day:0, loaded:false, loading:false, error:'', celebrated:false,
+    return { date:date, cls:classNo(), view:'home', day:0, loaded:false, loading:false, error:'', celebrated:false,
       riddle:{ ans:{}, hint:{}, i:0, pick:'', done:false },
       logic: { ans:{}, i:0, pick:'', done:false },
-      maths: { ans:{}, i:0, pick:'', done:false, mins:TIMER_DEFAULT, started:false, endAt:0, left:0, paused:false },
+      maths: { ans:{}, i:0, pick:'', done:false, mins:cfg().timer, started:false, endAt:0, left:0, paused:false },
       sudoku:{ level:'', cells:{}, sel:-1, done:false, ok:false } };
   }
   // what is saved with the day
   function snapshot(){
     if(!BL) return null;
     var m = BL.maths;
-    return { v:2, day:BL.day, leaves:leavesToday(), celebrated:BL.celebrated,
+    return { v:3, cls:classNo(), day:BL.day, leaves:leavesToday(), celebrated:BL.celebrated,
       riddle:{ ans:BL.riddle.ans, hint:BL.riddle.hint, done:BL.riddle.done },
       logic: { ans:BL.logic.ans, done:BL.logic.done },
       maths: { ans:m.ans, done:m.done, mins:m.mins, started:m.started, endAt:m.endAt, left:m.left, paused:m.paused },
@@ -187,9 +219,10 @@
     return !!rec && ((+rec.savedSudokuPts||0) + (+rec.savedLogicPts||0) + (+rec.savedMathsPts||0) + (+rec.savedRiddlePts||0)) > 0;
   }
   // the child's own day: 1 + the days before this one on which they played
+  // Only days played with this class's questions count, so a new class starts at its own Day 1.
   function dayFor(date){
-    var n = 0;
-    days().forEach(function(d){ if(d && d.date && d.date < date && played(d, true)) n++; });
+    var n = 0, c = classNo();
+    days().forEach(function(d){ if(d && d.date && d.date < date && played(d, true) && stateCls(parse(d.brainStateJSON)) === c) n++; });
     return n + 1;
   }
   function streak(){
@@ -203,11 +236,12 @@
   }
   function ensure(){
     var date = dateOpen();
-    if(BL && BL.date === date) return;
+    if(BL && BL.date === date && BL.cls === classNo()) return;      // a new class (or the class just became known) starts afresh
     stopTick();
     BL = fresh(date);
     var rec = days().find(function(d){ return d.date === date; });
     var st = parse(rec && rec.brainStateJSON);
+    if(st && stateCls(st) !== classNo()) st = null;     // saved with another class's questions: start fresh
     if(st){
       BL.day = st.day || dayFor(date);
       BL.celebrated = !!st.celebrated;
@@ -238,7 +272,8 @@
   async function load(){
     if(!BL || BL.loaded || BL.loading) return;
     var cls = classNo(), key = cls + '|' + BL.day;
-    if(BANK[key]){ BL.loaded = true; return; }
+    if(!cls){ BL.error = 'noclass'; return; }
+    if(BANK[key]){ BL.loaded = true; syncMax(); return; }
     BL.loading = true;
     try{
       if(typeof _supabase === 'undefined' || !_supabase){ BL.error = 'offline'; return; }
@@ -252,15 +287,19 @@
       var r2 = await _supabase.from('brain_questions').select('*').eq('class', cls).eq('day', use);
       if(r2.error){ BL.error = 'offline'; console.warn('[brain] load:', r2.error); return; }
       var b = { riddle:[], logic:[], maths:[] };
-      (r2.data || []).forEach(function(q){ if(b[q.game]) b[q.game].push(q); });
+      (r2.data || []).forEach(function(q){ if(b[q.game] && +q.class === cls) b[q.game].push(q); });   // own class only
       Object.keys(b).forEach(function(g){ b[g].sort(function(x, y){ return x.slot - y.slot; }); b[g] = b[g].slice(0, COUNT[g]); });
-      BANK[key] = b; BL.loaded = true; BL.error = '';
+      BANK[key] = b; BL.loaded = true; BL.error = ''; syncMax();
     } finally {
       BL.loading = false;
       render();
     }
   }
   function opt(q, L){ return q ? q['option_' + L.toLowerCase()] : ''; }
+  // An answer as HTML: a drawing, or the escaped words.
+  function optHtml(q, L){ var t = opt(q, L); return isFig(t) ? '<span class="bl-ofig">' + svgSafe(t) + '</span>' : esc(t); }
+  // An answer named in a sentence: a drawing is named by its letter.
+  function ansText(q, L){ return isFig(opt(q, L)) ? 'option ' + esc(L) : esc(opt(q, L)); }
 
   // ---- points and leaves -----------------------------------------------------------
   function score(){
@@ -271,7 +310,7 @@
     });
     ['logic','maths'].forEach(function(g){
       var Q = list(g);
-      Object.keys(BL[g].ans).forEach(function(i){ var q = Q[i]; if(q && BL[g].ans[i] === q.answer) s[g] += PTS[g]; });
+      Object.keys(BL[g].ans).forEach(function(i){ var q = Q[i]; if(q && BL[g].ans[i] === q.answer) s[g] += qPts(g, q); });
     });
     if(BL.sudoku.ok) s.sudoku = PTS.sudoku[BL.sudoku.level] || 0;
     if(allDone()) s.bonus = PTS.bonus;
@@ -279,7 +318,7 @@
     return s;
   }
   function allDone(){ return BL.riddle.done && BL.logic.done && BL.maths.done && BL.sudoku.done; }
-  function maxToday(){ return COUNT.riddle * PTS.riddle + COUNT.logic * PTS.logic + COUNT.maths * PTS.maths + PTS.sudoku.hard + PTS.bonus; }
+  function maxToday(){ return gameMax('riddle') + gameMax('logic') + gameMax('maths') + PTS.sudoku.hard + PTS.bonus; }
   function rightCount(g){
     var Q = list(g), n = 0;
     Object.keys(BL[g].ans).forEach(function(i){ if(Q[i] && BL[g].ans[i] === Q[i].answer) n++; });
@@ -402,7 +441,7 @@
     var sol = new Array(81).fill(0); fill(sol, r);
     var p = sol.slice(), given = 81;
     var order = shuffled(Array.from({ length:81 }, function(_, i){ return i; }), r);
-    for(var k = 0; k < order.length && given > GIVEN[level]; k++){
+    for(var k = 0; k < order.length && given > cfg().given[level]; k++){
       var i = order[k], keep = p[i]; p[i] = 0;
       if(countSol(p.slice(), 2) !== 1) p[i] = keep; else given--;
     }
@@ -526,6 +565,13 @@
   + '#bl-root .bl-q .topic{font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--c)}'
   + '#bl-root .bl-q .q{font-size:19px;font-weight:700;line-height:1.45;margin-top:6px;white-space:pre-line}'
   + '#bl-root .bl-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}'
+  + '#bl-root .bl-up{display:inline-block;margin-left:8px;background:#B91C1C;color:#fff;border-radius:99px;padding:1px 9px;font-size:11px;letter-spacing:.04em;vertical-align:1px}'
+  + '#bl-root .bl-fig{margin:12px auto 0;background:#FFFDF7;border:1px solid var(--line);border-radius:14px;padding:10px;max-width:440px}'
+  + '#bl-root .bl-fig svg{display:block;width:100%;height:auto;max-height:240px}'
+  + '#bl-root .bl-fig.sm{max-width:300px;margin:8px 0 0}'
+  + '#bl-root .bl-opt.fig{flex-direction:column;align-items:stretch;gap:4px;padding:6px 8px 8px}'
+  + '#bl-root .bl-opt .lt{font-size:13px;font-weight:800;text-align:left}'
+  + '#bl-root .bl-ofig svg{display:block;width:100%;height:auto;max-height:130px}'
   + '#bl-root .bl-opts.one{grid-template-columns:1fr}'
   + '#bl-root .bl-opt{border:2px solid var(--line);border-radius:14px;padding:10px 12px;font-size:17px;font-weight:800;text-align:center;background:#fff;min-height:54px;'
   +   'display:flex;align-items:center;justify-content:center;gap:6px;line-height:1.3}'
@@ -688,7 +734,7 @@
         if(g === 'maths') status += ' · ' + leavesOf('maths') + ' leaves';
       } else if(g === 'sudoku') status = '1, 2 or 3 leaves';
       else if(g === 'maths') status = COUNT.maths + ' questions · up to ' + COUNT.maths + ' leaves';
-      else status = COUNT[g] + ' ' + (g === 'riddle' ? 'riddles' : 'puzzles') + ' · up to ' + COUNT[g] * PTS[g] + ' pts';
+      else status = COUNT[g] + ' ' + (g === 'riddle' ? 'riddles' : 'puzzles') + ' · up to ' + gameMax(g) + ' pts';
       var label = started ? 'Carry on' + (g !== 'sudoku' ? ' · ' + (firstOpen(g) + 1) + ' of ' + COUNT[g] : '') : 'Start';
       h += '<button class="bl-arch' + (done ? ' done' : '') + (isNext ? ' next' : '') + '" style="--c:' + L.c + '" data-act="' + (done ? 'review' : 'go') + '" data-g="' + g + '">'
         + iconSeal(g) + '<h3>' + L.name + '</h3><div class="bl-who">' + esc(L.who) + '</div>' + leaves
@@ -707,6 +753,7 @@
   function noQuestions(g){
     var msg = BL.error === 'missing' ? 'The question table is not set up yet. Ask your parent to finish the Brain Lab setup.'
             : BL.error === 'empty'   ? 'There are no questions for Class ' + classNo() + ' yet. They are coming soon!'
+            : BL.error === 'noclass' ? 'Your class is not set yet, so there are no questions to show. Ask your parent to check the class in the Parent Zone.'
             : BL.error === 'offline' ? 'Could not load today’s questions. Check the internet and try again.'
             : 'Loading today’s questions…';
     return top(g, '') + '<div class="bl-card" style="margin-top:18px;font-weight:700;text-align:center">' + msg
@@ -722,8 +769,8 @@
     if(S.done && S._showSummary) return summaryHtml(g);
     var i = S.i, q = Q[i] || Q[0], ans = S.ans[i], answered = ans !== undefined, m = mentorFor(g, i);
     var ok = answered && ans === q.answer;
-    var pts = g === 'riddle' && S.hint[i] ? PTS.riddle - PTS.hintCost : PTS[g];
-    var right = g === 'maths' ? clockChip() : PTS[g] + ' pts · 1 leaf';
+    var pts = g === 'riddle' && S.hint[i] ? PTS.riddle - PTS.hintCost : qPts(g, q);
+    var right = g === 'maths' ? clockChip() : qPts(g, q) + ' pts · 1 leaf';
     var head = top(g, L.unit + ' ' + (i + 1) + ' of ' + COUNT[g] + ' · with ' + m.name, right);
     head += '<div class="bl-progress">';
     for(var k = 0; k < COUNT[g]; k++){
@@ -735,24 +782,28 @@
     var mentor = (g === 'maths' && S.mins ? runClock() : '') + (answered ? bubble(m, m.name + ' explains', steps(q.explanation))
                : bubble(m, m.name + ' says', esc(g === 'maths' ? m.tips[i % m.tips.length] : mentorSays(m, i))));
 
-    var qa = '<div class="bl-q"><div class="topic">' + esc(q.topic || L.name) + '</div><div class="q">' + esc(q.question) + '</div></div>';
+    var up = q.level === 'up' ? '<span class="bl-up">Level Up · ' + PTS.up + ' pts</span>' : '';
+    var fig = svgSafe(q.figure);
+    var qa = '<div class="bl-q"><div class="topic">' + esc(q.topic || L.name) + up + '</div><div class="q">' + esc(q.question) + '</div>'
+      + (fig ? '<div class="bl-fig">' + fig + '</div>' : '') + '</div>';
     if(g === 'riddle' && q.hint){
       if(S.hint[i]) qa += '<div class="bl-hint">' + icon('bulb', 22, 2.2, '#9A6400') + '<div><small>' + esc(m.name) + ' whispers a hint · −' + PTS.hintCost + ' pts</small>' + esc(q.hint) + '</div></div>';
       else if(!answered) qa += '<button class="bl-hint" data-act="hint">' + icon('bulb', 22, 2.2, '#9A6400') + '<div><small>Stuck?</small>Ask ' + esc(m.name) + ' for a hint (costs ' + PTS.hintCost + ' points)</div></button>';
     }
-    var long = ['A','B','C','D'].some(function(Lt){ return String(opt(q, Lt) || '').length > 22; });
-    qa += '<div class="bl-opts' + (long ? ' one' : '') + '">';
+    var figs = ['A','B','C','D'].some(function(Lt){ return isFig(opt(q, Lt)); });
+    var long = !figs && ['A','B','C','D'].some(function(Lt){ return String(opt(q, Lt) || '').length > 22; });
+    qa += '<div class="bl-opts' + (long ? ' one' : '') + (figs ? ' figs' : '') + '">';
     ['A','B','C','D'].forEach(function(Lt){
       var cls = 'bl-opt';
       if(answered){ cls += Lt === q.answer ? ' right' : Lt === ans ? ' wrong' : ' dim'; }
       else if(S.pick === Lt) cls += ' pick';
-      qa += '<button class="' + cls + '" data-act="pick" data-l="' + Lt + '"' + (answered ? ' disabled' : '') + '>'
-        + (answered && Lt === q.answer ? '✓ ' : '') + esc(opt(q, Lt)) + '</button>';
+      qa += '<button class="' + cls + (figs ? ' fig' : '') + '" data-act="pick" data-l="' + Lt + '"' + (answered ? ' disabled' : '') + '>'
+        + (figs ? '<span class="lt">' + (answered && Lt === q.answer ? '✓ ' : '') + Lt + '</span>' + optHtml(q, Lt) : (answered && Lt === q.answer ? '✓ ' : '') + esc(opt(q, Lt))) + '</button>';
     });
     qa += '</div>';
     if(answered){
       qa += ok ? '<div class="bl-win"><span class="big">+' + pts + '</span> points <span style="display:flex;align-items:center;gap:4px;margin-left:auto">' + leafIcon(16) + ' +1 leaf on your tree</span></div>'
-               : '<div class="bl-win miss">' + (ans === '-' ? 'Time ran out for this one.' : 'Not this time — and no leaf is lost.') + ' The answer is ' + esc(opt(q, q.answer)) + '.</div>';
+               : '<div class="bl-win miss">' + (ans === '-' ? 'Time ran out for this one.' : 'Not this time — and no leaf is lost.') + ' The answer is ' + ansText(q, q.answer) + '.</div>';
     }
     var next = answered
       ? '<button class="bl-btn" data-act="next">' + (i >= COUNT[g] - 1 ? 'See how I did' : 'Next ' + L.unit.toLowerCase()) + '</button>'
@@ -811,7 +862,7 @@
     var M = BL.maths, m = MENTOR.ramanujan;
     var left = bubble(m, 'Ramanujan says', esc(m.says))
       + '<div class="bl-card" style="margin-top:12px"><div style="font-weight:800;margin-bottom:6px">How the sprint works</div>'
-      + '<ol class="bl-steps" style="margin:0"><li>' + COUNT.maths + ' questions, ' + PTS.maths + ' points and 1 leaf for each right answer.</li>'
+      + '<ol class="bl-steps" style="margin:0"><li>' + COUNT.maths + ' questions, ' + PTS.maths + ' points and 1 leaf for each right answer' + (cfg().up.maths ? ' — the last ' + cfg().up.maths + ' are Level Up questions worth ' + PTS.up + ' points' : '') + '.</li>'
       + '<li>Choose your own time on the clock — the points are the same whatever you choose.</li>'
       + '<li>The clock stops while you read each explanation.</li></ol></div>' + fact();
     var right = '<div class="bl-card bl-clockcard"><div class="bl-disp" style="font-size:24px;color:var(--indigo)">Set your clock</div>'
@@ -820,7 +871,7 @@
       + '<div class="bl-disp" style="font-size:30px;color:var(--indigo);line-height:1">' + (M.mins ? M.mins + ' minutes' : 'No timer') + '</div>'
       + '<button class="bl-notimer' + (M.mins ? '' : ' on') + '" data-act="mins" data-m="0">' + (M.mins ? 'No timer — I’ll go at my own pace' : '✓ No timer — going at my own pace') + '</button>'
       + '<button class="bl-btn" data-act="start-sprint">Start the sprint</button></div>';
-    return '<div style="--c:' + LOOK.maths.c + '">' + top('maths', COUNT.maths + ' questions · with Ramanujan', PTS.maths + ' pts each')
+    return '<div style="--c:' + LOOK.maths.c + '">' + top('maths', COUNT.maths + ' questions · with Ramanujan', 'up to ' + gameMax('maths') + ' pts')
       + '<div class="bl-setup"><div class="s-clock">' + right + '</div><div class="s-info">' + left + '</div></div></div>';
   }
 
@@ -848,7 +899,8 @@
       cols[i % 2] += '<div class="bl-card" style="margin-bottom:12px"><div style="display:flex;gap:8px;align-items:flex-start">'
         + '<span style="flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:' + (ok ? '#DDF0D8' : '#F9DEDC') + '">'
         + icon(ok ? 'check' : 'cross', 14, 3, ok ? '#3D7A3A' : '#C0504D') + '</span><div style="font-weight:800;line-height:1.45">' + esc(q.question) + '</div></div>'
-        + '<div style="margin-top:8px;font-weight:800">Answer: ' + esc(opt(q, q.answer)) + (ok || a === undefined ? '' : a === '-' ? ' · time ran out' : ' · you chose ' + esc(opt(q, a))) + '</div>'
+        + (svgSafe(q.figure) ? '<div class="bl-fig sm">' + svgSafe(q.figure) + '</div>' : '')
+        + '<div style="margin-top:8px;font-weight:800">Answer: ' + ansText(q, q.answer) + (ok || a === undefined ? '' : a === '-' ? ' · time ran out' : ' · you chose ' + ansText(q, a)) + '</div>'
         + '<div style="margin-top:6px;font-weight:600;line-height:1.5;color:var(--soft)"><b style="color:var(--c)">' + esc(m.name) + ':</b> ' + esc(q.explanation) + '</div></div>';
     });
     return h + '<div>' + cols[0] + '</div><div>' + cols[1] + '</div></div><button class="bl-btn" data-act="home">Back to Brain Lab</button></div>';
@@ -874,7 +926,7 @@
       [['easy','Easy','a warm-up'],['medium','Medium','best for Class ' + classNo()],['hard','Hard','for champions']].forEach(function(x, k){
         var bars = ''; for(var b = 0; b < 3; b++) bars += '<i class="' + (b <= k ? 'on' : '') + '"></i>';
         h += '<button class="bl-level' + (S.pick === x[0] ? ' pick' : '') + '" data-act="level" data-lv="' + x[0] + '"><div class="bars">' + bars + '</div>'
-          + '<div><h4>' + x[1] + '</h4><p>' + GIVEN[x[0]] + ' numbers given · ' + x[2] + '</p></div>'
+          + '<div><h4>' + x[1] + '</h4><p>' + cfg().given[x[0]] + ' numbers given · ' + x[2] + '</p></div>'
           + '<div class="pts">' + PTS.sudoku[x[0]] + '<small>' + SUDOKU_LEAVES[x[0]] + (SUDOKU_LEAVES[x[0]] > 1 ? ' leaves' : ' leaf') + '</small></div></button>';
       });
       return h + '</div><button class="bl-btn" data-act="start-sudoku"' + (S.pick ? '' : ' disabled') + '>'
@@ -929,10 +981,10 @@
       + '<div style="display:flex;gap:10px;margin-top:10px"><div class="bl-chip" style="flex:1;text-align:left"><b>' + total + ' leaves</b>+' + todayN + ' today</div>'
       + '<div class="bl-chip pts" style="flex:1;text-align:right"><b>' + s.total + '</b>of ' + maxToday() + ' points</div></div>'
       + '</div><div><div class="bl-summary">'
-      + row(MENTOR.birbal, 'Riddles · ' + rightCount('riddle') + ' of ' + COUNT.riddle, s.riddle)
-      + row(MENTOR.chanakya, 'Logic · ' + rightCount('logic') + ' of ' + COUNT.logic, s.logic)
       + row(MENTOR.ramanujan, 'Maths Sprint · ' + rightCount('maths') + ' of ' + COUNT.maths, s.maths)
+      + row(MENTOR.chanakya, 'Logic · ' + rightCount('logic') + ' of ' + COUNT.logic, s.logic)
       + row(MENTOR.lilavati, 'Sudoku · ' + (BL.sudoku.ok ? BL.sudoku.level + ' solved' : BL.sudoku.level + ' tried'), s.sudoku)
+      + row(MENTOR.birbal, 'Riddles · ' + rightCount('riddle') + ' of ' + COUNT.riddle, s.riddle)
       + '<div><span style="width:30px;display:flex;justify-content:center">' + leafIcon(24, true) + '</span>All-four bonus + golden leaf<b>+' + s.bonus + '</b></div></div>'
       + '<div class="bl-card" style="margin-top:12px;font-weight:700">'
       + (newM.length ? '🌱 New on your tree today: <b style="color:var(--leaf)">' + newM.map(function(m){ return m[2]; }).join(', ') + '</b>!<br>' : '')
@@ -1063,6 +1115,12 @@
       if(id === 'brain'){ try{ if(BL && BL.date !== dateOpen()) BL = null; render(); }catch(e){ console.error('[brain] render:', e); } }
       return r;
     };
+  }
+
+  // The day's full marks (timetable, Progress medals) use this class's Brain Lab maxima.
+  if(typeof window.ttDayScore === 'function'){
+    var dayScore = window.ttDayScore;
+    window.ttDayScore = function(){ syncMax(); return dayScore.apply(this, arguments); };
   }
 
   window.niyamBrainLab = { render: render, state: function(){ return BL; }, score: function(){ ensure(); return score(); },
