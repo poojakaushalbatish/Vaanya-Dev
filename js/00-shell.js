@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-11-02 · Class 6 timetable and Brain Lab';
+  window.NIYAM_BUILD = '2026-11-02 · Class 6 + timetable note for new families';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   // Startup self-check: shout early if a required script tag is missing from
@@ -468,7 +468,7 @@
           load.then(function(r){ if(r && r[0] === 'ok'){ try{ if(typeof ttRender==='function') ttRender(); if(window.niyamToday) window.niyamToday.refresh(); }catch(e){} } });
         }
         else if(window.__niyamWelcome){
-          notice(window.__niyamWelcome + '’s day is ready. You can review or change the timetable any time in Parent Zone → Timetable.', false, 9000);
+          notice('Welcome to NIYAM — ' + window.__niyamWelcome + '’s day is ready.', false, 6000);
           window.__niyamWelcome = null;
         }
       });
@@ -579,7 +579,7 @@
     // S7 feature cards. locked:true = always included, cannot be switched off.
     var FEATURES=[
       {key:'timetable', icon:'\uD83D\uDDD3\uFE0F', name:'Daily Timetable',
-       desc:'Their day, block by block \u2014 built for their class.', locked:true},
+       desc:'Their day, block by block \u2014 built for their class. You can adjust it any time in the Parent Zone.', locked:true},
       {key:'approval',  icon:'\u2705', name:'Parent Review & Approval',
        desc:'You review the day and approve it. Points are banked only when you say so.', locked:true},
       {key:'rewards',   icon:'\uD83C\uDFC6', name:'Points & Rewards',
@@ -828,7 +828,8 @@
       var pd={
         child_name:Q.child_name, grade:cls,
         day_start:Q.day_start||null, day_start_hour:sh,
-        features:Q.features, setup_done:true, setup_at:new Date().toISOString()
+        features:Q.features, setup_done:true, setup_at:new Date().toISOString(),
+        tt_review_pending:true      // Today shows a note until a parent reviews the timetable (Pooja, 2 Nov 2026)
       };
       // Build this family's starting timetable from their class band FIRST, and
       // only then mark setup as done: a page closed half way never leaves a
