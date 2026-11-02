@@ -1059,9 +1059,15 @@
     var custom = !!(window.TT_CUSTOM && ((window.TT_CUSTOM.weekday || []).length || (window.TT_CUSTOM.weekend || []).length));
     var hid = PZ.T.hidden[which()] || { blocks:[], acts:{} }, nHid = hid.blocks.length + Object.keys(hid.acts).length;
     var h = '<div class="head"><div><div class="eyebrow">Timetable</div><h1>' + esc(first()) + '’s <em>day</em>, block by block</h1><p>'
-      + plural(list.filter(function(b){ return b.type !== 'break' && b.type !== 'locked-until-3pm'; }).length, 'block', 'blocks') + ' · up to ' + fmtN(mx) + ' points · ' + (custom ? 'your own timetable' : 'NIYAM’s timetable for ' + esc(window.niyamChildClass || 'his class')) + '</p></div>'
+      + plural(list.filter(function(b){ return b.type !== 'break' && b.type !== 'locked-until-3pm'; }).length, 'block', 'blocks') + ' · up to ' + fmtN(mx) + ' points · ' + (custom && !ttPending() ? 'your own timetable' : 'NIYAM’s timetable for ' + esc(window.niyamChildClass || 'his class')) + '</p></div>'
       + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div class="seg"><button class="' + (PZ.tt === 'school' ? 'on' : '') + '" data-pz="tt" data-v="school" style="padding:10px 16px">School day timetable</button><button class="' + (PZ.tt === 'holiday' ? 'on' : '') + '" data-pz="tt" data-v="holiday" style="padding:10px 16px">Holiday timetable</button></div>'
       + '<button class="btn dark" data-pz="tbadd">' + I('plus') + 'Add a block</button></div></div>';
+    var pd = {}; try{ pd = (window.niyamProfileData && window.niyamProfileData()) || {}; }catch(e){}
+    if(pd.tt_review_pending === true)
+      h += '<div class="card" style="margin-bottom:16px;background:#FFF8EC;border-color:#F1DDB5;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap">'
+        + '<div style="flex:1;min-width:240px"><b style="font-size:15px">This is NIYAM’s recommended timetable' + (window.niyamChildClass ? ' for ' + esc(window.niyamChildClass) : '') + '.</b>'
+        + '<div style="color:var(--mute);font-size:13.5px;margin-top:3px">Tap any block to change it, add or remove tasks, and check both the school day and holiday timetables. When it suits ' + esc(first()) + '’s routine, save your changes — or keep it as it is.</div></div>'
+        + '<button class="btn dark" data-pz="ttkeep"' + (PZ.busy ? ' disabled' : '') + '>Keep NIYAM’s timetable</button></div>';
     h += '<div class="cols edcols" style="grid-template-columns:minmax(0,1fr) ' + (PZ.tdraft ? '380px' : '0') + '"><div><div class="card tt">' + (rows || '<p style="color:var(--mute)">No blocks yet.</p>') + '</div>'
       + '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:12px 4px 0;color:var(--mute);font-size:12.5px"><span>Tap a block to change it.' + (nHid ? ' Blocks of switched-off parts of the app are kept aside and come back if you switch them on.' : '') + '</span>'
       + '<button class="lnk" data-pz="tdefault">Use NIYAM’s suggested timetable</button></div></div><div>' + (PZ.tdraft ? ttEditor() : '') + '</div></div>';
@@ -1082,6 +1088,14 @@
     }
     return '';
   }
+  function ttPending(){ try{ return ((window.niyamProfileData && window.niyamProfileData()) || {}).tt_review_pending === true; }catch(e){ return false; } }
+  // The parent has looked at the timetable: the note on the child's Today page goes away for good.
+  async function ttReviewed(){
+    var pd = {}; try{ pd = (window.niyamProfileData && window.niyamProfileData()) || {}; }catch(e){}
+    if(pd.tt_review_pending !== true || !window.niyamSaveProfileData) return;
+    try{ await window.niyamSaveProfileData({ tt_review_pending:false }); }catch(e){ console.warn('[parent zone] timetable note:', e); }
+    try{ if(window.niyamToday) window.niyamToday.light(); }catch(e){}
+  }
   async function ttSaveAll(msg){
     PZ.busy = true; render();
     try{
@@ -1089,6 +1103,7 @@
       try{ if(typeof window.niyamRefreshPlan === 'function') window.niyamRefreshPlan(); }catch(e){}
       try{ if(typeof ttRender === 'function') ttRender(); }catch(e){}
       PZ.T = null; PZ.tdraft = null; PZ.tnew = false; PZ.terr = '';
+      await ttReviewed();
       toast(msg); return true;
     }catch(err){ PZ.terr = 'Could not save: ' + (err && err.message ? err.message : err) + ' — your changes are still here, try again.'; return false; }
     finally{ PZ.busy = false; render(); }
@@ -1269,6 +1284,18 @@
     if(act === 'relearn'){ relearnShloka(id); return; }
     // Timetable
     if(act === 'tt'){ PZ.tt = v; PZ.tdraft = null; PZ.terr = ''; render(); return; }
+    if(act === 'ttkeep'){
+      if(PZ.busy) return;
+      PZ.busy = true; render();
+      (async function(){
+        var ok = true;
+        try{ await window.niyamSaveProfileData({ tt_review_pending:false }); }catch(e){ ok = false; }
+        try{ if(window.niyamToday) window.niyamToday.light(); }catch(e){}
+        PZ.busy = false; render();
+        toast(ok ? 'Done — ' + first() + ' will follow NIYAM’s timetable. You can change it here any time.' : 'Could not save. Please check the internet and try again.');
+      })();
+      return;
+    }
     if(act === 'tsel'){ var tb = PZ.T[which()].find(function(x){ return x.id === id; }); if(tb){ PZ.tdraft = clone(tb); PZ.tnew = false; PZ.terr = ''; render(); } return; }
     if(act === 'tbadd'){ PZ.tdraft = { id:uid('cblk'), name:'', icon:'', activities:[{ id:uid('cact'), name:'', pts:5, type:'self', note:'' }] }; PZ.tdraft._s = null; PZ.tdraft._e = null; PZ.tnew = true; PZ.terr = ''; render(); return; }
     if(act === 'tclose'){ PZ.tdraft = null; PZ.terr = ''; render(); return; }
