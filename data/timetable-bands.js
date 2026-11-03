@@ -561,10 +561,13 @@ var NIYAM_CLASS_DEFS = {
         { name:'Learn a shloka and its meaning, then say it to a parent', pts:30, type:'parent', levels:NIYAM_SHLOKA_LEVELS,
           note:'Find it in the Geeta — Soul Work tab · your parent gives 10 (started), 15 (partly learned) or 30 (mastered)' }
       ]},
-      { key:'values', name:'Values & Family Talk', icon:'📿', mins:15, type:'normal', pal:'violet',
-        about:'Time with a parent: share one good thing from your day and talk about one good value.', acts:[
-        { name:'Tell a parent one good thing you did today', pts:5, type:'self' },
-        { name:'Talk about one good value — honesty, kindness or patience', pts:5, type:'self' }
+      { key:'values', name:'Values & Today’s Big Idea', icon:'💡', mins:15, type:'normal', pal:'violet',
+        about:'Talk with a parent about one good value. Then write what you know about today’s Big Idea, read the facts, and explain it to your parent.', acts:[
+        { name:'Talk about one good value — honesty, kindness or patience', pts:5, type:'self' },
+        { name:'Today’s Big Idea — write what you know, then read the facts', pts:5, type:'self', bigidea:'write',
+          note:'Tap to write · at least 40 words · guessing is allowed' },
+        { name:'Explain today’s Big Idea to a parent in 2 minutes', pts:10, type:'self', bigidea:'teach',
+          note:'Opens after you have written about it' }
       ]},
       { key:'wind', name:'Get Ready for Bed', icon:'🌙', mins:15, type:'normal', pal:'violet',
         about:'Do your night routine and get ready for bed. End the day by saying “Thank you God” and thanking your parents.', acts:[
@@ -659,6 +662,168 @@ var NIYAM_CLASS_DEFS = {
       { key:'wind', name:'Get Ready for Bed', icon:'🌙', mins:15, type:'normal', pal:'violet',
         about:'Do your night routine and get ready for bed. End the day by saying “Thank you God” and thanking your parents.', acts:[
         { name:'Keep your uniform, shoes and school bag ready for tomorrow', pts:5, type:'self' },
+        { name:'Brush your teeth and wash up', pts:5, type:'self' },
+        { name:'Say “Thank you God” and “Thank you” to your parents for today', pts:5, type:'self' }
+      ]},
+      { key:'sleep', name:'Sleep', icon:'😴', mins:0, type:'break', pal:'grey',
+        about:'Lights out. Good sleep helps you grow and remember what you learned.', acts:[] }
+    ]
+  },
+  // Class 7 — agreed with Pooja on 2 Nov 2026 (Class 7 Plan doc). A busier, more grown-up day:
+  // homework and revision together, one flexible slot for tuition / coaching / focus study,
+  // and "Teach & Talk — Today's Big Idea" at night (js/18-big-idea.js).
+  7: {
+    label: 'Class 7',
+    defaultStart: 15,           // school ends 3:00 PM (the parent's choice moves it)
+    lunchUntil: 15.75,          // Lunch & Rest runs from school end until 3:45 PM
+    bedtime: 21.75,             // 9:45 PM
+    lateFrom: 15.5,             // school ending at 3:30 PM or later…
+    lateBedtime: 22,            // …blocks shorten first, bedtime 10:00 PM at the latest
+    weekendStart: 7,            // 7:00 AM
+    weekendBedtime: 21.75,      // 9:45 PM
+    weekday: [
+      { key:'lunch', name:'Lunch & Rest', icon:'🍱', mins:45, type:'break', pal:'grey',
+        about:'Eat your lunch, rest and relax after school. No tasks in this block.', acts:[] },
+      { key:'homework', name:'Homework & School Work', icon:'✏️', mins:90, min:60, type:'normal', pal:'blue',
+        about:'Finish today’s homework, go over each subject taught today, and practise questions from your books.', acts:[
+        { name:'Finish all of today’s homework', pts:20, type:'self' },
+        { name:'Revise today’s lessons, subject by subject', pts:10, type:'self' },
+        { name:'Practise questions from your book — enter your marks', pts:0, type:'pct-calc', maxCalcPts:15,
+          note:'Enter your marks; the app works out the points (up to 15)' }
+      ]},
+      { key:'play', name:'Sport & Outdoor', icon:'⚽', mins:45, min:30, type:'normal', pal:'green',
+        about:'Play a sport or exercise outdoors. A fit body keeps a busy mind sharp.', acts:[
+        { name:'Play a sport or exercise outdoors for 30 minutes', pts:15, type:'self' }
+      ]},
+      { key:'tuition', name:'Tuition, Coaching or Focus Study', icon:'🎯', mins:60, min:45, type:'normal', pal:'indigo',
+        about:'Your tuition, coaching or activity class. On a free day, do two 25-minute focus sessions with your phone in another room.', acts:[
+        { name:'Attend your tuition, coaching or activity class — or do two 25-minute focus sessions, phone away', pts:25, type:'self' }
+      ]},
+      { key:'brain', name:'Brain Lab', icon:'🧠', mins:30, min:20, type:'normal', pal:'violet',
+        about:'The puzzles are in the Brain Lab tab of this app. Tap a task below to open it — the points come in automatically.', acts:[
+        { name:'Brain Lab — Riddle of the day', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' },
+        { name:'Brain Lab — Logic puzzles', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' },
+        { name:'Brain Lab — Maths Sprint', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' }
+      ]},
+      { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:30, min:20, type:'wordbook-inline', pal:'green',
+        about:'Read any book you like and add the new words you find to your dictionary — with the meaning and a sentence. You can add words any time of the day: every 3 words earn 10 points.', acts:[
+        { name:'Read a book and add new words to your dictionary', pts:10, type:'wordbook',
+          note:'10 pts for every 3 words, up to 9 words a day' }
+      ]},
+      { key:'help', name:'Help at Home', icon:'🏠', mins:15, type:'normal', pal:'green',
+        about:'Take charge of one job at home without being asked — the table, the plants, folding clothes.', acts:[
+        { name:'Take charge of one job at home without being asked', pts:15, type:'self' }
+      ]},
+      { key:'dinner', name:'Dinner', icon:'🍽️', mins:30, type:'normal', pal:'grey',
+        about:'Family dinner. When you finish, put your plate away and clean your place at the table.', acts:[
+        { name:'Finish your dinner, put your plate away and clean your table', pts:10, type:'self' }
+      ]},
+      { key:'shloka', name:'Geeta — Shloka & Meaning', icon:'🕉️', mins:30, min:20, type:'normal', pal:'amber',
+        about:'Your shlokas are in the Geeta — Soul Work tab of this app. Learn one and what it means, then say it to a parent. Your parent gives the points.', acts:[
+        { name:'Learn a shloka and its meaning, then say it to a parent', pts:30, type:'parent', levels:NIYAM_SHLOKA_LEVELS,
+          note:'Find it in the Geeta — Soul Work tab · your parent gives 10 (started), 15 (partly learned) or 30 (mastered)' }
+      ]},
+      { key:'bigidea', name:'Teach & Talk — Today’s Big Idea', icon:'💡', mins:15, type:'normal', pal:'amber',
+        about:'One big idea every night. Write what you know or think, read the facts, then explain it to a parent in two minutes — like a teacher.', acts:[
+        { name:'Today’s Big Idea — write what you know, then read the facts', pts:5, type:'self', bigidea:'write',
+          note:'Tap to write · at least 60 words · guessing is allowed' },
+        { name:'Explain today’s Big Idea to a parent in 2 minutes', pts:10, type:'self', bigidea:'teach',
+          note:'Opens after you have written about it' }
+      ]},
+      { key:'wind', name:'Get Ready for Bed', icon:'🌙', mins:15, type:'normal', pal:'violet',
+        about:'Do your night routine and get ready for bed. End the day by saying “Thank you God” and thanking your parents.', acts:[
+        { name:'Pack your bag and check tomorrow’s timetable', pts:5, type:'self' },
+        { name:'Brush your teeth and wash up', pts:5, type:'self' },
+        { name:'Say “Thank you God” and “Thank you” to your parents for today', pts:5, type:'self' }
+      ]},
+      { key:'sleep', name:'Sleep', icon:'😴', mins:0, type:'break', pal:'grey',
+        about:'Lights out. Good sleep helps you grow and remember what you learned.', acts:[] }
+    ],
+    weekend: [
+      { key:'rise', name:'Wake Up & Get Ready', icon:'🌅', mins:45, type:'normal', pal:'amber',
+        about:'Wake up, freshen up, make your bed and get ready for the day.', acts:[
+        { name:'Wake up on time', pts:5, type:'self' },
+        { name:'Make your bed and get ready by yourself', pts:5, type:'self' }
+      ]},
+      { key:'puja', name:'Prayer & Yoga', icon:'🪔', mins:45, type:'normal', pal:'amber',
+        about:'Morning prayer and yoga. Learn one new asana each weekend and tell your parents what it is good for.', acts:[
+        { name:'Pray and do a few yoga asanas', pts:10, type:'self' },
+        { name:'Learn a new yoga asana and its benefits, then tell your parents about it', pts:10, type:'self' }
+      ]},
+      { key:'tidy', name:'Tidy Up & Breakfast', icon:'🧺', mins:45, type:'normal', pal:'teal',
+        about:'Set your bookshelf, desk and wardrobe in order, then have a healthy breakfast.', acts:[
+        { name:'Tidy your bookshelf, desk and wardrobe', pts:20, type:'self' },
+        { name:'After breakfast, put your plate away and clean your table', pts:10, type:'self' }
+      ]},
+      { key:'wstudy', name:'Weekend Study', icon:'📖', mins:150, type:'normal', pal:'blue',
+        about:'Finish any pending school work or project, revise this week’s lessons and prepare for the weekly test.', acts:[
+        { name:'Finish any pending school work or project', pts:10, type:'self' },
+        { name:'Revise this week’s lessons', pts:15, type:'self' },
+        { name:'Practise for the weekly test — enter your marks', pts:0, type:'pct-calc', maxCalcPts:20,
+          note:'Enter your marks; the app works out the points (up to 20)' }
+      ]},
+      { key:'snack1', name:'Fruit, Snacks & Relax', icon:'🍎', mins:60, type:'break', pal:'grey',
+        about:'Have some fruit or a snack and relax as you like.', acts:[] },
+      { key:'brain', name:'Brain Lab', icon:'🧠', mins:60, type:'normal', pal:'violet',
+        about:'The puzzles are in the Brain Lab tab of this app. On weekends there is also Ramanujan’s Challenge. The points come in automatically.', acts:[
+        { name:'Brain Lab — Riddle of the day', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' },
+        { name:'Brain Lab — Logic puzzles', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' },
+        { name:'Brain Lab — Maths Sprint', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' },
+        { name:'Brain Lab — Sudoku', pts:0, type:'link', tab:'brain', note:'Tap to open the Brain Lab tab' }
+      ]},
+      { key:'wlunch', name:'Lunch', icon:'🍱', mins:30, type:'normal', pal:'grey',
+        about:'Lunch time. When you finish, put your plate away and clean your table.', acts:[
+        { name:'Finish your lunch, put your plate away and clean your table', pts:20, type:'self' }
+      ]},
+      { key:'reading', name:'Book Reading + New Words', icon:'📚', mins:45, type:'wordbook-inline', pal:'green',
+        about:'Read any book you like and add the new words you find to your dictionary — with the meaning and a sentence. You can add words any time of the day: every 3 words earn 10 points.', acts:[
+        { name:'Read a book and add new words to your dictionary', pts:10, type:'wordbook',
+          note:'10 pts for every 3 words, up to 9 words a day' }
+      ]},
+      { key:'olympiad', name:'Olympiad Practice', icon:'🏅', mins:90, type:'normal', pal:'indigo',
+        about:'Go a step beyond school: solve Olympiad practice questions and check your answers.', acts:[
+        { name:'Solve Olympiad practice questions — enter your marks', pts:0, type:'pct-calc', maxCalcPts:25,
+          note:'Enter your marks; the app works out the points (up to 25)' }
+      ]},
+      { key:'hobby', name:'Hobby, Skill or Activity Class', icon:'🎵', mins:45, type:'normal', pal:'rose',
+        about:'Your hobby, your activity class, or something creative — music, dance, art, a sport or coding.', acts:[
+        { name:'Practise your hobby, attend your activity class, or make something creative', pts:15, type:'self' }
+      ]},
+      { key:'snack2', name:'Evening Snack', icon:'🥤', mins:15, type:'break', pal:'grey',
+        about:'Have your evening snack. No tasks in this block.', acts:[] },
+      { key:'play', name:'Sport & Outdoor', icon:'⚽', mins:105, type:'normal', pal:'green',
+        about:'Play a sport or exercise outdoors. A fit body keeps a busy mind sharp.', acts:[
+        { name:'Play a sport or exercise outdoors for 45 minutes', pts:15, type:'self' }
+      ]},
+      { key:'family', name:'Grandparents & Family Time', icon:'👨‍👩‍👧', mins:30, type:'normal', pal:'teal',
+        about:'Time with grandparents and family — talk, call them, or play a game together.', acts:[
+        { name:'Spend time with your grandparents, or call them', pts:10, type:'self' },
+        { name:'Play a game or do something together as a family', pts:10, type:'self' }
+      ]},
+      { key:'shloka', name:'Geeta — Shloka & Wisdom', icon:'🕉️', mins:30, type:'normal', pal:'amber',
+        about:'Your shlokas are in the Geeta — Soul Work tab of this app. Learn one and what it means, then say it to a parent. Your parent gives the points.', acts:[
+        { name:'Learn a shloka and its meaning, then say it to a parent', pts:30, type:'parent', levels:NIYAM_SHLOKA_LEVELS,
+          note:'Find it in the Geeta — Soul Work tab · your parent gives 10 (started), 15 (partly learned) or 30 (mastered)' },
+        { name:'Say an old shloka again from memory', pts:5, type:'self' }
+      ]},
+      { key:'help', name:'Help at Home', icon:'🏠', mins:15, type:'normal', pal:'green',
+        about:'Help with a bigger job at home, and tidy your room.', acts:[
+        { name:'Help with a bigger job — cleaning, shopping or cooking', pts:15, type:'self' },
+        { name:'Tidy your room', pts:10, type:'self' }
+      ]},
+      { key:'dinner', name:'Dinner', icon:'🍽️', mins:30, type:'normal', pal:'grey',
+        about:'Family dinner. When you finish, put your plate away and clean your place at the table.', acts:[
+        { name:'Finish your dinner, put your plate away and clean your table', pts:10, type:'self' }
+      ]},
+      { key:'values', name:'Values & Week Review', icon:'📿', mins:30, type:'normal', pal:'violet',
+        about:'Look back at your week with a parent, talk about one good value, and pick one goal for next week.', acts:[
+        { name:'Tell a parent one good thing from your week', pts:5, type:'self' },
+        { name:'Talk about one good value — honesty, kindness or patience', pts:5, type:'self' },
+        { name:'Pick one goal for next week and tell your parents', pts:10, type:'self' }
+      ]},
+      { key:'wind', name:'Get Ready for Bed', icon:'🌙', mins:15, type:'normal', pal:'violet',
+        about:'Do your night routine and get ready for bed. End the day by saying “Thank you God” and thanking your parents.', acts:[
+        { name:'Pack your bag for tomorrow', pts:5, type:'self' },
         { name:'Brush your teeth and wash up', pts:5, type:'self' },
         { name:'Say “Thank you God” and “Thank you” to your parents for today', pts:5, type:'self' }
       ]},
