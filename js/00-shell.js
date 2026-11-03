@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-11-02 · Class 6 + timetable note for new families';
+  window.NIYAM_BUILD = '2026-11-03 · Big Ideas from Supabase; Class 6 Big Idea';
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   // Startup self-check: shout early if a required script tag is missing from
