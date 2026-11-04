@@ -1,1193 +1,1276 @@
-// ============================================================================
-// NIYAM — js/10-brain-lab.js
-// The Brain Lab tab: four daily challenges set by great Indian thinkers, and
-// the child's own banyan tree, which grows a leaf for every right answer.
-// Loads LAST, after js/09-parent-review.js. Replaces the old Brain Lab screens
-// (their markup stays in index.html, hidden, because old code still reads it).
-//
-//   Riddles       with Birbal & Tenali Rama   2 a day, hint costs 2 pts   5 pts each
-//   Logic         with Chanakya               5 a day                    3 pts each
-//   Maths Sprint  with Ramanujan              10 a day, own timer        3 pts each
-//   Sudoku        from Lilavati's puzzle book Easy / Medium / Hard       15 / 30 / 40
-//   All four done the same day                                         +10 bonus
-//
-// Leaves: 1 for every right answer, Sudoku 1 / 2 / 3 by level, and a golden
-// leaf for finishing all four. A wrong answer never takes a leaf away. The tree
-// belongs to the child and keeps growing from class to class; at MILESTONES it
-// changes (a butterfly, aerial roots, a parrot …). Leaves change nothing in
-// the points.
-//
-// Each game can be played at any time of day, once; then it waits for tomorrow.
-//
-// Where the questions come from: the Supabase table brain_questions (see
-// brain-questions-table.sql), one row per question, filtered by the child's
-// class and DAY. The day is the child's OWN day: Day 1 is the first day they
-// played Brain Lab, and it only moves on on days they play, so a child who
-// misses a week does not skip a week of questions. When the table has fewer
-// days than the child has reached, the days start again from Day 1.
-// Sudoku needs no table: the puzzle is built here from the class, the day and
-// the level, so every child on the same day gets the same puzzle.
-//
-// Points go into the same numbers the rest of the app already uses:
-// riddlePtsTotal, logicPtsTotal, mathsPtsToday, sudokuPts — and the all-four
-// bonus into worksheetPts (Worksheets were removed on 14 Oct 2026; the parent
-// review page shows it as "All-four bonus"). What the child did is saved with
-// the day as brainStateJSON (with that day's leaves, so the tree can be
-// counted without the old questions).
-// ============================================================================
-(function(){
-  'use strict';
+// ════════════════════════════════════════════
+// GRAPHS / PROGRESS TAB — fix #1 + #2
+// ════════════════════════════════════════════
+// ════════════════════════════════════════════
+// VICTORY CUPS — thresholds out of 515 pts
+// ════════════════════════════════════════════
+const CUPS = [
+  {
+    id:'bronze', name:'Bronze', icon:'🥉', threshold:200,
+    bg:'linear-gradient(135deg,#92400E,#B45309,#D97706)',
+    border:'#D97706', glow:'rgba(217,119,6,.6)',
+    desc:'Good start! Earn 200+ pts in a day.',
+    expert:'You showed up and did your part — that is the first step to greatness!'
+  },
+  {
+    id:'silver', name:'Silver', icon:'🥈', threshold:320,
+    bg:'linear-gradient(135deg,#374151,#6B7280,#9CA3AF)',
+    border:'#9CA3AF', glow:'rgba(156,163,175,.7)',
+    desc:'Solid effort! Earn 320+ pts in a day.',
+    expert:'You completed most tasks with focus. Now push past your comfort zone!'
+  },
+  {
+    id:'gold', name:'Gold', icon:'🥇', threshold:420,
+    bg:'linear-gradient(135deg,#78350F,#B45309,#F59E0B)',
+    border:'#F59E0B', glow:'rgba(245,158,11,.8)',
+    desc:'Excellent! Earn 420+ pts in a day.',
+    expert:'Outstanding discipline today! This is what champions are made of!'
+  },
+  {
+    id:'diamond', name:'Diamond', icon:'💎', threshold:490,
+    bg:'linear-gradient(135deg,#1E3A8A,#2563EB,#06B6D4)',
+    border:'#06B6D4', glow:'rgba(6,182,212,.9)',
+    desc:'Elite! Earn 490+ pts — near perfect day!',
+    expert:'PHENOMENAL! You have achieved near-perfection. Vaanya, you are extraordinary!'
+  },
+];
 
-  var PTS   = { riddle:5, hintCost:2, logic:3, maths:3, up:5, sudoku:{ easy:15, medium:30, hard:40 }, bonus:10, challenge:10 };
-  var COUNT = { riddle:2, logic:5, maths:10 };
-  // Per class (Pooja, 2 Nov 2026). given = numbers shown at the start of a Sudoku (fewer = harder);
-  // timer = Maths Sprint minutes to start with; up = how many Level Up questions a day (worth PTS.up).
-  // A child only ever gets the questions of their OWN class — there is no fallback to another class.
-  var CLASSCFG = {
-    4: { given:{ easy:36, medium:30, hard:27 }, timer:10, up:{ logic:0, maths:0 } },
-    6: { given:{ easy:32, medium:27, hard:24 }, timer:15, up:{ logic:1, maths:3 } },
-    7: { given:{ easy:30, medium:26, hard:23 }, timer:15, up:{ logic:2, maths:4 } },
-    8: { given:{ easy:28, medium:24, hard:21 }, timer:15, up:{ logic:3, maths:5 } }    // Pooja, 4 Nov 2026
-  };
-  var SUDOKU_LEAVES = { easy:1, medium:2, hard:3 };
-  var TIMER_CHOICES = [0, 5, 10, 15, 20];            // minutes; 0 = no timer
-  var GAMES = ['maths', 'logic', 'sudoku', 'riddle'];   // order on the page (Pooja, 23 Oct 2026): Maths Sprint, Logic, Sudoku, Riddles
-  var LOOK = {
-    riddle: { name:'Riddles',      c:'#7A1F2B', unit:'Riddle',   icon:'bulb',  who:'with Birbal & Tenali Rama' },
-    logic:  { name:'Logic',        c:'#0E6B70', unit:'Puzzle',   icon:'logic', who:'with Chanakya' },
-    maths:  { name:'Maths Sprint', c:'#33307A', unit:'Question', icon:'bolt',  who:'with Ramanujan' },
-    sudoku: { name:'Sudoku',       c:'#3D7A3A', unit:'',         icon:'grid',  who:'from Lilavati’s puzzle book' },
-    challenge:{ name:'Ramanujan’s Challenge', c:'#33307A', unit:'', icon:'bolt', who:'weekends only' }
-  };
-  // The thinker who sets each challenge: initials for the seal, and what they say.
-  var MENTOR = {
-    birbal:   { name:'Birbal',      seal:'बी', c:'#7A1F2B', says:'A riddle from Emperor Akbar’s court. Think before you answer!' },
-    tenali:   { name:'Tenali Rama', seal:'ते', c:'#7A1F2B', says:'A riddle from King Krishnadevaraya’s court. Don’t let it trick you!' },
-    chanakya: { name:'Chanakya',    seal:'चा', c:'#0E6B70', says:['A wise mind looks for the rule hiding inside.', 'Read slowly. Every word is a clue.',
-                'Think one step at a time.', 'Check each answer against the rule.', 'The last one! Stay calm and think it through.'] },
-    ramanujan:{ name:'Ramanujan',   seal:'रा', c:'#33307A', says:'Numbers are friends. Some are fast friends, some are slow friends — take the time you need.',
-                tips:['Read every number carefully.', 'Break it into small steps.', 'Make a quick guess first, then check it.', 'Look for a shortcut — there often is one.',
-                'You are doing well. Keep going!', 'Which operation does the question need?', 'Check the units: rupees, minutes, metres?', 'Halfway there — stay calm.',
-                'Write the steps in your head, one by one.', 'The last one! Think it through.'] },
-    lilavati: { name:'Lilavati’s puzzle book', seal:'ली', c:'#3D7A3A',
-                says:'Bhaskaracharya wrote a book of maths puzzles more than 850 years ago and named it after his daughter, Lilavati. Here is today’s puzzle!' }
-  };
-  function mentorFor(g, i){
-    if(g === 'riddle') return i === 1 ? MENTOR.tenali : MENTOR.birbal;
-    return g === 'logic' ? MENTOR.chanakya : g === 'maths' ? MENTOR.ramanujan : MENTOR.lilavati;
-  }
-  function mentorSays(m, i){ return Array.isArray(m.says) ? m.says[i % m.says.length] : m.says; }
+function getDayCup(pts){
+  let cup = null;
+  for(const cu of CUPS){ if(pts >= cu.threshold) cup = cu; }
+  return cup;
+}
 
-  // What grows on the tree, and when (total leaves).
-  var MILESTONES = [
-    [10,   'branch',    'its first branch'],
-    [50,   'butterfly', 'a butterfly'],
-    [100,  'root1',     'its first aerial root'],
-    [150,  'parrot',    'a parrot'],
-    [250,  'swing',     'a swing'],
-    [400,  'figs',      'red banyan figs'],
-    [600,  'squirrels', 'a squirrel family'],
-    [800,  'root2',     'a second aerial root'],
-    [1000, 'bench',     'a bench, and a 1,000-leaf certificate'],
-    [1500, 'nest',      'a nest with baby birds'],
-    [2000, 'fireflies', 'fireflies'],
-    [3000, 'full',      'branches across the whole courtyard'],
-    [4000, 'great',     'the Great Banyan'] ];
+function renderGraphs(){
+  const days=[...savedDays]
+    .filter(d=>d.approved===true)
+    .sort((a,b)=>new Date(a.date)-new Date(b.date))
+    .slice(-30);
 
-  // "Did you know?" — one a day, about Indian thinkers. Checked by Pooja and Claude.
-  var FACTS = [
-    'Chanakya taught at Takshashila, one of the world’s oldest centres of learning, more than 2,000 years ago.',
-    'Chanakya helped Chandragupta Maurya become emperor and start the Maurya Empire.',
-    'Chanakya is believed to have written the Arthashastra, a book about how to run a kingdom well.',
-    'Birbal was one of the “nine jewels” — the nine most gifted people — in Emperor Akbar’s court.',
-    'Birbal’s name before he joined Akbar’s court was Mahesh Das.',
-    'Tenali Rama was a poet in the court of King Krishnadevaraya of the Vijayanagara Empire, about 500 years ago.',
-    'Tenali Rama was one of the eight great poets of Krishnadevaraya’s court, and he wrote in Telugu.',
-    'Srinivasa Ramanujan was born in Erode, Tamil Nadu, on 22 December 1887.',
-    'India celebrates National Mathematics Day every year on 22 December — Ramanujan’s birthday.',
-    'As a teenager, Ramanujan taught himself from a borrowed book of about 5,000 maths results.',
-    'In 1913 Ramanujan wrote a letter full of new ideas to G. H. Hardy at Cambridge, and Hardy invited him to England.',
-    '1729 is called the Ramanujan number: it is the smallest number you can make by adding two cubes in two different ways (1³ + 12³ and 9³ + 10³).',
-    'Ramanujan became a Fellow of the Royal Society in 1918, at just 30 years old.',
-    'Aryabhata wrote his famous book, the Aryabhatiya, in the year 499, when he was only 23.',
-    'Aryabhata explained that the Earth spins on its own axis — that is why the stars seem to move across the sky.',
-    'Aryabhata worked out that pi is about 3.1416 — very close to the value we use today.',
-    'India’s first satellite, launched in 1975, was named Aryabhata.',
-    'Bhaskaracharya finished his maths book Lilavati in the year 1150.',
-    'Many of the puzzles in Lilavati are written as little poems — one is about bees flying around lotus flowers.',
-    'About 1,400 years ago, Brahmagupta wrote down rules for adding, subtracting and multiplying with zero.',
-    'The digits 0 to 9 that the whole world uses today first developed in India.',
-    'In 1980 Shakuntala Devi multiplied two 13-digit numbers in her head in 28 seconds. People called her “the human computer”.',
-    'About 2,500 years ago, Panini wrote nearly 4,000 short rules that describe the whole of Sanskrit grammar.',
-    'More than 2,000 years ago, Pingala wrote patterns of short and long beats that work like the binary numbers computers use today.',
-    'Baudhayana’s Sulba Sutra, written more than 2,500 years ago, gives a rule about right-angled triangles that we now call the Pythagoras theorem.',
-    'Sushruta, a doctor of ancient India, described more than 300 kinds of surgery.',
-    'The ancient thinker Kanada said that everything is made of tiny particles, which he called “anu”.',
-    'About 600 years ago, Madhava of Sangamagrama in Kerala found new ways to work out pi very accurately.',
-    'C. V. Raman won the Nobel Prize in Physics in 1930. India celebrates National Science Day on 28 February for his discovery.',
-    'Varahamihira wrote about stars, weather, plants and animals in his great book, the Brihat Samhita, about 1,500 years ago.'
-  ];
-  var PRAISE = ['Brilliant thinking', 'Sharp thinking', 'What a mind', 'Wonderful work', 'Great thinking', 'Your tree is proud of you'];
-
-  var BL = null;          // the Brain Lab day open on the child's page
-  var BANK = {};          // "class|day" -> { riddle:[], logic:[], maths:[] }
-  var MAXDAY = {};        // class -> highest day in the table
-  var TICK = null;        // sprint timer
-
-  // ---- helpers ----------------------------------------------------------------
-  function $(id){ return document.getElementById(id); }
-  function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-  // The child's class. 0 = not known yet: then nothing is loaded (never another class's questions).
-  function classNo(){ return parseInt(String(window.niyamChildClass || '').replace(/\D/g,''), 10) || 0; }
-  function cfg(){ var c = classNo(); return CLASSCFG[c] || (c >= 6 ? CLASSCFG[6] : CLASSCFG[4]); }
-  // Points for one question: Level Up questions are worth more.
-  function qPts(g, q){ return g === 'riddle' ? PTS.riddle : (q && q.level === 'up') ? PTS.up : PTS[g]; }
-  // Most points a game can give today (from the questions once loaded, else from the class plan).
-  function gameMax(g){
-    if(g === 'riddle') return COUNT.riddle * PTS.riddle;
-    var Q = (BL && BL.loaded) ? list(g) : [];
-    if(Q.length) return Q.reduce(function(t, q){ return t + qPts(g, q); }, 0);
-    var up = cfg().up[g] || 0;
-    return (COUNT[g] - up) * PTS[g] + up * PTS.up;
-  }
-  // A picture in a question or an answer is an SVG drawing written by us; anything else is refused.
-  function isFig(t){ return /^\s*<svg[\s>]/i.test(String(t || '')); }
-  function svgSafe(t){
-    t = String(t || '').trim();
-    if(!isFig(t) || /<script|<foreignObject|<iframe|<image|<use|\son[a-z]+\s*=|javascript:|href\s*=/i.test(t)) return '';
-    return t;
-  }
-  // The Brain Lab task maxima in the timetable follow the child's class.
-  function syncMax(){
-    try{
-      if(typeof TT_BRAIN_GAMES === 'undefined' || !classNo()) return;
-      TT_BRAIN_GAMES.forEach(function(x){ if(x.key === 'maths') x.max = gameMax('maths'); if(x.key === 'logic') x.max = gameMax('logic'); });
-    }catch(e){}
-  }
-  function stateCls(st){ return (st && +st.cls) || 4; }   // days saved before 2 Nov 2026 were all Class 4 questions
-  // Ramanujan's Challenge: one very hard extra question on Saturdays and Sundays (classes that have them,
-  // data/brain-challenges.js). No hints, no clock, one try, +10 points and 2 leaves.
-  function chList(){ var C = window.NIYAM_BRAIN_CHALLENGES || {}; return C[String(classNo())] || []; }
-  function isWeekend(date){ var d = new Date(String(date) + 'T12:00:00').getDay(); return d === 0 || d === 6; }
-  function chAvail(){ return !!(BL && classNo() && isWeekend(BL.date) && chList().length); }
-  function chQ(){
-    if(!chAvail()) return null;
-    var S = BL.challenge, L = chList();
-    if(!(S.idx >= 0)){
-      var n = 0, c = classNo();
-      days().forEach(function(d){ if(!d || !d.date || d.date >= BL.date) return; var st = parse(d.brainStateJSON); if(st && st.challenge && st.challenge.idx >= 0 && stateCls(st) === c) n++; });
-      S.idx = n % L.length;
-    }
-    return L[S.idx] || null;
-  }
-  function chRight(){ var q = chQ(); return !!(q && BL.challenge.ans[0] !== undefined && BL.challenge.ans[0] === q.answer); }
-  function today(){ return new Date().toLocaleDateString('en-CA'); }
-  function dateOpen(){ return ($('rpt-date') && $('rpt-date').value) || today(); }
-  function days(){ return (typeof savedDays !== 'undefined' && Array.isArray(savedDays)) ? savedDays : []; }
-  function parse(s){ try{ var v = JSON.parse(s); return (v && typeof v === 'object') ? v : null; }catch(e){ return null; } }
-  function childName(){ return window.niyamChildName || ''; }
-  function possessive(){ var n = childName(); return n ? esc(n) + '’s' : 'My'; }
-
-  var ICON = {
-    bulb:  '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
-    logic: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 7.5l3 8M16 7.5l-3 8M8.5 6h7"/>',
-    bolt:  '<path d="M13 3L5 13h6l-1 8 8-10h-6l1-8z"/>',
-    grid:  '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16"/>',
-    check: '<path d="M5 12l5 5 9-10"/>',
-    cross: '<path d="M6 6l12 12M18 6L6 18"/>',
-    back:  '<path d="M15 6l-6 6 6 6"/>',
-    clock: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9.5 2.5h5"/>',
-    flame: '<path d="M12 3c1 3 4 4.5 4 8.5A4 4 0 0 1 8 11.5c0-1.6.8-2.6 1.6-3.4.3 1.5 1.1 2.2 1.9 2.2 0-2.6-.5-4.8.5-7.3z"/>'
-  };
-  function icon(k, size, sw, color){
-    return '<svg width="' + (size||22) + '" height="' + (size||22) + '" viewBox="0 0 24 24" fill="none" stroke="' + (color || 'currentColor') + '" stroke-width="' + (sw||2.4)
-      + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON[k] + '</svg>';
-  }
-  function leafIcon(size, gold){
-    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4C9 4 4 10 4 20c10 0 16-5 16-16z" fill="'
-      + (gold ? '#F2A007' : '#5FA86B') + '"' + (gold ? ' stroke="#C47F00" stroke-width="1"' : '') + '/></svg>';
+  const pc=document.getElementById('perf-card');
+  if(days.length<1){
+    if(pc)pc.innerHTML=`<div style="text-align:center;padding:30px;color:var(--muted)">
+      <div style="font-size:48px;margin-bottom:10px">🏆</div>
+      <div style="font-size:16px;font-weight:800">No approved days yet!</div>
+      <div style="font-size:12px;margin-top:6px">Get your first report approved by Parents Review to see your progress!</div>
+    </div>`;
+    document.getElementById('cups-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;padding:20px">Earn your first approved report to unlock Victory Cups! 🏆</div>';
+    return;
   }
 
-  // ---- state --------------------------------------------------------------------
-  function fresh(date){
-    return { date:date, cls:classNo(), view:'home', day:0, loaded:false, loading:false, error:'', celebrated:false,
-      riddle:{ ans:{}, hint:{}, i:0, pick:'', done:false },
-      logic: { ans:{}, i:0, pick:'', done:false },
-      maths: { ans:{}, i:0, pick:'', done:false, mins:cfg().timer, started:false, endAt:0, left:0, paused:false },
-      sudoku:{ level:'', cells:{}, sel:-1, done:false, ok:false },
-      challenge:{ ans:{}, i:0, pick:'', idx:-1 } };
-  }
-  // what is saved with the day
-  function snapshot(){
-    if(!BL) return null;
-    var m = BL.maths;
-    return { v:3, cls:classNo(), day:BL.day, leaves:leavesToday(), celebrated:BL.celebrated,
-      riddle:{ ans:BL.riddle.ans, hint:BL.riddle.hint, done:BL.riddle.done },
-      logic: { ans:BL.logic.ans, done:BL.logic.done },
-      maths: { ans:m.ans, done:m.done, mins:m.mins, started:m.started, endAt:m.endAt, left:m.left, paused:m.paused },
-      sudoku:{ level:BL.sudoku.level, cells:BL.sudoku.cells, done:BL.sudoku.done, ok:BL.sudoku.ok },
-      challenge:{ ans:BL.challenge.ans, idx:BL.challenge.idx } };
-  }
-  // newOnly: count only days played in this Brain Lab (for the child's Day number)
-  function played(rec, newOnly){
-    var st = parse(rec && rec.brainStateJSON);
-    if(st){
-      if(st.sudoku && st.sudoku.level) return true;
-      for(var g of ['riddle','logic','maths']) if(st[g] && Object.keys(st[g].ans || {}).length) return true;
-      return false;
-    }
-    if(newOnly) return false;
-    return !!rec && ((+rec.savedSudokuPts||0) + (+rec.savedLogicPts||0) + (+rec.savedMathsPts||0) + (+rec.savedRiddlePts||0)) > 0;
-  }
-  // the child's own day: 1 + the days before this one on which they played
-  // Only days played with this class's questions count, so a new class starts at its own Day 1.
-  function dayFor(date){
-    var n = 0, c = classNo();
-    days().forEach(function(d){ if(d && d.date && d.date < date && played(d, true) && stateCls(parse(d.brainStateJSON)) === c) n++; });
-    return n + 1;
-  }
-  function streak(){
-    var set = {};
-    days().forEach(function(d){ if(d && d.date && played(d)) set[d.date] = 1; });
-    if(anyPlayed()) set[BL.date] = 1;
-    var n = 0, d = new Date(BL.date + 'T12:00:00');
-    if(!set[BL.date]) d.setDate(d.getDate() - 1);
-    while(set[d.toLocaleDateString('en-CA')]){ n++; d.setDate(d.getDate() - 1); }
-    return n;
-  }
-  function ensure(){
-    var date = dateOpen();
-    if(BL && BL.date === date && BL.cls === classNo()) return;      // a new class (or the class just became known) starts afresh
-    stopTick();
-    BL = fresh(date);
-    var rec = days().find(function(d){ return d.date === date; });
-    var st = parse(rec && rec.brainStateJSON);
-    if(st && stateCls(st) !== classNo()) st = null;     // saved with another class's questions: start fresh
-    if(st){
-      BL.day = st.day || dayFor(date);
-      BL.celebrated = !!st.celebrated;
-      ['riddle','logic','maths','sudoku','challenge'].forEach(function(g){ if(st[g]) Object.assign(BL[g], st[g]); });
-      BL.riddle.i = firstOpen('riddle'); BL.logic.i = firstOpen('logic'); BL.maths.i = firstOpen('maths');
+  renderPerfCard(days);
+  renderCups(days);
+  renderCumulativeChart(days);
+  renderStatStrip(days);
+  renderParentComments(days);
+}
+
+// Canonical "today's points" — the SAME number shown in the header's
+// TODAY'S PTS chip, so the Progress cups and the overlay can never disagree
+// with the top bar. Prefers today's saved/approved record, then the live form.
+function todaysPoints(){
+  const t = new Date(Date.now()+5.5*60*60*1000).toISOString().split('T')[0];
+  const rec = savedDays.find(d => d.date === t);
+  if(rec) return parseInt(rec.pts)||0;
+  const live = document.getElementById('day-pts-live');
+  return live ? (parseInt(live.textContent)||0) : 0;
+}
+
+function renderCups(days){
+  const grid=document.getElementById('cups-grid');if(!grid)return;
+  const todayPts=todaysPoints();
+  const todayCup=getDayCup(todayPts);
+  const nextCup=CUPS.find(cu=>cu.threshold>todayPts);
+
+  // Show/hide no-cup banner
+  const noBanner=document.getElementById('no-cup-banner');
+  if(noBanner){
+    if(!todayCup){
+      noBanner.style.display='flex';
+      const ptsNeeded=200-todayPts;
+      const el1=document.getElementById('no-cup-pts-needed');if(el1)el1.textContent=ptsNeeded;
+      const el2=document.getElementById('no-cup-pts-today');if(el2)el2.textContent=todayPts;
     } else {
-      BL.day = dayFor(date);
-    }
-    // Back on the page after reading an explanation: the clock runs again on the next question.
-    if(BL.maths.started && !BL.maths.done && BL.maths.paused && BL.maths.mins){ BL.maths.endAt = Date.now() + BL.maths.left; BL.maths.paused = false; }
-    if(BL.maths.started && !BL.maths.done) resumeSprint();
-  }
-  function firstOpen(g){
-    for(var i = 0; i < COUNT[g]; i++) if(BL[g].ans[i] === undefined) return i;
-    return COUNT[g] - 1;
-  }
-  function anyPlayed(){
-    if(!BL) return false;
-    return !!BL.sudoku.level || ['riddle','logic','maths','challenge'].some(function(g){ return Object.keys(BL[g].ans).length > 0; });
-  }
-  function locked(){
-    var rec = days().find(function(d){ return d.date === BL.date; });
-    return !!(rec && rec.approved === true);
-  }
-
-  // ---- questions ------------------------------------------------------------------
-  function list(g){ var b = BANK[classNo() + '|' + BL.day]; return (b && b[g]) || []; }
-  async function load(){
-    if(!BL || BL.loaded || BL.loading) return;
-    var cls = classNo(), key = cls + '|' + BL.day;
-    if(!cls){ BL.error = 'noclass'; return; }
-    if(BANK[key]){ BL.loaded = true; syncMax(); return; }
-    BL.loading = true;
-    try{
-      if(typeof _supabase === 'undefined' || !_supabase){ BL.error = 'offline'; return; }
-      if(MAXDAY[cls] === undefined){
-        var r = await _supabase.from('brain_questions').select('day').eq('class', cls).order('day', { ascending:false }).limit(1);
-        if(r.error){ BL.error = 'missing'; console.warn('[brain] questions table:', r.error); return; }
-        MAXDAY[cls] = (r.data || []).reduce(function(m, x){ return Math.max(m, +x.day || 0); }, 0);
-      }
-      if(!MAXDAY[cls]){ BL.error = 'empty'; return; }
-      var use = ((BL.day - 1) % MAXDAY[cls]) + 1;
-      var r2 = await _supabase.from('brain_questions').select('*').eq('class', cls).eq('day', use);
-      if(r2.error){ BL.error = 'offline'; console.warn('[brain] load:', r2.error); return; }
-      var b = { riddle:[], logic:[], maths:[] };
-      (r2.data || []).forEach(function(q){ if(b[q.game] && +q.class === cls) b[q.game].push(q); });   // own class only
-      Object.keys(b).forEach(function(g){ b[g].sort(function(x, y){ return x.slot - y.slot; }); b[g] = b[g].slice(0, COUNT[g]); });
-      BANK[key] = b; BL.loaded = true; BL.error = ''; syncMax();
-    } finally {
-      BL.loading = false;
-      render();
+      noBanner.style.display='none';
     }
   }
-  function opt(q, L){ return q ? q['option_' + L.toLowerCase()] : ''; }
-  // An answer as HTML: a drawing, or the escaped words.
-  function optHtml(q, L){ var t = opt(q, L); return isFig(t) ? '<span class="bl-ofig">' + svgSafe(t) + '</span>' : esc(t); }
-  // An answer named in a sentence: a drawing is named by its letter.
-  function ansText(q, L){ return isFig(opt(q, L)) ? 'option ' + esc(L) : esc(opt(q, L)); }
 
-  // ---- points and leaves -----------------------------------------------------------
-  function score(){
-    var s = { riddle:0, logic:0, maths:0, sudoku:0, bonus:0 };
-    var R = list('riddle');
-    Object.keys(BL.riddle.ans).forEach(function(i){
-      var q = R[i]; if(q && BL.riddle.ans[i] === q.answer) s.riddle += PTS.riddle - (BL.riddle.hint[i] ? PTS.hintCost : 0);
+  grid.innerHTML=CUPS.map(cu=>{
+    const achieved=todayPts>=cu.threshold;
+    const isNext=nextCup&&nextCup.id===cu.id;
+    const pct=Math.min(100,Math.round(todayPts/cu.threshold*100));
+    const ptsNeed=Math.max(0,cu.threshold-todayPts);
+    return `<div class="cup-card ${achieved?'achieved':''} ${isNext&&!achieved?'next-target':''}"
+      style="background:${cu.bg};border-color:${achieved?cu.border:'rgba(209,213,219,.4)'};
+      ${achieved?'box-shadow:0 8px 32px '+cu.glow:''};cursor:pointer"
+      onclick="cupSoundAndOverlay('${cu.id}')">
+      <span class="cup-icon">${cu.icon}</span>
+      <div class="cup-name" style="color:#fff">${cu.name}</div>
+      <div class="cup-pts" style="color:rgba(255,255,255,.85)">${cu.threshold}+ pts</div>
+      <div class="cup-desc" style="color:rgba(255,255,255,.75)">${achieved?cu.expert.replace(/Vaanya/g,_childName()):isNext?'Need '+ptsNeed+' more pts!':cu.desc}</div>
+      ${achieved?'<div class="cup-achieved-tag" style="color:#fff">✅ ACHIEVED TODAY!</div>':''}
+      ${!achieved?`<div style="background:rgba(0,0,0,.25);border-radius:5px;height:5px;overflow:hidden;margin-top:7px">
+        <div style="width:${pct}%;height:100%;background:rgba(255,255,255,.55);border-radius:5px;transition:width .8s"></div>
+      </div>
+      <div style="font-size:9px;color:rgba(255,255,255,.65);margin-top:3px;font-weight:700">${pct}% there</div>`:''}
+    </div>`;
+  }).join('');
+
+  // Auto-trigger: play sound + overlay after render
+  setTimeout(()=>{
+    if(todayCup){
+      cupSoundAndOverlay(todayCup.id);
+    } else {
+      cupSoundAndOverlay('none');
+    }
+  }, 600);
+}
+
+// ════════════════════════════════════════════
+// AUDIO ENGINE
+// ════════════════════════════════════════════
+let _audioCtx = null;
+function getAudioCtx(){
+  if(!_audioCtx) _audioCtx = new(window.AudioContext||window.webkitAudioContext)();
+  if(_audioCtx.state==='suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+function _osc(ac,type,freq,startT,dur,vol,endVol=0.001){
+  const o=ac.createOscillator(), g=ac.createGain();
+  o.connect(g); g.connect(ac.destination);
+  o.type=type; o.frequency.setValueAtTime(freq,startT);
+  g.gain.setValueAtTime(vol,startT);
+  g.gain.exponentialRampToValueAtTime(endVol,startT+dur);
+  o.start(startT); o.stop(startT+dur+0.05);
+}
+function _glide(ac,type,f1,f2,startT,dur,vol){
+  const o=ac.createOscillator(), g=ac.createGain();
+  o.connect(g); g.connect(ac.destination);
+  o.type=type;
+  o.frequency.setValueAtTime(f1,startT);
+  o.frequency.exponentialRampToValueAtTime(f2,startT+dur);
+  g.gain.setValueAtTime(vol,startT);
+  g.gain.exponentialRampToValueAtTime(0.001,startT+dur);
+  o.start(startT); o.stop(startT+dur+0.05);
+}
+function _noise(ac,startT,dur,vol){
+  const buf=ac.createBuffer(1,Math.ceil(ac.sampleRate*dur),ac.sampleRate);
+  const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1);
+  const src=ac.createBufferSource(); src.buffer=buf;
+  const g=ac.createGain(), bpf=ac.createBiquadFilter();
+  bpf.type='bandpass'; bpf.frequency.value=180; bpf.Q.value=0.5;
+  src.connect(bpf); bpf.connect(g); g.connect(ac.destination);
+  g.gain.setValueAtTime(vol,startT);
+  g.gain.exponentialRampToValueAtTime(0.001,startT+dur);
+  src.start(startT); src.stop(startT+dur+0.05);
+}
+
+const CUP_SOUNDS = {
+  bronze(ac,t){
+    for(let i=0;i<8;i++) _noise(ac,t+i*0.04,0.05,0.3-i*0.01);
+    [330,392,440,523,587,659].forEach((f,i)=>_osc(ac,'square',f,t+0.32+i*0.09,0.12,0.22));
+    _osc(ac,'triangle',784,t+0.32+6*0.09,0.4,0.3);
+  },
+  silver(ac,t){
+    [523,659,784,1047].forEach(f=>_osc(ac,'square',f,t,0.15,0.18));
+    [784,880,988,1175,1319,1568].forEach((f,i)=>_osc(ac,'triangle',f,t+0.18+i*0.07,0.1,0.25));
+    [2093,2349,2637,3136].forEach((f,i)=>_osc(ac,'sine',f,t+0.6+i*0.06,0.08,0.12));
+  },
+  gold(ac,t){
+    [523,523,523,415,523,0,659,523].forEach((f,i)=>{
+      if(f===0)return; _osc(ac,'square',f,t+i*0.12,0.1,0.28);
     });
-    ['logic','maths'].forEach(function(g){
-      var Q = list(g);
-      Object.keys(BL[g].ans).forEach(function(i){ var q = Q[i]; if(q && BL[g].ans[i] === q.answer) s[g] += qPts(g, q); });
-    });
-    if(BL.sudoku.ok) s.sudoku = PTS.sudoku[BL.sudoku.level] || 0;
-    if(allDone()) s.bonus = PTS.bonus;
-    s.challenge = chRight() ? PTS.challenge : 0;
-    s.bonus += s.challenge;                       // saved with the all-four bonus
-    s.total = s.riddle + s.logic + s.maths + s.sudoku + s.bonus;
-    return s;
+    [523,587,659,698,784,880,988,1047].forEach((f,i)=>_osc(ac,'square',f,t+1.0+i*0.08,0.1,0.3));
+    [523,659,784,1047].forEach(f=>_osc(ac,'triangle',f,t+1.7,0.6,0.25,0.001));
+  },
+  diamond(ac,t){
+    for(let i=0;i<4;i++) _noise(ac,t+i*0.15,0.1,0.5);
+    [392,523,659,784].forEach((f,i)=>_osc(ac,'sawtooth',f,t+0.6+i*0.18,0.2,0.35));
+    [523,659,784,1047,1319].forEach(f=>_osc(ac,'square',f,t+1.35,0.4,0.28,0.001));
+    [1047,1175,1319,1480,1568,1760,2093,2349,2637,3136].forEach((f,i)=>
+      _osc(ac,'sine',f,t+1.8+i*0.06,0.1,0.2));
+    [1047,1319,1568].forEach(f=>_osc(ac,'triangle',f,t+2.4,0.8,0.25,0.001));
+  },
+  none(ac,t){
+    _glide(ac,'sawtooth',440,220,t,0.25,0.35);
+    _glide(ac,'sawtooth',330,165,t+0.28,0.25,0.3);
+    _glide(ac,'sawtooth',262,110,t+0.56,0.3,0.3);
+    _glide(ac,'sine',800,200,t+0.9,0.3,0.25);
+    _osc(ac,'sine',523,t+1.3,0.08,0.2);
+    _osc(ac,'sine',587,t+1.4,0.08,0.2);
+    _osc(ac,'sine',494,t+1.5,0.2,0.2);
   }
-  function allDone(){ return BL.riddle.done && BL.logic.done && BL.maths.done && BL.sudoku.done; }
-  function maxToday(){ return gameMax('riddle') + gameMax('logic') + gameMax('maths') + PTS.sudoku.hard + PTS.bonus + (chAvail() ? PTS.challenge : 0); }
-  function rightCount(g){
-    var Q = list(g), n = 0;
-    Object.keys(BL[g].ans).forEach(function(i){ if(Q[i] && BL[g].ans[i] === Q[i].answer) n++; });
-    return n;
-  }
-  function leavesOf(g){
-    if(g === 'sudoku') return BL.sudoku.ok ? (SUDOKU_LEAVES[BL.sudoku.level] || 0) : 0;
-    return rightCount(g);
-  }
-  function leavesToday(){
-    if(!BL) return 0;
-    // Before today's questions have loaded, keep what was saved for today.
-    if(!BL.loaded){ var rec = days().find(function(d){ return d.date === BL.date; }), st = parse(rec && rec.brainStateJSON); return st ? (+st.leaves || 0) : 0; }
-    return leavesOf('riddle') + leavesOf('logic') + leavesOf('maths') + leavesOf('sudoku') + (allDone() ? 1 : 0) + (chRight() ? 2 : 0);
-  }
-  // every leaf the child has grown, on every other day plus today
-  function leavesTotal(){
-    var n = 0;
-    days().forEach(function(d){ if(d && d.date !== BL.date){ var st = parse(d.brainStateJSON); if(st) n += (+st.leaves || 0); } });
-    return n + leavesToday();
-  }
-  function milestoneNext(total){ for(var i = 0; i < MILESTONES.length; i++) if(total < MILESTONES[i][0]) return MILESTONES[i]; return null; }
-  function milestonePrev(total){ var p = null; MILESTONES.forEach(function(m){ if(total >= m[0]) p = m; }); return p; }
+};
 
-  // Put the points where the rest of the app reads them, then save.
-  function apply(saveNow){
-    if(!BL || locked()) return;
-    var before = BL._leaves === undefined ? null : BL._leaves;
-    var s = score();
-    try{
-      riddlePtsTotal = s.riddle; logicPtsTotal = s.logic; mathsPtsToday = s.maths;
-      sudokuPts = s.sudoku; worksheetPts = s.bonus;
-      brainPtsToday = s.riddle + s.logic + s.maths + s.sudoku + s.bonus;
-      logicFrozen = BL.logic.done; mathsFrozen = BL.maths.done; mathsChecked = BL.maths.done; sudokuFrozen = BL.sudoku.done;
-    }catch(e){ console.warn('[brain] points:', e); }
-    // a new milestone reached
-    var after = leavesTotal(); BL._leaves = after;
-    if(before !== null && after > before){
-      MILESTONES.forEach(function(m){ if(before < m[0] && after >= m[0] && typeof toast === 'function') toast('🌳 Your tree has grown ' + m[2] + '!'); });
-    }
-    if(typeof ttSyncBrainLabPts === 'function') ttSyncBrainLabPts();
-    if(typeof calcDayPts === 'function') calcDayPts();
-    if(saveNow && typeof ttSaveNow === 'function') ttSaveNow();
-    else if(typeof ttQueueSave === 'function') ttQueueSave();
-  }
+function playByCupId(id){
+  try{
+    const ac=getAudioCtx();
+    const fn=CUP_SOUNDS[id]||CUP_SOUNDS.none;
+    fn(ac,ac.currentTime);
+  }catch(e){console.warn('Audio error:',e);}
+}
 
-  // ---- Maths Sprint timer --------------------------------------------------------------
-  function stopTick(){ if(TICK){ clearInterval(TICK); TICK = null; } }
-  function msLeft(){
-    var m = BL.maths;
-    if(!m.mins) return Infinity;
-    return m.paused ? m.left : Math.max(0, m.endAt - Date.now());
-  }
-  function fmtLeft(ms){
-    if(ms === Infinity) return 'No timer';
-    var s = Math.ceil(ms / 1000), mm = Math.floor(s / 60), ss = s % 60;
-    return (mm < 10 ? '0' : '') + mm + ':' + (ss < 10 ? '0' : '') + ss;
-  }
-  function startTick(){
-    stopTick();
-    if(!BL.maths.mins) return;
-    TICK = setInterval(function(){
-      if(!BL || BL.maths.done){ stopTick(); return; }
-      var left = msLeft();
-      var pct = Math.max(0, Math.min(100, left / (BL.maths.mins * 600)));
-      document.querySelectorAll('#bl-root [data-timer]').forEach(function(el){ el.textContent = fmtLeft(left); });
-      document.querySelectorAll('#bl-root [data-pie]').forEach(function(el){ el.style.background = 'conic-gradient(var(--indigo) ' + pct + '%,#E6E4F4 0)'; });
-      if(left <= 0 && !BL.maths.paused) timeUp();
-    }, 1000);
-  }
-  function resumeSprint(){
-    if(BL.maths.mins && !BL.maths.paused && BL.maths.endAt && BL.maths.endAt <= Date.now()){ timeUp(true); return; }
-    startTick();
-  }
-  function timeUp(quiet){
-    var m = BL.maths;
-    for(var i = 0; i < COUNT.maths; i++) if(m.ans[i] === undefined) m.ans[i] = '-';
-    m.done = true; m.pick = ''; m._showSummary = true; stopTick();
-    apply(true);
-    if(!quiet && typeof toast === 'function') toast('⏰ Time is up! Here is how you did.');
-    render();
+function cupSoundAndOverlay(idOrCup){
+  const id = typeof idOrCup==='string' ? idOrCup : (idOrCup?.id||'none');
+  playByCupId(id);
+  setTimeout(()=>showCupOverlay(id), 300);
+}
+
+function showCupOverlay(id){
+  const pts = todaysPoints();
+  const cup = CUPS.find(c=>c.id===id);
+  const overlay=document.getElementById('rank-overlay');
+  const box=document.getElementById('rank-overlay-box');
+  if(!overlay||!box)return;
+
+  if(id==='none'||!cup){
+    box.innerHTML=`
+      <div style="font-size:100px;line-height:1;margin-bottom:12px">😤</div>
+      <div style="font-size:32px;font-weight:900;color:#F472B6;letter-spacing:.06em;margin-bottom:10px">NOT YET!</div>
+      <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px">${pts} pts today</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.85);max-width:300px;line-height:1.6;margin-bottom:20px">
+        Need ${200-pts} more pts for Bronze! Come on ${_childName()} — every single task counts. Tomorrow is your chance to shine!
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5)">Tap anywhere to continue</div>`;
+  } else {
+    box.innerHTML=`
+      <div style="font-size:120px;line-height:1;margin-bottom:14px;animation:cupShake .6s ease .3s">${cup.icon}</div>
+      <div style="font-size:38px;font-weight:900;color:#FCD34D;letter-spacing:.08em;margin-bottom:8px">${cup.name.toUpperCase()} CUP!</div>
+      <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px">${pts} pts earned!</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.85);max-width:320px;line-height:1.6;margin-bottom:20px">${cup.expert.replace(/Vaanya/g,_childName())}</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5)">Tap anywhere to continue</div>`;
   }
 
-  // ---- Sudoku (built here, the same puzzle for everyone on the same day) ----------------
-  function rng(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-  function shuffled(arr, r){ var a = arr.slice(); for(var i = a.length - 1; i > 0; i--){ var j = Math.floor(r() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-  function okAt(g, i, n){
-    var r = Math.floor(i / 9), c = i % 9, br = r - r % 3, bc = c - c % 3;
-    for(var k = 0; k < 9; k++){ if(g[r * 9 + k] === n || g[k * 9 + c] === n) return false; }
-    for(var a = 0; a < 3; a++) for(var b = 0; b < 3; b++) if(g[(br + a) * 9 + bc + b] === n) return false;
-    return true;
-  }
-  function fill(g, r){
-    var i = g.indexOf(0); if(i < 0) return true;
-    var nums = shuffled([1,2,3,4,5,6,7,8,9], r);
-    for(var k = 0; k < 9; k++){ if(okAt(g, i, nums[k])){ g[i] = nums[k]; if(fill(g, r)) return true; g[i] = 0; } }
-    return false;
-  }
-  // How many solutions (stops at limit). Tries the box with the fewest choices first, so it is quick.
-  function countSol(g, limit){
-    var best = -1, bestC = null;
-    for(var i = 0; i < 81; i++){
-      if(g[i]) continue;
-      var c = [];
-      for(var v = 1; v <= 9; v++) if(okAt(g, i, v)) c.push(v);
-      if(!c.length) return 0;
-      if(!bestC || c.length < bestC.length){ best = i; bestC = c; if(c.length === 1) break; }
-    }
-    if(best < 0) return 1;
-    var n = 0;
-    for(var k = 0; k < bestC.length && n < limit; k++){ g[best] = bestC[k]; n += countSol(g, limit - n); }
-    g[best] = 0;
-    return n;
-  }
-  var PUZZLES = {};
-  function puzzle(level){
-    var key = classNo() + '|' + BL.day + '|' + level;
-    if(PUZZLES[key]) return PUZZLES[key];
-    var r = rng(classNo() * 100003 + BL.day * 31 + ({ easy:1, medium:2, hard:3 })[level]);
-    var sol = new Array(81).fill(0); fill(sol, r);
-    var p = sol.slice(), given = 81;
-    var order = shuffled(Array.from({ length:81 }, function(_, i){ return i; }), r);
-    for(var k = 0; k < order.length && given > cfg().given[level]; k++){
-      var i = order[k], keep = p[i]; p[i] = 0;
-      if(countSol(p.slice(), 2) !== 1) p[i] = keep; else given--;
-    }
-    return (PUZZLES[key] = { sol:sol, start:p });
-  }
+  let count=0;
+  const blink=()=>{
+    overlay.classList.add('show');
+    setTimeout(()=>{
+      count++;
+      if(count<3){overlay.classList.remove('show');setTimeout(blink,220);}
+    }, count<2?500:1400);
+  };
+  blink();
+}
+function closeRankOverlay(){
+  document.getElementById('rank-overlay').classList.remove('show');
+}
+// legacy alias
+function showRankOverlay(){ cupSoundAndOverlay('none'); }
 
-  // ---- the banyan --------------------------------------------------------------------------
-  // Drawn from the total leaves: it gets bigger as it grows, today's leaves are
-  // gold, small buds show room to grow, and each milestone adds something.
-  function treeSvg(total, todayN){
-    var W = 360, H = 260, base = 226, seed = 11, out = [];
-    function r(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
-    function has(k){ return MILESTONES.some(function(m){ return m[1] === k && total >= m[0]; }); }
-    // courtyard floor and diyas
-    out.push('<g opacity=".55" stroke="#D9BF8C" stroke-width="1">');
-    for(var x = -40; x < W + 40; x += 34) out.push('<line x1="180" y1="161" x2="' + x + '" y2="' + H + '"/>');
-    out.push('<line x1="0" y1="203" x2="' + W + '" y2="203"/><line x1="0" y1="234" x2="' + W + '" y2="234"/></g>');
-    function diya(cx, cy){ return '<path d="M' + (cx - 13) + ' ' + cy + ' q13 14 26 0 z" fill="#B5651D"/><circle cx="' + cx + '" cy="' + (cy - 6) + '" r="12" fill="#F2A007" opacity=".15"/>'
-      + '<path d="M' + cx + ' ' + (cy - 15) + ' q6 8 0 13 q-6 -5 0 -13z" fill="#F2A007"/>'; }
-    out.push(diya(46, 224), diya(W - 46, 224));
-    if(has('bench')) out.push('<g fill="#9C6A45"><rect x="214" y="206" width="56" height="7" rx="2"/><rect x="218" y="213" width="5" height="12"/><rect x="261" y="213" width="5" height="12"/></g>');
-    // the tree grows from about three-quarters size to full size
-    var s = 0.74 + 0.3 * Math.min(1, Math.sqrt(total / 3000));
-    if(has('full')) s = 1.08;
-    out.push('<g transform="translate(180 ' + base + ') scale(' + s.toFixed(3) + ') translate(-180 -' + base + ')">');
-    var roots = [[112,132],[256,116],[140,86],[230,80]], nRoots = (has('root1') ? 1 : 0) + (has('root2') ? 1 : 0) + (has('great') ? 2 : 0);
-    for(var k = 0; k < nRoots; k++){ var p = roots[k];
-      out.push('<path d="M' + p[0] + ' ' + p[1] + ' C' + (p[0] + 3) + ' ' + (p[1] + 40) + ' ' + (p[0] - 3) + ' ' + (p[1] + 70) + ' ' + p[0] + ' ' + (base - 4) + '" stroke="#9C6A45" stroke-width="2.5" fill="none"/>'); }
-    out.push('<path d="M176 ' + base + ' C178 200 172 170 180 140 C186 118 182 104 186 92" stroke="#7A4A2A" stroke-width="15" fill="none" stroke-linecap="round"/>');
-    out.push('<path d="M180 150 C152 136 128 130 98 130 M183 128 C214 112 238 110 268 114' + (has('branch') ? ' M184 108 C166 92 150 86 128 82 M186 98 C206 84 224 78 246 76' : '') + '" stroke="#7A4A2A" stroke-width="6" fill="none" stroke-linecap="round"/>');
-    if(has('swing')) out.push('<g stroke="#7A4A2A" stroke-width="1.6"><line x1="236" y1="112" x2="236" y2="176"/><line x1="258" y1="114" x2="258" y2="176"/></g><rect x="230" y="175" width="34" height="5" rx="2" fill="#B5651D"/>');
-    var spots = [[110,124,64,30],[262,110,64,30],[146,82,56,28],[232,76,56,28],[188,62,82,36],[188,104,46,22]];
-    out.push('<g fill="#DCEFD5">');
-    spots.forEach(function(q){ out.push('<ellipse cx="' + q[0] + '" cy="' + q[1] + '" rx="' + (q[2] + 12) + '" ry="' + (q[3] + 12) + '"/>'); });
-    out.push('</g>');
-    // leaves: every leaf up to 200, then one drawn for every 20 more
-    var drawn = total <= 200 ? total : Math.min(400, Math.round(200 + (total - 200) / 20));
-    var gold = Math.min(todayN, drawn, 25);
-    var nxt = milestoneNext(total), buds = nxt ? Math.max(0, Math.min(40, nxt[0] - total)) : 0;
-    for(var i = 0; i < drawn + buds; i++){
-      var q = spots[i % spots.length], a = r() * Math.PI * 2, d = Math.sqrt(r()), rot = Math.round(r() * 180), shade = r();
-      var lx = (q[0] + Math.cos(a) * q[2] * d).toFixed(1), ly = (q[1] + Math.sin(a) * q[3] * d).toFixed(1), tr = ' transform="rotate(' + rot + ' ' + lx + ' ' + ly + ')"';
-      if(i >= drawn) out.push('<ellipse cx="' + lx + '" cy="' + ly + '" rx="4.5" ry="2.8" fill="#BFDDB6" opacity=".8"' + tr + '/>');
-      else if(i >= drawn - gold) out.push('<circle cx="' + lx + '" cy="' + ly + '" r="10" fill="#F2A007" opacity=".16"/><ellipse cx="' + lx + '" cy="' + ly + '" rx="8.5" ry="5" fill="#F2A007" stroke="#C47F00" stroke-width="1"' + tr + '/>');
-      else out.push('<ellipse cx="' + lx + '" cy="' + ly + '" rx="8.5" ry="5" fill="' + (shade < .5 ? '#2F7D4F' : '#5FA86B') + '"' + tr + '/>');
-    }
-    if(has('figs')) [[120,116],[150,96],[200,70],[240,92],[270,104],[176,52],[96,130],[214,120]].forEach(function(f){ out.push('<circle cx="' + f[0] + '" cy="' + f[1] + '" r="3.2" fill="#C0392B"/>'); });
-    if(has('nest')) out.push('<path d="M120 128 q14 12 28 0 z" fill="#8B5A2B"/><circle cx="128" cy="124" r="3" fill="#F5D76E"/><circle cx="140" cy="124" r="3" fill="#F5D76E"/>');
-    if(has('parrot')) out.push('<g transform="translate(262 108)"><ellipse cx="0" cy="0" rx="7" ry="10" fill="#2EAD4B"/><circle cx="1" cy="-9" r="5.5" fill="#2EAD4B"/><path d="M5 -10 l5 2 -4 3z" fill="#D7263D"/><circle cx="2" cy="-10" r="1.2" fill="#111"/><path d="M-2 9 l-3 10 4-6z" fill="#1E7A34"/></g>');
-    if(has('squirrels')) out.push('<g fill="#A0522D"><ellipse cx="168" cy="186" rx="5" ry="7"/><circle cx="168" cy="178" r="3.5"/><path d="M163 190 q-10 -6 -6 -16 q6 8 6 16z"/></g>');
-    if(has('great')) out.push('<path d="M150 46 l8 -10 8 8 8 -12 8 12 8 -8 8 10 z" fill="#F2A007" stroke="#C47F00" stroke-width="1"/>');
-    out.push('</g>');
-    if(has('butterfly')) out.push('<g transform="translate(66 70) rotate(-15)"><ellipse cx="-5" cy="0" rx="6" ry="8" fill="#E86FA5"/><ellipse cx="5" cy="0" rx="6" ry="8" fill="#F29BC1"/><rect x="-1" y="-6" width="2" height="12" fill="#5A2A3A"/></g>');
-    if(has('fireflies')) [[70,110],[300,90],[90,60],[290,150],[60,160],[310,50]].forEach(function(f){ out.push('<circle cx="' + f[0] + '" cy="' + f[1] + '" r="7" fill="#FFE066" opacity=".25"/><circle cx="' + f[0] + '" cy="' + f[1] + '" r="2.2" fill="#FFD60A"/>'); });
-    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Your banyan tree with ' + total + ' leaves">' + out.join('') + '</svg>';
-  }
+function renderCumulativeChart(days){
+  const labels=days.map(d=>new Date(d.date+'T12:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'}));
+  const pts=days.map(d=>d.pts||0);
+  const avg=pts.length?Math.round(pts.reduce((a,b)=>a+b,0)/pts.length):0;
 
-  // ---- styles --------------------------------------------------------------------------
-  var CSS = ''
-  + '#tab-brain>:not(#bl-root){display:none!important}'          // the old Brain Lab screens
-  + '#bl-root{--ivory:#FFF8EC;--ink:#2A1A14;--soft:#6B5848;--line:#EAD9BC;--maroon:#7A1F2B;--teal:#0E6B70;--indigo:#33307A;--green:#3D7A3A;'
-  +   '--saffron:#F2A007;--gold:#C9962B;--leaf:#2F7D4F;--leaf2:#5FA86B;--c:var(--maroon);'
-  +   'font-family:Mukta,system-ui,sans-serif;color:var(--ink);background:var(--ivory);'
-  +   'background-image:radial-gradient(circle at 1px 1px,rgba(201,150,43,.13) 1px,transparent 1.5px);background-size:18px 18px;'
-  +   'border:1.5px solid var(--line);border-radius:22px;padding:16px 16px 22px;max-width:1180px;margin:0 auto;box-sizing:border-box}'
-  + '#bl-root *{box-sizing:border-box}'
-  + '#bl-root button{font-family:inherit;cursor:pointer;color:inherit}'
-  + '#bl-root .bl-disp{font-family:"Rozha One",Georgia,serif;font-weight:400}'
-  + '#bl-root .bl-border{height:12px;margin-bottom:12px;background:radial-gradient(circle at 6px 6px,var(--gold) 2.6px,transparent 3px) 0 0/12px 12px,'
-  +   'linear-gradient(var(--maroon),var(--maroon)) 0 5px/100% 2px no-repeat}'
-  + '#bl-root .bl-eyebrow{font-weight:800;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--maroon)}'
-  + '#bl-root h1.bl-title{font-family:"Rozha One",Georgia,serif;font-weight:400;font-size:34px;line-height:1.05;margin:4px 0;color:var(--maroon)}'
-  + '#bl-root .bl-lede{margin:0;font-weight:600;font-size:15px;line-height:1.45;color:var(--soft)}'
-  // tree
-  + '#bl-root .bl-treecard{display:flex;gap:12px;align-items:center;margin-top:14px}'
-  + '#bl-root .bl-court{position:relative;flex:0 0 58%;border:2px solid var(--gold);border-radius:999px 999px 18px 18px;overflow:hidden;'
-  +   'background:linear-gradient(#FDF1D8,#FFF8EC 62%,#F3E2BF 62%,#F3E2BF)}'
-  + '#bl-root .bl-court::before{content:"";position:absolute;inset:7px;border:1.5px dashed rgba(201,150,43,.6);border-radius:999px 999px 13px 13px;pointer-events:none}'
-  + '#bl-root .bl-court svg{display:block;width:100%;height:auto}'
-  + '#bl-root .bl-side{flex:1;display:flex;flex-direction:column;gap:8px;justify-content:flex-end;min-width:0}'
-  + '#bl-root .bl-chip{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:7px 11px;font-weight:800;font-size:12px;line-height:1.2;box-shadow:0 6px 16px rgba(122,31,43,.08)}'
-  + '#bl-root .bl-chip b{display:block;font-family:"Rozha One",Georgia,serif;font-weight:400;font-size:24px;line-height:1;color:var(--leaf)}'
-  + '#bl-root .bl-chip.pts b{color:var(--maroon)}'
-  + '#bl-root .bl-bar{height:8px;border-radius:99px;background:#EADFC9;margin-top:6px;overflow:hidden}'
-  + '#bl-root .bl-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--leaf2),var(--leaf))}'
-  // halls
-  + '#bl-root .bl-halls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}'
-  + '#bl-root .bl-arch{background:#fff;border:2px solid var(--c);border-radius:999px 999px 16px 16px;padding:14px 10px 12px;text-align:center;width:100%;display:block}'
-  + '#bl-root .bl-arch.next{box-shadow:0 0 0 4px rgba(14,107,112,.18)}'
-  + '#bl-root .bl-seal{width:56px;height:56px;margin:4px auto 6px;border-radius:50%;background:var(--c);color:#fff;display:flex;align-items:center;justify-content:center;'
-  +   'font-family:"Rozha One",Georgia,serif;font-size:22px;position:relative;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--c);flex:0 0 auto}'
-  + '#bl-root .bl-arch.done .bl-seal::after{content:"✓";position:absolute;right:-6px;bottom:-4px;width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;'
-  +   'font-family:Mukta,sans-serif;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff}'
-  + '#bl-root .bl-arch h3{font-family:"Rozha One",Georgia,serif;font-weight:400;font-size:19px;line-height:1.1;margin:0;color:var(--c)}'
-  + '#bl-root .bl-who{font-size:12.5px;font-weight:700;color:var(--soft);margin-top:2px}'
-  + '#bl-root .bl-pill{display:inline-block;margin-top:7px;font-size:12px;font-weight:800;padding:3px 10px;border-radius:99px;background:#F6EEDF;color:var(--c)}'
-  + '#bl-root .bl-cta{display:block;margin-top:8px;background:var(--c);color:#fff;border-radius:12px;padding:7px 8px;font-weight:800;font-size:14px}'
-  + '#bl-root .bl-leafrow{display:flex;gap:3px;justify-content:center;margin-top:6px;flex-wrap:wrap}'
-  + '#bl-root .bl-leafrow i{width:10px;height:14px;border-radius:10px 0 10px 0;background:#E6DCC6;transform:rotate(-20deg)}'
-  + '#bl-root .bl-leafrow i.on{background:var(--leaf2)}'
-  + '#bl-root .bl-strip{margin-top:12px;display:flex;align-items:center;gap:12px;background:#fff;border:1.5px dashed var(--gold);border-radius:16px;padding:10px 14px;font-weight:800;font-size:14px}'
-  + '#bl-root .bl-strip .n{margin-left:auto;font-family:"Rozha One",Georgia,serif;font-size:20px;color:var(--maroon)}'
-  + '#bl-root .bl-fact{margin-top:12px;background:#FDF0D5;border-left:5px solid var(--saffron);border-radius:0 14px 14px 0;padding:11px 14px;font-size:14.5px;font-weight:600;line-height:1.45}'
-  + '#bl-root .bl-fact b{color:var(--maroon)}'
-  + '#bl-root .bl-note{margin-top:10px;text-align:center;font-size:13px;font-weight:700;color:var(--soft)}'
-  + '#bl-root .bl-card{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:14px}'
-  // question screens
-  + '#bl-root .bl-top{display:flex;align-items:center;gap:10px}'
-  + '#bl-root .bl-back{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto}'
-  + '#bl-root .bl-top .t{font-weight:800;font-size:15px;line-height:1.2;min-width:0}'
-  + '#bl-root .bl-top .t small{display:block;font-size:12px;color:var(--soft);font-weight:700}'
-  + '#bl-root .bl-top .r{margin-left:auto;display:flex;align-items:center;gap:6px;font-weight:800;font-size:13px;background:#fff;border:1.5px solid var(--line);border-radius:99px;padding:5px 11px;white-space:nowrap}'
-  + '#bl-root .bl-progress{display:flex;gap:5px;margin-top:12px}'
-  + '#bl-root .bl-progress span{flex:1;height:8px;border-radius:99px;background:#EADFC9}'
-  + '#bl-root .bl-progress span.ok{background:var(--leaf2)} #bl-root .bl-progress span.no{background:#E9A0A0} #bl-root .bl-progress span.cur{background:var(--c)}'
-  + '#bl-root .bl-mentor{display:flex;gap:10px;align-items:flex-start;margin-top:14px}'
-  + '#bl-root .bl-mentor .bl-seal{width:46px;height:46px;font-size:19px;margin:2px 0 0}'
-  + '#bl-root .bl-bubble{flex:1;background:#fff;border:1.5px solid var(--line);border-radius:4px 16px 16px 16px;padding:12px 14px;font-size:15px;font-weight:700;line-height:1.45;min-width:0}'
-  + '#bl-root .bl-bubble .who{display:block;font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--c);margin-bottom:2px}'
-  + '#bl-root .bl-q{margin-top:12px;background:#fff;border:2px solid var(--c);border-radius:20px;padding:18px 16px;text-align:center}'
-  + '#bl-root .bl-q .topic{font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--c)}'
-  + '#bl-root .bl-q .q{font-size:19px;font-weight:700;line-height:1.45;margin-top:6px;white-space:pre-line}'
-  + '#bl-root .bl-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}'
-  + '#bl-root .bl-up{display:inline-block;margin-left:8px;background:#B91C1C;color:#fff;border-radius:99px;padding:1px 9px;font-size:11px;letter-spacing:.04em;vertical-align:1px}'
-  + '#bl-root .bl-fig{margin:12px auto 0;background:#FFFDF7;border:1px solid var(--line);border-radius:14px;padding:10px;max-width:440px}'
-  + '#bl-root .bl-fig svg{display:block;width:100%;height:auto;max-height:240px}'
-  + '#bl-root .bl-fig.sm{max-width:300px;margin:8px 0 0}'
-  + '#bl-root .bl-opt.fig{flex-direction:column;align-items:stretch;gap:4px;padding:6px 8px 8px}'
-  + '#bl-root .bl-opt .lt{font-size:13px;font-weight:800;text-align:left}'
-  + '#bl-root .bl-ofig svg{display:block;width:100%;height:auto;max-height:130px}'
-  + '#bl-root .bl-opts.one{grid-template-columns:1fr}'
-  + '#bl-root .bl-opt{border:2px solid var(--line);border-radius:14px;padding:10px 12px;font-size:17px;font-weight:800;text-align:center;background:#fff;min-height:54px;'
-  +   'display:flex;align-items:center;justify-content:center;gap:6px;line-height:1.3}'
-  + '#bl-root .bl-opts.one .bl-opt{justify-content:flex-start;text-align:left}'
-  + '#bl-root .bl-opt.pick{border-color:var(--c);background:#F3ECF7;background:color-mix(in srgb,var(--c) 12%,#fff)}'
-  + '#bl-root .bl-opt.right{border-color:#3D7A3A;background:#DDF0D8}'
-  + '#bl-root .bl-opt.wrong{border-color:#C0504D;background:#F9DEDC}'
-  + '#bl-root .bl-opt.dim{opacity:.5}'
-  + '#bl-root .bl-opt[disabled]{cursor:default}'
-  + '#bl-root .bl-btn{display:block;width:100%;margin-top:14px;min-height:52px;border:0;border-radius:14px;background:var(--c);color:#fff;font-weight:800;font-size:17px;padding:8px 14px}'
-  + '#bl-root .bl-btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}'
-  + '#bl-root .bl-btn[disabled]{opacity:.45;cursor:default}'
-  + '#bl-root .bl-hint{margin-top:12px;display:flex;gap:10px;align-items:flex-start;background:#FFF4D6;border:1.5px dashed var(--saffron);border-radius:14px;padding:10px 12px;font-weight:700;font-size:14.5px;line-height:1.4;width:100%;text-align:left}'
-  + '#bl-root .bl-hint small{display:block;font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#9A6400}'
-  + '#bl-root .bl-win{margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#DDF0D8;border-radius:14px;padding:10px 14px;font-weight:800}'
-  + '#bl-root .bl-win.miss{background:#FBEBD8}'
-  + '#bl-root .bl-win .big{font-family:"Rozha One",Georgia,serif;font-size:22px;color:var(--leaf)}'
-  + '#bl-root .bl-steps{margin:8px 0 0;padding:0;list-style:none;counter-reset:s}'
-  + '#bl-root .bl-steps li{counter-increment:s;position:relative;padding-left:30px;margin-top:7px;font-weight:600;line-height:1.45}'
-  + '#bl-root .bl-steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:21px;height:21px;border-radius:50%;background:var(--c);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}'
-  + '#bl-root .bl-level{display:flex;align-items:center;gap:12px;background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px 14px;width:100%;text-align:left;margin-top:10px}'
-  + '#bl-root .bl-level.pick{border-color:var(--c);background:#EEF6EC}'
-  + '#bl-root .bl-level .bars{display:flex;gap:3px}'
-  + '#bl-root .bl-level .bars i{width:9px;height:22px;border-radius:3px;border:1.5px solid var(--c);background:#fff}'
-  + '#bl-root .bl-level .bars i.on{background:var(--c)}'
-  + '#bl-root .bl-level h4{margin:0;font-family:"Rozha One",Georgia,serif;font-weight:400;font-size:19px;color:var(--c)}'
-  + '#bl-root .bl-level p{margin:0;font-size:12.5px;font-weight:700;color:var(--soft)}'
-  + '#bl-root .bl-level .pts{margin-left:auto;text-align:right;font-family:"Rozha One",Georgia,serif;font-size:22px;line-height:1}'
-  + '#bl-root .bl-level .pts small{display:block;font-family:Mukta,sans-serif;font-size:11px;font-weight:800;color:var(--leaf)}'
-  + '#bl-root .bl-board{margin-top:14px;background:#fff;border:2px solid var(--c);border-radius:12px;padding:4px}'
-  + '#bl-root .bl-cell{aspect-ratio:1/1;border:0;border-right:1px solid #E2D6BE;border-bottom:1px solid #E2D6BE;background:#fff;'
-  +   'font-family:"Rozha One",Georgia,serif;font-size:clamp(16px,4.8vw,24px);padding:0;display:flex;align-items:center;justify-content:center;color:var(--indigo)}'
-  + '#bl-root .bl-cell.g{background:#F3EBDB;color:var(--ink);cursor:default}'
-  + '#bl-root .bl-cell.sel{background:#FFE9A8}'
-  + '#bl-root .bl-cell.bad{background:#F9DEDC}'
-  + '#bl-root .bl-pad{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:14px}'
-  + '#bl-root .bl-num{height:48px;border:2px solid var(--line);border-radius:12px;background:#fff;font-family:"Rozha One",Georgia,serif;font-size:22px}'
-  + '#bl-root .bl-summary{margin-top:12px;background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:4px 14px}'
-  + '#bl-root .bl-summary div{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #F1E7D3;font-weight:700}'
-  + '#bl-root .bl-summary div:last-child{border-bottom:0}'
-  + '#bl-root .bl-summary .bl-seal{width:30px;height:30px;font-size:13px;margin:0;box-shadow:none}'
-  + '#bl-root .bl-summary b{margin-left:auto;font-weight:800}'
-  + '#bl-root .bl-split>div{min-width:0}'
-  // question screens: one column on a phone (the explanation comes after the answer)
-  + '#bl-root .bl-play{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "mentor" "qa" "next";column-gap:30px}'
-  + '#bl-root .bl-play.answered{grid-template-areas:"head" "qa" "mentor" "next"}'
-  + '#bl-root .pa-head{grid-area:head;min-width:0} #bl-root .pa-mentor{grid-area:mentor;min-width:0} #bl-root .pa-qa{grid-area:qa;min-width:0} #bl-root .pa-next{grid-area:next;min-width:0}'
-  + '#bl-root .bl-pie{display:inline-block;width:20px;height:20px;border-radius:50%;border:2px solid var(--indigo)}'
-  + '#bl-root .bl-pie.big{width:64px;height:64px;border-width:4px;flex:0 0 auto}'
-  + '#bl-root .bl-run{display:flex;align-items:center;gap:14px;margin-top:14px}'
-  + '#bl-root .bl-setup{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:14px}'
-  + '#bl-root .bl-clockcard{text-align:center;padding:18px}'
-  + '#bl-root .bl-clock{display:block;width:100%;max-width:260px;margin:10px auto}'
-  + '#bl-root .bl-notimer{display:block;width:100%;margin-top:12px;border:2px dashed var(--line);border-radius:12px;background:#fff;padding:10px;font-weight:800;color:var(--soft)}'
-  + '#bl-root .bl-notimer.on{border-style:solid;border-color:var(--indigo);color:var(--indigo);background:#EBEAF6}'
-  + '#bl-root .bl-col{max-width:560px;margin:0 auto}'
-  + '#bl-root .bl-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}'
-  + '#bl-root .bl-tabs button{border:2px solid var(--line);border-radius:12px;background:#fff;padding:7px 4px;font-weight:800;font-size:15px;line-height:1.1}'
-  + '#bl-root .bl-tabs button small{display:block;font-size:11px;color:var(--soft)}'
-  + '#bl-root .bl-tabs button.on{border-color:var(--green);background:var(--green);color:#fff}'
-  + '#bl-root .bl-tabs button.on small{color:#E3F1E0}'
-  + '#bl-root .bl-tabs button[disabled]{opacity:.45;cursor:default}'
-  + '#bl-root .bl-levels{display:grid;grid-template-columns:minmax(0,1fr);gap:0}'
-  // computers and tablets
-  + '@media (min-width:820px){'
-  +   '#bl-root{padding:26px 34px 34px}'
-  +   '#bl-root h1.bl-title{font-size:48px}'
-  +   '#bl-root .bl-split{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}'
-  +   '#bl-root .v-home .bl-treecard{flex-direction:column;align-items:stretch}'   // a big tree fills the left side
-  +   '#bl-root .v-home .bl-court{flex:none}'
-  +   '#bl-root .v-home .bl-side{flex-direction:row}'
-  +   '#bl-root .v-home .bl-side>*{flex:1}'
-  +   '#bl-root .v-home .bl-halls{margin-top:0}'
-  +   '#bl-root .bl-play{grid-template-columns:minmax(0,2fr) minmax(0,3fr);grid-template-areas:"head qa" "mentor qa" "mentor next"!important;align-items:start}'
-  +   '#bl-root .bl-play .pa-qa .bl-q{margin-top:0}'
-  +   '#bl-root .bl-setup{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px;align-items:start}'
-  +   '#bl-root .bl-setup .s-clock{order:2} #bl-root .bl-setup .s-info{order:1}'
-  +   '#bl-root .bl-col{max-width:640px}'
-  +   '#bl-root .bl-col .bl-board,#bl-root .bl-col .bl-pad,#bl-root .bl-col .bl-tabs{max-width:480px;margin-left:auto;margin-right:auto}'
-  +   '#bl-root .bl-levels{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}'
-  +   '#bl-root .bl-levels .bl-level{flex-direction:column;align-items:flex-start;gap:8px}'
-  +   '#bl-root .bl-levels .bl-level .pts{margin-left:0;text-align:left}'
-  + '}';
+  const avgBadge=document.getElementById('prog-avg-badge');
+  if(avgBadge)avgBadge.textContent='Avg: '+avg+' pts/day';
 
-  function addStyles(){
-    if($('bl-style')) return;
-    var st = document.createElement('style'); st.id = 'bl-style'; st.textContent = CSS; document.head.appendChild(st);
-    if(!document.querySelector('link[data-bl-font]')){
-      var l = document.createElement('link'); l.rel = 'stylesheet'; l.setAttribute('data-bl-font', '1');
-      l.href = 'https://fonts.googleapis.com/css2?family=Rozha+One&family=Mukta:wght@500;600;700;800&display=swap';
-      document.head.appendChild(l);
-    }
-  }
-  // The new root sits at the top of the tab; the old screens are hidden.
-  function root(){
-    var tab = $('tab-brain'); if(!tab) return null;
-    var r = $('bl-root');
-    if(!r){
-      addStyles();
-      r = document.createElement('div'); r.id = 'bl-root';
-      tab.insertBefore(r, tab.firstChild);
-      r.addEventListener('click', onClick);
-    }
-    return r;
-  }
+  // Colour each bar based on cup level
+  const barColors=pts.map(p=>{
+    if(p>=490)return'#06B6D4'; // diamond
+    if(p>=420)return'#F59E0B'; // gold
+    if(p>=320)return'#9CA3AF'; // silver
+    if(p>=200)return'#D97706'; // bronze
+    return'#EF4444';
+  });
 
-  // ---- screens --------------------------------------------------------------------------
-  function seal(m, extra){ return '<div class="bl-seal" style="--c:' + m.c + ';background:' + m.c + (extra || '') + '">' + m.seal + '</div>'; }
-  function iconSeal(g){ return '<div class="bl-seal">' + icon(LOOK[g].icon, 26, 2.2, '#fff') + '</div>'; }
-  function top(g, sub, right){
-    return '<div class="bl-top"><button class="bl-back" data-act="home" aria-label="Back to Brain Lab">' + icon('back', 20, 2.6) + '</button>'
-      + '<div class="t">' + LOOK[g].name + '<small>' + sub + '</small></div>' + (right ? '<div class="r">' + right + '</div>' : '') + '</div>';
-  }
-  function bubble(m, who, text){
-    return '<div class="bl-mentor">' + seal(m) + '<div class="bl-bubble"><span class="who" style="color:' + m.c + '">' + esc(who) + '</span>' + text + '</div></div>';
-  }
-  // An explanation in steps when it has more than one sentence.
-  function steps(text){
-    var parts = String(text || '').replace(/([.!?])\s+(?=[A-Z0-9₹“"(])/g, '$1\n').split('\n').filter(Boolean);
-    if(parts.length < 2) return '<div style="margin-top:4px;font-weight:600">' + esc(text) + '</div>';
-    return '<ol class="bl-steps">' + parts.map(function(p){ return '<li>' + esc(p) + '</li>'; }).join('') + '</ol>';
-  }
-  function fact(){ return '<div class="bl-fact"><b>Did you know?</b> ' + esc(FACTS[(BL.day - 1) % FACTS.length]) + '</div>'; }
-  function treeCard(total, todayN){
-    var s = score(), nx = milestoneNext(total), pv = milestonePrev(total);
-    var from = pv ? pv[0] : 0, pct = nx ? Math.round((total - from) / (nx[0] - from) * 100) : 100;
-    return '<div class="bl-treecard"><div class="bl-court">' + treeSvg(total, todayN) + '</div><div class="bl-side">'
-      + '<div class="bl-chip"><b>' + total + '</b>leaves on your tree' + (todayN ? '<br><span style="color:var(--leaf)">+' + todayN + ' today</span>' : '') + '</div>'
-      + '<div class="bl-chip pts"><b>' + s.total + '</b>of ' + maxToday() + ' points today</div>'
-      + '<div class="bl-chip">' + (nx ? 'Next: <span style="color:var(--leaf)">' + nx[2] + '</span> at ' + nx[0] : 'Your Great Banyan is complete!')
-      + '<div class="bl-bar"><i style="width:' + pct + '%"></i></div></div>'
-      + '</div></div>';
-  }
+  const el=document.getElementById('ch-cumulative');if(!el)return;
+  el.style.width='100%';el.style.display='block';
+  // Force the canvas to have explicit pixel dimensions so Chart.js can render
+  // even if the parent was recently display:none
+  const parentW = el.parentElement ? el.parentElement.offsetWidth : 600;
+  if(parentW > 0){ el.width = parentW; el.height = 200; }
+  else { el.width = 600; el.height = 200; }
+  if(charts['cumulative'])charts['cumulative'].destroy();
 
-  function homeHtml(){
-    var total = leavesTotal(), todayN = leavesToday(), st = streak();
-    var dt = new Date(BL.date + 'T12:00:00').toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'short' });
-    var h = '<div class="bl-border"></div><div class="bl-split"><div>'
-      + '<div class="bl-eyebrow">Day ' + BL.day + ' · ' + dt + ' · Class ' + classNo() + (st > 1 ? ' · ' + st + '-day streak' : '') + '</div>'
-      + '<h1 class="bl-title">' + possessive() + ' Brain Lab</h1>'
-      + '<p class="bl-lede">Great Indian thinkers set you a challenge every day. Every right answer grows a leaf on your banyan tree.</p>'
-      + treeCard(total, todayN)
-      + '</div><div>';
-    if(locked()) h += '<div class="bl-card" style="margin-bottom:12px;font-weight:700">Today is approved by your parent, so the games are closed for this day.</div>';
-    var next = GAMES.find(function(g){ return !BL[g].done; });
-    h += '<div class="bl-halls">';
-    GAMES.forEach(function(g){
-      var L = LOOK[g], S = BL[g], done = S.done, isNext = g === next && !locked();
-      var started = g === 'sudoku' ? !!S.level : Object.keys(S.ans).length > 0;
-      var leaves = '', status;
-      if(g === 'riddle' || g === 'logic'){
-        leaves = '<div class="bl-leafrow">';
-        for(var k = 0; k < COUNT[g]; k++){ var a = S.ans[k], q = list(g)[k]; leaves += '<i class="' + (a !== undefined && q && a === q.answer ? 'on' : '') + '"></i>'; }
-        leaves += '</div>';
-      }
-      if(done){
-        var s = score()[g];
-        status = g === 'sudoku' ? (S.ok ? 'Solved · ' + S.level + ' · +' + s + ' pts' : 'Tried · ' + S.level + ' · new one tomorrow')
-               : rightCount(g) + ' of ' + COUNT[g] + ' · +' + s + ' pts';
-        if(g === 'maths') status += ' · ' + leavesOf('maths') + ' leaves';
-      } else if(g === 'sudoku') status = '1, 2 or 3 leaves';
-      else if(g === 'maths') status = COUNT.maths + ' questions · up to ' + COUNT.maths + ' leaves';
-      else status = COUNT[g] + ' ' + (g === 'riddle' ? 'riddles' : 'puzzles') + ' · up to ' + gameMax(g) + ' pts';
-      var label = started ? 'Carry on' + (g !== 'sudoku' ? ' · ' + (firstOpen(g) + 1) + ' of ' + COUNT[g] : '') : 'Start';
-      h += '<button class="bl-arch' + (done ? ' done' : '') + (isNext ? ' next' : '') + '" style="--c:' + L.c + '" data-act="' + (done ? 'review' : 'go') + '" data-g="' + g + '">'
-        + iconSeal(g) + '<h3>' + L.name + '</h3><div class="bl-who">' + esc(L.who) + '</div>' + leaves
-        + (isNext ? '<span class="bl-cta">' + label + '</span>' : '<span class="bl-pill">' + status + '</span>') + '</button>';
-    });
-    h += '</div>';
-    var nDone = GAMES.filter(function(g){ return BL[g].done; }).length;
-    h += '<div class="bl-strip">' + leafIcon(26, true)
-      + (nDone === 4 ? 'All four done: +' + PTS.bonus + ' points and a golden leaf earned!' : 'Finish all four today: +' + PTS.bonus + ' points and a golden leaf')
-      + '<span class="n">' + nDone + '/4</span></div>';
-    if(nDone === 4) h += '<button class="bl-btn" style="--c:var(--maroon)" data-act="done">See today’s tree</button>';
-    if(chAvail()){
-      var cA = BL.challenge.ans[0] !== undefined, cOk = chRight();
-      h += '<button class="bl-strip bl-ch" data-act="ch" style="cursor:pointer;width:100%;text-align:left;border:2px solid #33307A;background:#EEEDF9">'
-        + '<span style="font-size:22px">⚡</span><span><b style="color:#33307A">Ramanujan’s Challenge</b> · weekends only · one very hard problem, no hints'
-        + '<small style="display:block;font-weight:600;color:#6B6788">' + (cA ? (cOk ? 'Solved! +' + PTS.challenge + ' points and 2 leaves' : 'Tried today — a new challenge next weekend day') : 'One try · +' + PTS.challenge + ' points and 2 leaves') + '</small></span>'
-        + '<span class="n">' + (cA ? (cOk ? '✓' : '✗') : 'Go') + '</span></button>';
-    }
-    h += fact() + '</div></div>';
-    return h;
-  }
-
-  function noQuestions(g){
-    var msg = BL.error === 'missing' ? 'The question table is not set up yet. Ask your parent to finish the Brain Lab setup.'
-            : BL.error === 'empty'   ? 'There are no questions for Class ' + classNo() + ' yet. They are coming soon!'
-            : BL.error === 'noclass' ? 'Your class is not set yet, so there are no questions to show. Ask your parent to check the class in the Parent Zone.'
-            : BL.error === 'offline' ? 'Could not load today’s questions. Check the internet and try again.'
-            : 'Loading today’s questions…';
-    return top(g, '') + '<div class="bl-card" style="margin-top:18px;font-weight:700;text-align:center">' + msg
-      + (BL.error === 'offline' ? '<button class="bl-btn" data-act="retry">Try again</button>' : '') + '</div>';
-  }
-
-  // A question screen. Phone: one column. Computer: the thinker on the left,
-  // the question with its answers underneath on the right.
-  function quizHtml(g){
-    var L = LOOK[g], Q = list(g), S = BL[g];
-    if(!Q.length) return noQuestions(g);
-    if(g === 'maths' && !S.started && !S.done) return sprintSetupHtml();
-    if(S.done && S._showSummary) return summaryHtml(g);
-    var i = S.i, q = Q[i] || Q[0], ans = S.ans[i], answered = ans !== undefined, m = mentorFor(g, i);
-    var ok = answered && ans === q.answer;
-    var pts = g === 'riddle' && S.hint[i] ? PTS.riddle - PTS.hintCost : qPts(g, q);
-    var right = g === 'maths' ? clockChip() : qPts(g, q) + ' pts · 1 leaf';
-    var head = top(g, L.unit + ' ' + (i + 1) + ' of ' + COUNT[g] + ' · with ' + m.name, right);
-    head += '<div class="bl-progress">';
-    for(var k = 0; k < COUNT[g]; k++){
-      var ak = S.ans[k];
-      head += '<span class="' + (ak === undefined ? (k === i ? 'cur' : '') : (Q[k] && ak === Q[k].answer ? 'ok' : 'no')) + '"></span>';
-    }
-    head += '</div>';
-
-    var mentor = (g === 'maths' && S.mins ? runClock() : '') + (answered ? bubble(m, m.name + ' explains', steps(q.explanation))
-               : bubble(m, m.name + ' says', esc(g === 'maths' ? m.tips[i % m.tips.length] : mentorSays(m, i))));
-
-    var up = q.level === 'up' ? '<span class="bl-up">Level Up · ' + PTS.up + ' pts</span>' : '';
-    var fig = svgSafe(q.figure);
-    var qa = '<div class="bl-q"><div class="topic">' + esc(q.topic || L.name) + up + '</div><div class="q">' + esc(q.question) + '</div>'
-      + (fig ? '<div class="bl-fig">' + fig + '</div>' : '') + '</div>';
-    if(g === 'riddle' && q.hint){
-      if(S.hint[i]) qa += '<div class="bl-hint">' + icon('bulb', 22, 2.2, '#9A6400') + '<div><small>' + esc(m.name) + ' whispers a hint · −' + PTS.hintCost + ' pts</small>' + esc(q.hint) + '</div></div>';
-      else if(!answered) qa += '<button class="bl-hint" data-act="hint">' + icon('bulb', 22, 2.2, '#9A6400') + '<div><small>Stuck?</small>Ask ' + esc(m.name) + ' for a hint (costs ' + PTS.hintCost + ' points)</div></button>';
-    }
-    var figs = ['A','B','C','D'].some(function(Lt){ return isFig(opt(q, Lt)); });
-    var long = !figs && ['A','B','C','D'].some(function(Lt){ return String(opt(q, Lt) || '').length > 22; });
-    qa += '<div class="bl-opts' + (long ? ' one' : '') + (figs ? ' figs' : '') + '">';
-    ['A','B','C','D'].forEach(function(Lt){
-      var cls = 'bl-opt';
-      if(answered){ cls += Lt === q.answer ? ' right' : Lt === ans ? ' wrong' : ' dim'; }
-      else if(S.pick === Lt) cls += ' pick';
-      qa += '<button class="' + cls + (figs ? ' fig' : '') + '" data-act="pick" data-l="' + Lt + '"' + (answered ? ' disabled' : '') + '>'
-        + (figs ? '<span class="lt">' + (answered && Lt === q.answer ? '✓ ' : '') + Lt + '</span>' + optHtml(q, Lt) : (answered && Lt === q.answer ? '✓ ' : '') + esc(opt(q, Lt))) + '</button>';
-    });
-    qa += '</div>';
-    if(answered){
-      qa += ok ? '<div class="bl-win"><span class="big">+' + pts + '</span> points <span style="display:flex;align-items:center;gap:4px;margin-left:auto">' + leafIcon(16) + ' +1 leaf on your tree</span></div>'
-               : '<div class="bl-win miss">' + (ans === '-' ? 'Time ran out for this one.' : 'Not this time — and no leaf is lost.') + ' The answer is ' + ansText(q, q.answer) + '.</div>';
-    }
-    var next = answered
-      ? '<button class="bl-btn" data-act="next">' + (i >= COUNT[g] - 1 ? 'See how I did' : 'Next ' + L.unit.toLowerCase()) + '</button>'
-      : '<button class="bl-btn" data-act="check"' + (S.pick ? '' : ' disabled') + '>Give my answer</button>'
-        + '<div class="bl-note">' + (g === 'riddle' ? 'No hint used? You get all ' + PTS.riddle + ' points.' : 'Right or wrong, ' + esc(m.name) + ' explains the answer.') + '</div>';
-    return '<div class="bl-play' + (answered ? ' answered' : '') + '" style="--c:' + L.c + '">'
-      + '<div class="pa-head">' + head + '</div><div class="pa-mentor">' + mentor + '</div><div class="pa-qa">' + qa + '</div><div class="pa-next">' + next + '</div></div>';
-  }
-
-  // The sprint clock in the corner: a dial that empties as time runs out.
-  function clockChip(){
-    var M = BL.maths, left = msLeft();
-    if(!M.mins) return icon('clock', 16, 2.4) + ' No timer';
-    var pct = Math.max(0, Math.min(100, left / (M.mins * 600)));
-    return '<span data-pie class="bl-pie" style="background:conic-gradient(var(--indigo) ' + pct + '%,#E6E4F4 0)"></span><span data-timer>' + fmtLeft(left) + '</span>';
-  }
-  // The big sprint clock beside the question: the coloured part is the time left.
-  function runClock(){
-    var M = BL.maths, left = msLeft(), pct = Math.max(0, Math.min(100, left / (M.mins * 600)));
-    return '<div class="bl-card bl-run"><span data-pie class="bl-pie big" style="background:conic-gradient(var(--indigo) ' + pct + '%,#E6E4F4 0)"></span>'
-      + '<div><div class="bl-disp" style="font-size:30px;line-height:1;color:var(--indigo)" data-timer>' + fmtLeft(left) + '</div>'
-      + '<div style="font-size:12.5px;font-weight:700;color:var(--soft)">left of your ' + M.mins + ' minutes' + (M.paused ? ' · paused while you read' : '') + '</div></div></div>';
-  }
-  // The timer setting: a clock face. Tap 5, 10, 15 or 20 on the dial.
-  function clockFace(mins){
-    var R = 100, h = ['<svg viewBox="-125 -125 250 250" class="bl-clock" role="group" aria-label="Choose your time">'];
-    h.push('<circle r="' + R + '" fill="#fff" stroke="#33307A" stroke-width="5"/>');
-    if(mins){
-      var a = mins / 60 * 2 * Math.PI, x = (R - 8) * Math.sin(a), y = -(R - 8) * Math.cos(a);
-      h.push('<path d="M0 0 L0 ' + (-(R - 8)) + ' A' + (R - 8) + ' ' + (R - 8) + ' 0 ' + (mins > 30 ? 1 : 0) + ' 1 ' + x.toFixed(1) + ' ' + y.toFixed(1) + ' Z" fill="#D9D7F2"/>');
-    }
-    for(var t = 0; t < 60; t++){
-      var b = t / 60 * 2 * Math.PI, big = t % 5 === 0, r1 = R - (big ? 14 : 8);
-      h.push('<line x1="' + (r1 * Math.sin(b)).toFixed(1) + '" y1="' + (-r1 * Math.cos(b)).toFixed(1) + '" x2="' + ((R - 3) * Math.sin(b)).toFixed(1) + '" y2="' + (-(R - 3) * Math.cos(b)).toFixed(1)
-        + '" stroke="#33307A" stroke-width="' + (big ? 2.5 : 1) + '" opacity="' + (big ? 1 : .45) + '"/>');
-    }
-    [0, 25, 30, 35, 40, 45, 50, 55].forEach(function(n){
-      var c = n / 60 * 2 * Math.PI;
-      h.push('<text x="' + (68 * Math.sin(c)).toFixed(1) + '" y="' + (-68 * Math.cos(c) + 5).toFixed(1) + '" text-anchor="middle" font-size="13" font-weight="700" fill="#9C99C4" font-family="Mukta,sans-serif">' + (n || 60) + '</text>');
-    });
-    if(mins){
-      var e = mins / 60 * 2 * Math.PI;
-      h.push('<line x1="0" y1="0" x2="' + (62 * Math.sin(e)).toFixed(1) + '" y2="' + (-62 * Math.cos(e)).toFixed(1) + '" stroke="#33307A" stroke-width="5" stroke-linecap="round"/>');
-    }
-    h.push('<circle r="7" fill="#33307A"/>');
-    [5, 10, 15, 20].forEach(function(n){
-      var d = n / 60 * 2 * Math.PI, cx = (70 * Math.sin(d)).toFixed(1), cy = (-70 * Math.cos(d)).toFixed(1), on = n === mins;
-      h.push('<g data-act="mins" data-m="' + n + '" style="cursor:pointer"><circle cx="' + cx + '" cy="' + cy + '" r="17" fill="' + (on ? '#33307A' : '#fff') + '" stroke="#33307A" stroke-width="2.5"/>'
-        + '<text x="' + cx + '" y="' + (+cy + 6) + '" text-anchor="middle" font-size="16" font-weight="800" fill="' + (on ? '#fff' : '#33307A') + '" font-family="Mukta,sans-serif">' + n + '</text></g>');
-    });
-    h.push('</svg>');
-    return h.join('');
-  }
-
-  function sprintSetupHtml(){
-    var M = BL.maths, m = MENTOR.ramanujan;
-    var left = bubble(m, 'Ramanujan says', esc(m.says))
-      + '<div class="bl-card" style="margin-top:12px"><div style="font-weight:800;margin-bottom:6px">How the sprint works</div>'
-      + '<ol class="bl-steps" style="margin:0"><li>' + COUNT.maths + ' questions, ' + PTS.maths + ' points and 1 leaf for each right answer' + (cfg().up.maths ? ' — the last ' + cfg().up.maths + ' are Level Up questions worth ' + PTS.up + ' points' : '') + '.</li>'
-      + '<li>Choose your own time on the clock — the points are the same whatever you choose.</li>'
-      + '<li>The clock stops while you read each explanation.</li></ol></div>' + fact();
-    var right = '<div class="bl-card bl-clockcard"><div class="bl-disp" style="font-size:24px;color:var(--indigo)">Set your clock</div>'
-      + '<div style="font-size:13px;font-weight:700;color:var(--soft)">Tap 5, 10, 15 or 20 minutes</div>'
-      + clockFace(M.mins)
-      + '<div class="bl-disp" style="font-size:30px;color:var(--indigo);line-height:1">' + (M.mins ? M.mins + ' minutes' : 'No timer') + '</div>'
-      + '<button class="bl-notimer' + (M.mins ? '' : ' on') + '" data-act="mins" data-m="0">' + (M.mins ? 'No timer — I’ll go at my own pace' : '✓ No timer — going at my own pace') + '</button>'
-      + '<button class="bl-btn" data-act="start-sprint">Start the sprint</button></div>';
-    return '<div style="--c:' + LOOK.maths.c + '">' + top('maths', COUNT.maths + ' questions · with Ramanujan', 'up to ' + gameMax('maths') + ' pts')
-      + '<div class="bl-setup"><div class="s-clock">' + right + '</div><div class="s-info">' + left + '</div></div></div>';
-  }
-
-  function summaryHtml(g){
-    var L = LOOK[g], n = rightCount(g), s = score(), m = mentorFor(g, 0);
-    var who = g === 'riddle' ? 'Birbal & Tenali Rama' : m.name;
-    return '<div style="--c:' + L.c + '">' + top(g, 'Done for today · with ' + who)
-      + '<div class="bl-split"><div><div class="bl-q" style="margin-top:18px">' + iconSeal(g)
-      + '<div class="bl-disp" style="font-size:28px;color:var(--c)">' + n + ' of ' + COUNT[g] + ' right</div>'
-      + '<div style="font-weight:800;margin-top:4px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap"><span>+' + s[g] + ' points</span>'
-      + '<span style="display:flex;align-items:center;gap:4px">' + leafIcon(16) + ' +' + leavesOf(g) + (leavesOf(g) === 1 ? ' leaf' : ' leaves') + '</span></div></div></div><div>'
-      + '<button class="bl-btn ghost" data-act="review" data-g="' + g + '">See every answer, explained</button>'
-      + '<button class="bl-btn" data-act="home">Back to Brain Lab</button></div></div></div>';
-  }
-
-  function reviewHtml(g){
-    var L = LOOK[g];
-    if(g === 'sudoku') return sudokuHtml();
-    var Q = list(g), S = BL[g];
-    if(!Q.length) return noQuestions(g);
-    var h = '<div style="--c:' + L.c + '">' + top(g, 'Your answers, explained') + '<div class="bl-split" style="margin-top:14px">';
-    var cols = ['', ''];
-    Q.forEach(function(q, i){
-      var a = S.ans[i], ok = a === q.answer, m = mentorFor(g, i);
-      cols[i % 2] += '<div class="bl-card" style="margin-bottom:12px"><div style="display:flex;gap:8px;align-items:flex-start">'
-        + '<span style="flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:' + (ok ? '#DDF0D8' : '#F9DEDC') + '">'
-        + icon(ok ? 'check' : 'cross', 14, 3, ok ? '#3D7A3A' : '#C0504D') + '</span><div style="font-weight:800;line-height:1.45">' + esc(q.question) + '</div></div>'
-        + (svgSafe(q.figure) ? '<div class="bl-fig sm">' + svgSafe(q.figure) + '</div>' : '')
-        + '<div style="margin-top:8px;font-weight:800">Answer: ' + ansText(q, q.answer) + (ok || a === undefined ? '' : a === '-' ? ' · time ran out' : ' · you chose ' + ansText(q, a)) + '</div>'
-        + '<div style="margin-top:6px;font-weight:600;line-height:1.5;color:var(--soft)"><b style="color:var(--c)">' + esc(m.name) + ':</b> ' + esc(q.explanation) + '</div></div>';
-    });
-    return h + '<div>' + cols[0] + '</div><div>' + cols[1] + '</div></div><button class="bl-btn" data-act="home">Back to Brain Lab</button></div>';
-  }
-
-  // Sudoku: one column — level, board, number pad. The level can be changed
-  // until the first number goes in.
-  function levelTabs(S, canChange){
-    var h = '<div class="bl-tabs" role="group" aria-label="Level">';
-    ['easy','medium','hard'].forEach(function(lv){
-      var on = S.level === lv;
-      h += '<button class="' + (on ? 'on' : '') + '" data-act="relevel" data-lv="' + lv + '"' + (!on && !canChange ? ' disabled' : '') + '>'
-        + lv.charAt(0).toUpperCase() + lv.slice(1) + '<small>' + PTS.sudoku[lv] + ' pts</small></button>';
-    });
-    return h + '</div>';
-  }
-  function sudokuHtml(){
-    var S = BL.sudoku, L = LOOK.sudoku, m = MENTOR.lilavati;
-    if(!S.level){
-      var h = '<div class="bl-col" style="--c:' + L.c + '">' + top('sudoku', 'From Lilavati’s puzzle book · one a day')
-        + bubble(m, 'From Lilavati', esc(m.says))
-        + '<div class="bl-disp" style="font-size:24px;margin-top:16px;color:var(--green)">Choose your challenge</div><div class="bl-levels">';
-      [['easy','Easy','a warm-up'],['medium','Medium','best for Class ' + classNo()],['hard','Hard','for champions']].forEach(function(x, k){
-        var bars = ''; for(var b = 0; b < 3; b++) bars += '<i class="' + (b <= k ? 'on' : '') + '"></i>';
-        h += '<button class="bl-level' + (S.pick === x[0] ? ' pick' : '') + '" data-act="level" data-lv="' + x[0] + '"><div class="bars">' + bars + '</div>'
-          + '<div><h4>' + x[1] + '</h4><p>' + cfg().given[x[0]] + ' numbers given · ' + x[2] + '</p></div>'
-          + '<div class="pts">' + PTS.sudoku[x[0]] + '<small>' + SUDOKU_LEAVES[x[0]] + (SUDOKU_LEAVES[x[0]] > 1 ? ' leaves' : ' leaf') + '</small></div></button>';
+  // Add cup threshold lines
+  const plugins=[{
+    id:'cupLines',
+    afterDraw(chart){
+      const{ctx,chartArea,scales}=chart;
+      const thresholds=[
+        {val:200,col:'#D97706',label:'Bronze'},
+        {val:320,col:'#9CA3AF',label:'Silver'},
+        {val:420,col:'#F59E0B',label:'Gold'},
+        {val:490,col:'#06B6D4',label:'Diamond'},
+      ];
+      thresholds.forEach(t=>{
+        if(t.val>scales.y.max)return;
+        const y=scales.y.getPixelForValue(t.val);
+        ctx.save();
+        ctx.strokeStyle=t.col;
+        ctx.lineWidth=1.5;
+        ctx.setLineDash([6,4]);
+        ctx.beginPath();ctx.moveTo(chartArea.left,y);ctx.lineTo(chartArea.right,y);ctx.stroke();
+        ctx.fillStyle=t.col;ctx.font='bold 9px Nunito,sans-serif';ctx.textAlign='right';
+        ctx.fillText(t.label,chartArea.right-4,y-4);
+        ctx.restore();
       });
-      return h + '</div><button class="bl-btn" data-act="start-sudoku"' + (S.pick ? '' : ' disabled') + '>'
-        + (S.pick ? 'Start ' + S.pick + ' · ' + PTS.sudoku[S.pick] + ' pts' : 'Tap a level first') + '</button>'
-        + '<div class="bl-note">You can change the level until you put in your first number. You can check your answers once.</div></div>';
     }
-    var P = puzzle(S.level), wrong = {};
-    var entered = Object.keys(S.cells).filter(function(k){ return S.cells[k]; }).length;
-    if(S.done && !S.ok) for(var i0 = 0; i0 < 81; i0++) if(!P.start[i0] && S.cells[i0] && S.cells[i0] !== P.sol[i0]) wrong[i0] = 1;
-    var h2 = '<div class="bl-col" style="--c:' + L.c + '">' + top('sudoku', 'From Lilavati’s puzzle book', PTS.sudoku[S.level] + ' pts · ' + SUDOKU_LEAVES[S.level] + (SUDOKU_LEAVES[S.level] > 1 ? ' leaves' : ' leaf'));
-    if(!S.done){
-      h2 += levelTabs(S, entered === 0);
-      if(entered > 0) h2 += '<div class="bl-note" style="margin-top:6px">The level is fixed now that you have started.</div>';
+  }];
+
+  charts['cumulative']=new Chart(el,{
+    type:'bar',
+    data:{labels,datasets:[{
+      label:'Points',data:pts,
+      backgroundColor:barColors,
+      borderColor:barColors.map(c=>c+'CC'),
+      borderWidth:2,borderRadius:10,borderSkipped:false
+    },{
+      type:'line',label:'Trend',data:pts,
+      borderColor:'#10B981',borderWidth:2.5,
+      backgroundColor:'rgba(16,185,129,.08)',
+      fill:true,tension:.4,
+      pointBackgroundColor:'#10B981',pointRadius:4,pointHoverRadius:7,
+      pointBorderColor:'#fff',pointBorderWidth:2
+    }]},
+    options:{
+      responsive:true,
+      animation:{duration:1000,easing:'easeOutQuart'},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'rgba(6,95,70,.92)',
+          titleFont:{size:12,weight:'bold'},
+          bodyFont:{size:13,weight:'bold'},
+          padding:12,cornerRadius:12,
+          callbacks:{
+            label:ctx=>' '+ctx.parsed.y+' pts'+
+              (ctx.parsed.y>=490?' 💎'
+              :ctx.parsed.y>=420?' 🥇'
+              :ctx.parsed.y>=320?' 🥈'
+              :ctx.parsed.y>=200?' 🥉':'')
+          }
+        }
+      },
+      scales:{
+        y:{beginAtZero:true,max:520,
+          grid:{color:'rgba(16,185,129,.08)'},
+          ticks:{font:{size:10},color:'#065F46',
+            callback:v=>v===0?'0':v+'pts'}},
+        x:{grid:{display:false},
+          ticks:{font:{size:10},color:'#065F46',maxRotation:0}}
+      }
+    },
+    plugins
+  });
+}
+
+function renderStatStrip(days){
+  const strip=document.getElementById('prog-strip');if(!strip)return;
+  const streak=getStreak();
+  const bestDay=days.reduce((best,d)=>(d.pts||0)>(best.pts||0)?d:best,days[0]);
+  const stats=[
+    {icon:'🔥',label:'Current Streak',val:streak+' days',col:'#EA580C',bg:'#FFF7ED',border:'#FDBA74'},
+    {icon:'🏆',label:'Best Day Ever',val:(bestDay?.pts||0)+' pts',col:'#F59E0B',bg:'#FFFBEB',border:'#FCD34D'},
+  ];
+  strip.innerHTML=stats.map(s=>`
+    <div style="background:${s.bg};border:2px solid ${s.border};border-radius:16px;padding:16px;text-align:center">
+      <div style="font-size:28px;margin-bottom:4px">${s.icon}</div>
+      <div style="font-size:24px;font-weight:900;color:${s.col};line-height:1">${s.val}</div>
+      <div style="font-size:10px;font-weight:800;color:${s.col};text-transform:uppercase;letter-spacing:.06em;margin-top:5px">${s.label}</div>
+    </div>`).join('');
+}
+
+function renderPerfCard(days){
+  const el=document.getElementById('perf-card');if(!el)return;
+  const recent=days.slice(-7);
+  const avgPts=recent.length?Math.round(recent.reduce((a,d)=>a+d.pts,0)/recent.length):0;
+  const mandPct=recent.length?Math.round(recent.reduce((a,d)=>a+(d.shlokaD&&d.creativeD&&d.brainD?1:0),0)/recent.length*100):0;
+  const streak=getStreak();
+  const cup=getDayCup(avgPts);
+
+  let rank,emoji,msg,col;
+  if(avgPts>=420){rank='S';emoji='👑';msg='LEGENDARY! '+_childName()+' is absolutely unstoppable!';col='#047857';}
+  else if(avgPts>=300){rank='A';emoji='🌟';msg='Outstanding performance! You are a true star!';col='#1D4ED8';}
+  else if(avgPts>=180){rank='B';emoji='💪';msg='Great effort! One more push and you hit S-rank!';col='#D97706';}
+  else if(avgPts>=100){rank='C';emoji='🙂';msg='You are building momentum — keep going!';col='#EA580C';}
+  else{rank='D';emoji='😤';msg='Come on '+_childName()+' — your best days are ahead of you!';col='#B91C1C';}
+
+  el.innerHTML=`
+  <div style="background:linear-gradient(135deg,#065F46,#0F766E,#1D4ED8);border-radius:18px;padding:18px 20px;color:#fff;cursor:pointer" onclick="cupSoundAndOverlay(getDayCup(([...savedDays].filter(d=>d.approved).sort((a,b)=>new Date(b.date)-new Date(a.date))[0]?.pts||0))?.id||'none')">
+    <div style="font-size:10px;font-weight:800;color:#A7F3D0;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">⭐ Last 7 days · Tap to replay cup reveal</div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="font-size:64px;line-height:1;filter:drop-shadow(0 0 16px rgba(252,211,77,.8))">${cup?cup.icon:'📊'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:17px;font-weight:900;margin-bottom:8px">${msg}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span style="background:rgba(255,255,255,.18);border-radius:10px;padding:4px 12px;font-size:12px;font-weight:800">⭐ Avg: ${avgPts} pts</span>
+          <span style="background:rgba(255,255,255,.18);border-radius:10px;padding:4px 12px;font-size:12px;font-weight:800">✅ Tasks: ${mandPct}%</span>
+          <span style="background:rgba(255,255,255,.18);border-radius:10px;padding:4px 12px;font-size:12px;font-weight:800">🔥 Streak: ${streak}</span>
+        </div>
+      </div>
+      <div style="text-align:center;flex-shrink:0">
+        <div style="font-size:52px;font-weight:900;line-height:1;color:#FCD34D;text-shadow:0 0 20px rgba(252,211,77,.6)">${rank}</div>
+        <div style="font-size:10px;color:#A7F3D0;font-weight:800;text-transform:uppercase;letter-spacing:.06em">RANK</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════
+// CLEAR
+// ════════════════════════════════════════════
+function clearDay(){
+  if(!confirm('Clear all entries for today? Saved history is kept.'))return;
+  document.querySelectorAll('input[type=text],input[type=number],textarea').forEach(e=>e.value='');
+  document.querySelectorAll('input[type=checkbox]').forEach(e=>e.checked=false);
+  document.querySelectorAll('select').forEach(e=>e.selectedIndex=0);
+  PCLS.forEach(c=>document.querySelectorAll('.'+c).forEach(e=>e.classList.remove(c)));
+  document.querySelectorAll('.star').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.creative-option').forEach(o=>o.classList.remove('chosen'));
+  document.getElementById('creative-detail').style.display='none';
+  const oaDet=document.getElementById('odda-assign-detail');if(oaDet)oaDet.style.display='none';
+  const oaRes=document.getElementById('odda-assign-result');if(oaRes)oaRes.innerHTML='';
+  document.querySelectorAll('#odda-time .pill, #gym-time .pill').forEach(p=>{p.classList.remove('pg','pr','pa','pb','pt');});
+  const tcBox=document.getElementById('test-chapters-box');if(tcBox)tcBox.style.display='none';
+  const wBox=document.getElementById('word-boxes');if(wBox)wBox.style.display='none';
+  ['word1','mean1','exam1','word2','mean2','exam2','word3','mean3','exam3'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const wpMsg=document.getElementById('word-pts-msg');if(wpMsg)wpMsg.textContent='';
+  const btEl=document.getElementById('book-type');if(btEl)btEl.value='0';
+  const prPend=document.getElementById('parent-pending-section');if(prPend)prPend.style.display='none'; /* always hidden */
+  const prAct=document.getElementById('parent-action-section');if(prAct)prAct.style.display='block';
+  const prApp=document.getElementById('approved-section');if(prApp)prApp.style.display='none';
+  const freeMsg=document.getElementById('free-act-msg');if(freeMsg)freeMsg.innerHTML='';
+  const prRatRes=document.getElementById('parent-rating-result');if(prRatRes)prRatRes.innerHTML='';
+  creativeChosen=null;brainPtsToday=0;sudokuPts=0;logicPtsTotal=0;riddlePtsTotal=0;mathsPtsToday=0;worksheetPts=0;geetaProgress={};todayApproved=false;
+  sudokuFrozen=false;logicFrozen=false;logicCurrentPuzzles=[];mathsFrozen=false;mathsChecked=false;mathsSelected=[];
+  genSudoku('easy');genLogicPuzzles();initMathsSprint();
+  const sAwd=document.getElementById('shloka-pts-award');if(sAwd)sAwd.value='0';
+  const cAwd=document.getElementById('creative-pts-award');if(cAwd)cAwd.value='0';
+  const sRes2=document.getElementById('shloka-pts-result');if(sRes2)sRes2.textContent='';
+  const cRes2=document.getElementById('creative-pts-result');if(cRes2)cRes2.textContent='';
+  const gMsg=document.getElementById('geeta-save-msg');if(gMsg)gMsg.textContent='';
+  const crMsg=document.getElementById('creative-save-msg');if(crMsg)crMsg.textContent='';
+  buildSS();
+  updateSS();
+  calcDayPts();setTodayDate();
+}
+
+// ════════════════════════════════════════════
+// POPUP / TOAST
+// ════════════════════════════════════════════
+function showPop(icon,title,msg){
+  document.getElementById('pop-icon').textContent=icon;
+  document.getElementById('pop-title').textContent=title;
+  document.getElementById('pop-msg').textContent=msg;
+  document.getElementById('pop').classList.add('show');
+}
+function closePop(){document.getElementById('pop').classList.remove('show');}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+// ════════════════════════════════════════════
+// SUDOKU ENGINE
+// ════════════════════════════════════════════
+function genSudoku(diff){
+  if(sudokuFrozen){ toast('🔒 Sudoku is locked for today! Ask your parent to unlock one more attempt.'); return; }
+  sudokuDifficulty=diff;
+  document.getElementById('sudoku-msg').textContent='';
+  const base=generateSudokuPuzzle(diff);
+  sudokuGrid=base.puzzle;sudokuSolution=base.solution;selectedCell=null;
+  renderSudokuGrid();renderNumpad();
+}
+function generateSudokuPuzzle(diff){
+  const solution=solveSudoku(createBase());
+  const puzzle=solution.map(r=>[...r]);
+  const removes={easy:35,medium:45,hard:52}[diff]||35;
+  let removed=0;
+  const cells=[];for(let r=0;r<9;r++)for(let c=0;c<9;c++)cells.push([r,c]);
+  cells.sort(()=>Math.random()-.5);
+  for(const[r,c]of cells){
+    if(removed>=removes)break;
+    const bk=puzzle[r][c];puzzle[r][c]=0;removed++;
+    if(!hasUniqueSolution(puzzle)){puzzle[r][c]=bk;removed--;}
+  }
+  return{puzzle,solution};
+}
+function createBase(){
+  const g=Array.from({length:9},()=>Array(9).fill(0));
+  for(let b=0;b<9;b+=3){const n=[1,2,3,4,5,6,7,8,9].sort(()=>Math.random()-.5);for(let r=0;r<3;r++)for(let c=0;c<3;c++)g[b+r][b+c]=n[r*3+c];}
+  return g;
+}
+function solveSudoku(grid){
+  const g=grid.map(r=>[...r]);
+  const valid=(g,r,c,n)=>{
+    for(let i=0;i<9;i++){if(g[r][i]===n||g[i][c]===n)return false;}
+    const br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;
+    for(let i=0;i<3;i++)for(let j=0;j<3;j++)if(g[br+i][bc+j]===n)return false;
+    return true;
+  };
+  const solve=g=>{
+    for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+      if(g[r][c]===0){
+        const nums=[1,2,3,4,5,6,7,8,9].sort(()=>Math.random()-.5);
+        for(const n of nums){if(valid(g,r,c,n)){g[r][c]=n;if(solve(g))return true;g[r][c]=0;}}
+        return false;
+      }
+    }return true;
+  };
+  solve(g);return g;
+}
+function hasUniqueSolution(puzzle){
+  let count=0;
+  const isV=(g,r,c,n)=>{
+    for(let i=0;i<9;i++){if(g[r][i]===n||g[i][c]===n)return false;}
+    const br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;
+    for(let i=0;i<3;i++)for(let j=0;j<3;j++)if(g[br+i][bc+j]===n)return false;
+    return true;
+  };
+  const cnt=g=>{
+    if(count>1)return;
+    for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+      if(g[r][c]===0){for(let n=1;n<=9;n++){if(isV(g,r,c,n)){g[r][c]=n;cnt(g);g[r][c]=0;}}return;}
+    }count++;
+  };
+  cnt(puzzle.map(r=>[...r]));return count===1;
+}
+function renderSudokuGrid(){
+  const container=document.getElementById('sudoku-grid');container.innerHTML='';
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+    const cell=document.createElement('div');
+    const given=sudokuGrid[r][c]!==0;
+    let cls='sc-cell'+(given?' given':'');
+    if(c===2||c===5)cls+=' bb';if(r===2||r===5)cls+=' bt';
+    cell.className=cls;cell.textContent=sudokuGrid[r][c]||'';
+    cell.dataset.r=r;cell.dataset.c=c;
+    if(!given)cell.onclick=()=>selectSudokuCell(r,c);
+    container.appendChild(cell);
+  }
+}
+function renderNumpad(){
+  const np=document.getElementById('numpad');np.innerHTML='';
+  for(let n=1;n<=9;n++){
+    const btn=document.createElement('button');btn.className='npbtn';
+    btn.textContent=n;btn.onclick=()=>enterSudokuNum(n);np.appendChild(btn);
+  }
+  const er=document.createElement('button');er.className='npbtn erase';er.textContent='✕';er.onclick=()=>enterSudokuNum(0);np.appendChild(er);
+}
+function selectSudokuCell(r,c){
+  selectedCell={r,c};
+  document.querySelectorAll('.sc-cell').forEach(el=>el.classList.remove('selected'));
+  const cells=document.querySelectorAll('.sc-cell');
+  if(cells[r*9+c])cells[r*9+c].classList.add('selected');
+}
+function enterSudokuNum(n){
+  if(!selectedCell)return;
+  const{r,c}=selectedCell;
+  const cells=document.querySelectorAll('.sc-cell');
+  if(cells[r*9+c]?.classList.contains('given'))return;
+  sudokuGrid[r][c]=n;
+  const cell=cells[r*9+c];
+  cell.textContent=n||'';
+  // No live highlighting — only show neutral entered style
+  cell.classList.remove('correct','wrong');
+  if(n>0) cell.classList.add('entered');
+  else cell.classList.remove('entered');
+}
+function checkSudoku(){
+  if(sudokuFrozen){ toast('🔒 Sudoku is locked for today!'); return; }
+  let allCorrect=true,allFilled=true;
+  const cells=document.querySelectorAll('.sc-cell');
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+    const cell=cells[r*9+c];
+    if(sudokuGrid[r][c]===0){allFilled=false;allCorrect=false;}
+    else if(sudokuGrid[r][c]!==sudokuSolution[r][c]){allCorrect=false;cell.classList.remove('entered');cell.classList.add('wrong');}
+    else {cell.classList.remove('entered');cell.classList.add('correct');}
+  }
+  const msg=document.getElementById('sudoku-msg');
+  if(allCorrect&&allFilled){
+    const bonus={easy:0,medium:5,hard:10}[sudokuDifficulty]||0;
+    sudokuPts=Math.max(sudokuPts,30+bonus);
+    brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
+  if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();
+    msg.innerHTML=`<span style="color:#10B981;font-size:16px">🎉 PERFECT! +${30+bonus} pts!</span>`;
+    toast('Sudoku solved! +'+(30+bonus)+' brain pts!');
+    updateBrainDisplay();if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();calcDayPts();
+  } else if(!allFilled){
+    msg.innerHTML='<span style="color:#F97316">Some cells are empty — sudoku checked & locked now! 🔒</span>';
+  } else {
+    msg.innerHTML='<span style="color:#EF4444">Some cells have errors — sudoku checked & locked now! 🔒</span>';
+  }
+  // Always freeze after Check, regardless of result
+  freezeSudoku();
+  // Persist freeze state immediately
+  saveBrainDraft();
+}
+function revealSudokuHint(){
+  sudokuPts=Math.max(0,sudokuPts-5);
+  brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
+  if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();
+  updateBrainDisplay();if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();calcDayPts();
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+    if(sudokuGrid[r][c]===0){
+      sudokuGrid[r][c]=sudokuSolution[r][c];
+      const cells=document.querySelectorAll('.sc-cell');
+      cells[r*9+c].textContent=sudokuSolution[r][c];
+      cells[r*9+c].classList.remove('entered');
+      cells[r*9+c].classList.add('correct');
+      toast('Hint revealed! −5 pts');return;
     }
-    h2 += '<div class="bl-board"><div style="display:grid;grid-template-columns:repeat(9,minmax(0,1fr))">';
-    for(var i = 0; i < 81; i++){
-      var r = Math.floor(i / 9), c = i % 9, given = !!P.start[i];
-      var v = given ? P.start[i] : (S.done ? (S.cells[i] || P.sol[i]) : (S.cells[i] || ''));
-      var bs = 'border-right:' + (c % 3 === 2 && c < 8 ? '2.5px solid var(--green)' : '1px solid #E2D6BE') + ';border-bottom:' + (r % 3 === 2 && r < 8 ? '2.5px solid var(--green)' : '1px solid #E2D6BE')
-        + (S.done && !given && !S.cells[i] ? ';color:#2F7D4F' : '');
-      var cls = 'bl-cell' + (given ? ' g' : '') + (S.sel === i ? ' sel' : '') + (wrong[i] ? ' bad' : '');
-      h2 += '<button class="' + cls + '" style="' + bs + '" data-act="cell" data-i="' + i + '"' + (given || S.done ? ' disabled' : '') + ' aria-label="Row ' + (r + 1) + ' column ' + (c + 1) + '">' + v + '</button>';
-    }
-    h2 += '</div></div>';
-    if(S.done){
-      h2 += S.ok ? '<div class="bl-win" style="margin-top:14px"><span class="big">+' + PTS.sudoku[S.level] + '</span> points <span style="display:flex;align-items:center;gap:4px;margin-left:auto">' + leafIcon(16) + ' +' + SUDOKU_LEAVES[S.level] + (SUDOKU_LEAVES[S.level] > 1 ? ' leaves' : ' leaf') + '</span></div>'
-                 : '<div class="bl-win miss" style="margin-top:14px">Not quite this time — and no leaf is lost. The red boxes were wrong; the green numbers show the answers.</div>';
-      h2 += bubble(m, 'From Lilavati', S.ok ? 'Brilliant! Every row, column and box has 1 to 9 exactly once. A new puzzle comes tomorrow.' : 'Every row, column and box must hold 1 to 9 exactly once. Try again tomorrow!')
-         + '<button class="bl-btn" data-act="home">Back to Brain Lab</button>';
+  }
+}
+
+// ════════════════════════════════════════════
+// LOGIC PUZZLES
+
+// ════════════════════════════════════════════
+// RIDDLES
+// ════════════════════════════════════════════
+function genRiddles(){
+  riddleAnswered=[];riddlePts=0;
+  const shuffled=[...RIDDLES].sort(()=>Math.random()-.5).slice(0,3);
+  const c=document.getElementById('riddle-section');if(!c)return;c.innerHTML='';
+  shuffled.forEach((r,i)=>{
+    const div=document.createElement('div');
+    div.style.cssText='background:var(--pkl);border-radius:var(--rads);border:2px solid var(--pkm);padding:14px;margin-bottom:10px';
+    div.innerHTML=`<div style="font-size:14px;font-weight:800;color:var(--pkd);margin-bottom:10px">Riddle ${i+1}: ${r.q}</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <input type="text" id="rid-ans-${i}" placeholder="Your answer..." style="flex:1;border-color:var(--pkm)">
+        <button class="btn btn-p" style="font-size:12px;padding:7px 14px;background:linear-gradient(135deg,var(--pk),var(--pkd));border:none" onclick="checkRiddle(${i},'${r.a.replace(/'/g,"\\'")}','${r.hint.replace(/'/g,"\\'")}')">Check!</button>
+      </div>
+      <div id="rid-hint-${i}" style="font-size:11px;color:var(--pkd);cursor:pointer;text-decoration:underline" onclick="document.getElementById('rid-hint-${i}').textContent='Hint: ${r.hint}'">Show hint</div>
+      <div id="rid-result-${i}" style="margin-top:6px"></div>`;
+    c.appendChild(div);
+  });
+}
+function checkRiddle(i,correct,hint){
+  if(riddleAnswered.includes(i))return;
+  const ans=(document.getElementById('rid-ans-'+i)?.value||'').trim().toLowerCase();
+  const isRight=ans===correct.toLowerCase()||correct.toLowerCase().includes(ans)&&ans.length>2;
+  riddleAnswered.push(i);
+  if(isRight){
+    riddlePts+=10;riddlePtsTotal+=10;brainPtsToday=sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
+  if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();
+    document.getElementById('rid-result-'+i).innerHTML='<span style="color:#10B981;font-weight:800">🎉 Correct! +10 pts! Answer: '+correct+'</span>';
+    toast('Riddle solved! +10 brain pts!');
+    updateBrainDisplay();if(typeof ttSyncBrainLabPts==='function') ttSyncBrainLabPts();calcDayPts();
+  }else{
+    document.getElementById('rid-result-'+i).innerHTML='<span style="color:#EF4444;font-weight:800">❌ Not quite! Answer: '+correct+'</span>';
+  }
+}
+
+// ════════════════════════════════════════════
+// ════════════════════════════════════════════
+// SKILL BUILDER — simple self-assessment
+// ════════════════════════════════════════════
+function handleSkillSelect(){
+  const val = document.getElementById('skill-did')?.value;
+  document.getElementById('skill-yes-box').style.display = val==='yes' ? 'block' : 'none';
+  document.getElementById('skill-no-msg').style.display  = val==='no'  ? 'block' : 'none';
+  document.getElementById('skill-pts-final').style.display = 'none';
+  // Reset pts select when toggling
+  const sel = document.getElementById('skill-pts-select');
+  if(sel) sel.value = '';
+  aiSkillPts = 0;
+  calcDayPts();
+}
+
+function handleSkillPtsSelect(){
+  const val = parseInt(document.getElementById('skill-pts-select')?.value || 0);
+  aiSkillPts = val || 0;
+  const ptsEl = document.getElementById('skill-pts-final');
+  if(ptsEl){
+    if(val){
+      ptsEl.style.display = 'block';
+      const col = val===10 ? 'var(--gd)' : 'var(--bd)';
+      const icon = val===10 ? '🌟' : '👍';
+      ptsEl.innerHTML = `<span style="font-size:12px;font-weight:800;color:${col}">${icon} +${val} skill pts added!</span>`;
     } else {
-      h2 += '<div class="bl-pad">';
-      for(var n = 1; n <= 9; n++) h2 += '<button class="bl-num" data-act="num" data-n="' + n + '">' + n + '</button>';
-      h2 += '<button class="bl-num" data-act="num" data-n="0" style="font-family:Mukta,sans-serif;font-size:14px;font-weight:800">Erase</button></div>';
-      var filled = entered + P.start.filter(Boolean).length;
-      h2 += '<button class="bl-btn" data-act="check-sudoku"' + (filled === 81 ? '' : ' disabled') + '>' + (filled === 81 ? 'Check my Sudoku' : (81 - filled) + ' boxes left to fill') + '</button>'
-         + '<div class="bl-note">Tap a box, then a number. You can check only once, so look carefully first!</div>';
+      ptsEl.style.display = 'none';
     }
-    return h2 + '</div>';
+  }
+  calcDayPts();
+}
+
+// ════════════════════════════════════════════
+// BACKUP EXPORT
+// ════════════════════════════════════════════
+function exportBackup() {
+  const backup = {
+    exportDate: new Date().toISOString(),
+    savedDays, spendHist, totalSpent
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'vaanya-backup-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  toast('✅ Backup downloaded to your PC!');
+}
+
+// ════════════════════════════════════════════
+// BRAIN LAB DISPLAY
+// ════════════════════════════════════════════
+// ════════════════════════════════════════════
+// MENTAL MATHS SPRINT — Class 6 CBSE Olympiad
+// ════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════
+// MATHS SPRINT — v4
+// • Start button triggers sprint — timer does NOT start on tab open
+// • Submit anytime OR auto-submits when timer hits 0
+// • On refresh mid-sprint: same questions restored, timer resets to 3min
+// • On refresh after submit: frozen state shown with correct/wrong highlights
+// ════════════════════════════════════════════════════════════════
+
+let mathsPtsToday  = 0;
+let mathsFrozen    = false;   // true once sprint is submitted for today
+let mathsChecked   = false;   // true once answers are checked
+let mathsSelected  = [];      // chosen option index per question (null = unanswered)
+let mathsQuestions = [];      // 5 selected questions for this sprint
+let mathsTimerVal  = 180;     // countdown seconds
+let mathsTimerInt  = null;    // setInterval handle
+let mathsStarted   = false;   // true once Start Sprint clicked
+
+// Session key for maths sprint state
+const MATHS_SESSION_KEY = 'vaanya_maths_sprint';
+
+
+// ── Save sprint state to sessionStorage ──────────────────────────
+function _mathsSaveSession(){
+  try {
+    const istDate = new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
+    sessionStorage.setItem(MATHS_SESSION_KEY, JSON.stringify({
+      date: istDate,
+      questions: mathsQuestions,
+      selected:  mathsSelected,
+      checked:   mathsChecked,
+      frozen:    mathsFrozen,
+      pts:       mathsPtsToday,
+    }));
+  } catch(e){}
+}
+
+// ── Load sprint state from sessionStorage ─────────────────────────
+function _mathsLoadSession(){
+  try {
+    const raw = sessionStorage.getItem(MATHS_SESSION_KEY);
+    if(!raw) return null;
+    const s = JSON.parse(raw);
+    const istDate = new Date(Date.now()+5.5*60*60000).toISOString().split('T')[0];
+    if(s.date !== istDate) { sessionStorage.removeItem(MATHS_SESSION_KEY); return null; }
+    return s;
+  } catch(e){ return null; }
+}
+
+// ── Called when Maths Sprint tab is opened ───────────────────────
+function initMathsSprint(){
+  clearInterval(mathsTimerInt);
+
+  // Check if frozen from savedDays (already submitted today)
+  if(mathsFrozen && mathsChecked && mathsQuestions.length > 0){
+    _mathsShowFrozenState();
+    return;
   }
 
-  function doneHtml(){
-    var s = score(), total = leavesTotal(), todayN = leavesToday(), nx = milestoneNext(total), pv = milestonePrev(total);
-    var newM = MILESTONES.filter(function(m){ return total - todayN < m[0] && total >= m[0]; });
-    var from = pv ? pv[0] : 0, pct = nx ? Math.round((total - from) / (nx[0] - from) * 100) : 100;
-    var name = childName();
-    function row(mm, text, pts){ return '<div>' + seal(mm) + text + '<b>+' + pts + '</b></div>'; }
-    var h = '<div class="bl-border"></div><div class="bl-split"><div style="text-align:center">'
-      + '<div class="bl-eyebrow">Day ' + BL.day + ' · all four done</div>'
-      + '<h1 class="bl-title">' + PRAISE[(BL.day - 1) % PRAISE.length] + (name ? ', ' + esc(name) : '') + '!</h1>'
-      + '<p class="bl-lede">Your tree grew ' + todayN + ' new ' + (todayN === 1 ? 'leaf' : 'leaves') + ' today.</p>'
-      + '<div class="bl-court" style="margin-top:14px">' + treeSvg(total, todayN) + '</div>'
-      + '<div style="display:flex;gap:10px;margin-top:10px"><div class="bl-chip" style="flex:1;text-align:left"><b>' + total + ' leaves</b>+' + todayN + ' today</div>'
-      + '<div class="bl-chip pts" style="flex:1;text-align:right"><b>' + s.total + '</b>of ' + maxToday() + ' points</div></div>'
-      + '</div><div><div class="bl-summary">'
-      + row(MENTOR.ramanujan, 'Maths Sprint · ' + rightCount('maths') + ' of ' + COUNT.maths, s.maths)
-      + row(MENTOR.chanakya, 'Logic · ' + rightCount('logic') + ' of ' + COUNT.logic, s.logic)
-      + row(MENTOR.lilavati, 'Sudoku · ' + (BL.sudoku.ok ? BL.sudoku.level + ' solved' : BL.sudoku.level + ' tried'), s.sudoku)
-      + row(MENTOR.birbal, 'Riddles · ' + rightCount('riddle') + ' of ' + COUNT.riddle, s.riddle)
-      + '<div><span style="width:30px;display:flex;justify-content:center">' + leafIcon(24, true) + '</span>All-four bonus + golden leaf<b>+' + s.bonus + '</b></div></div>'
-      + '<div class="bl-card" style="margin-top:12px;font-weight:700">'
-      + (newM.length ? '🌱 New on your tree today: <b style="color:var(--leaf)">' + newM.map(function(m){ return m[2]; }).join(', ') + '</b>!<br>' : '')
-      + (nx ? '<span style="color:var(--soft)">Next surprise at ' + nx[0] + ' leaves: ' + nx[2] + '.</span>' : 'Your Great Banyan is complete!')
-      + '<div class="bl-bar" style="height:10px"><i style="width:' + pct + '%"></i></div>'
-      + '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--soft);margin-top:4px"><span>' + total + '</span><span>' + (nx ? nx[0] : '') + '</span></div></div>'
-      + '<button class="bl-btn" style="--c:var(--maroon)" data-act="home">Back to Brain Lab</button>'
-      + '<div class="bl-note">New challenges tomorrow · Day ' + (BL.day + 1) + '</div></div></div>';
-    return h;
-  }
+  // Check sessionStorage for in-progress or completed sprint
+  const sess = _mathsLoadSession();
+  if(sess){
+    mathsQuestions = sess.questions || [];
+    mathsSelected  = sess.selected  || Array(5).fill(null);
+    mathsChecked   = sess.checked   || false;
+    mathsFrozen    = sess.frozen    || false;
+    mathsPtsToday  = sess.pts       || 0;
+    brainPtsToday  = sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
+    updateBrainDisplay();
 
-  function render(){
-    var r = root(); if(!r) return;
-    ensure();
-    if(!BL.loaded && !BL.error) load();
-    if(BL._leaves === undefined && BL.loaded) BL._leaves = leavesTotal();
-    var v = BL.view, html;
-    if(v === 'home') html = homeHtml();
-    else if(v === 'done') html = doneHtml();
-    else if(v === 'sudoku') html = sudokuHtml();
-    else if(v === 'challenge') html = challengeHtml();
-    else if(v.indexOf('review-') === 0) html = reviewHtml(v.slice(7));
-    else html = quizHtml(v);
-    r.innerHTML = '<div class="v-' + (v === 'home' ? 'home' : 'game') + '">' + html + '</div>';
-    // A new screen starts at its top, not where the last one was scrolled to.
-    if(r._view && r._view !== v){ try{ var t = r.getBoundingClientRect().top; if(t < 0 || t > 200) r.scrollIntoView({ block:'start', behavior:'instant' }); }catch(e){} }
-    r._view = v;
-    if(v === 'maths' && BL.maths.started && !BL.maths.done && !BL.maths.paused) startTick();
-  }
-
-  // ---- taps -------------------------------------------------------------------------------
-  function onClick(e){
-    var b = e.target.closest('[data-act]'); if(!b || b.disabled) return;
-    var act = b.getAttribute('data-act'), g = b.getAttribute('data-g');
-    if(['home', 'review', 'retry', 'done'].indexOf(act) < 0 && locked()){ if(typeof toast === 'function') toast('This day is approved — the games are closed.'); return; }
-    if(act === 'home'){
-      stopTick();
-      // the first time all four are done, show the day's tree
-      if(allDone() && !BL.celebrated){ BL.celebrated = true; BL.view = 'done'; apply(true); }
-      else BL.view = 'home';
-    }
-    else if(act === 'done'){ BL.view = 'done'; }
-    else if(act === 'retry'){ BL.error = ''; BL.loaded = false; load(); }
-    else if(act === 'go'){ BL.view = g; if(g !== 'sudoku'){ BL[g].i = firstOpen(g); BL[g]._showSummary = false; } }
-    else if(act === 'review'){ BL.view = g === 'sudoku' ? 'sudoku' : 'review-' + g; }
-    else if(act === 'pick'){ var S = BL[BL.view]; if(S && S.ans[S.i] === undefined) S.pick = b.getAttribute('data-l'); }
-    else if(act === 'hint'){ BL.riddle.hint[BL.riddle.i] = true; apply(false); }
-    else if(act === 'ch'){ if(chAvail()){ chQ(); BL.view = 'challenge'; } }
-    else if(act === 'check'){ if(BL.view === 'challenge') chAnswer(); else answer(); }
-    else if(act === 'next'){ nextQ(); }
-    else if(act === 'mins'){ BL.maths.mins = +b.getAttribute('data-m'); }
-    else if(act === 'start-sprint'){ startSprint(); }
-    else if(act === 'level'){ BL.sudoku.pick = b.getAttribute('data-lv'); }
-    else if(act === 'start-sudoku'){ if(BL.sudoku.pick){ BL.sudoku.level = BL.sudoku.pick; apply(true); } }
-    else if(act === 'relevel'){
-      var Sl = BL.sudoku, lv = b.getAttribute('data-lv');
-      if(!Sl.done && lv !== Sl.level && !Object.keys(Sl.cells).some(function(k){ return Sl.cells[k]; })){ Sl.level = lv; Sl.pick = lv; Sl.cells = {}; Sl.sel = -1; apply(true); }
-    }
-    else if(act === 'cell'){ BL.sudoku.sel = +b.getAttribute('data-i'); }
-    else if(act === 'num'){ var Sd = BL.sudoku; if(Sd.sel >= 0 && !Sd.done){ var n = +b.getAttribute('data-n'); if(n) Sd.cells[Sd.sel] = n; else delete Sd.cells[Sd.sel]; if(typeof ttQueueSave === 'function') ttQueueSave(); } }
-    else if(act === 'check-sudoku'){ checkSudoku(); }
-    render();
-  }
-
-  function chAnswer(){
-    var S = BL.challenge, q = chQ();
-    if(!q || !S.pick || S.ans[0] !== undefined) return;
-    S.ans[0] = S.pick; S.pick = '';
-    apply(true);
-  }
-  function challengeHtml(){
-    var q = chQ(), S = BL.challenge, m = MENTOR.ramanujan;
-    if(!q) return top('challenge', '') + '<div class="bl-card" style="margin-top:18px;font-weight:700;text-align:center">Ramanujan’s Challenge comes on Saturdays and Sundays.</div>';
-    var ans = S.ans[0], answered = ans !== undefined, ok = answered && ans === q.answer;
-    var head = top('challenge', 'Weekend only · no hints · one try', '+' + PTS.challenge + ' pts · 2 leaves');
-    var mentor = answered ? bubble(m, m.name + ' explains', steps(q.explanation))
-               : bubble(m, m.name + ' says', esc('This one is meant to be hard. There is no clock — think it through. You have one try.'));
-    var fig = svgSafe(q.figure);
-    var qa = '<div class="bl-q"><div class="topic">' + esc(q.topic || 'Challenge') + '</div><div class="q">' + esc(q.question) + '</div>' + (fig ? '<div class="bl-fig">' + fig + '</div>' : '') + '</div>';
-    var figs = ['A','B','C','D'].some(function(Lt){ return isFig(opt(q, Lt)); });
-    var long = !figs && ['A','B','C','D'].some(function(Lt){ return String(opt(q, Lt) || '').length > 22; });
-    qa += '<div class="bl-opts' + (long ? ' one' : '') + (figs ? ' figs' : '') + '">';
-    ['A','B','C','D'].forEach(function(Lt){
-      var cls = 'bl-opt';
-      if(answered){ cls += Lt === q.answer ? ' right' : Lt === ans ? ' wrong' : ' dim'; }
-      else if(S.pick === Lt) cls += ' pick';
-      qa += '<button class="' + cls + (figs ? ' fig' : '') + '" data-act="pick" data-l="' + Lt + '"' + (answered ? ' disabled' : '') + '>'
-        + (figs ? '<span class="lt">' + Lt + '</span>' + optHtml(q, Lt) : (answered && Lt === q.answer ? '✓ ' : '') + esc(opt(q, Lt))) + '</button>';
-    });
-    qa += '</div>';
-    if(answered) qa += ok ? '<div class="bl-win"><span class="big">+' + PTS.challenge + '</span> points <span style="display:flex;align-items:center;gap:4px;margin-left:auto">' + leafIcon(16) + ' +2 leaves</span></div>'
-                          : '<div class="bl-win miss">Not this time — this was a tough one. The answer is ' + ansText(q, q.answer) + '.</div>';
-    var next = answered ? '<button class="bl-btn" data-act="home">Back to Brain Lab</button>'
-             : '<button class="bl-btn" data-act="check"' + (S.pick ? '' : ' disabled') + '>Give my answer</button><div class="bl-note">One try only — Ramanujan explains the answer afterwards.</div>';
-    return '<div class="bl-play' + (answered ? ' answered' : '') + '" style="--c:#33307A">'
-      + '<div class="pa-head">' + head + '</div><div class="pa-mentor">' + mentor + '</div><div class="pa-qa">' + qa + '</div><div class="pa-next">' + next + '</div></div>';
-  }
-  function answer(){
-    var g = BL.view, S = BL[g], q = list(g)[S.i];
-    if(!q || !S.pick || S.ans[S.i] !== undefined) return;
-    S.ans[S.i] = S.pick; S.pick = '';
-    if(g === 'maths' && S.mins){ S.left = Math.max(0, S.endAt - Date.now()); S.paused = true; stopTick(); }   // the clock stops while reading
-    if(Object.keys(S.ans).length >= COUNT[g]){ S.done = true; stopTick(); }
-    apply(S.done);
-  }
-  function nextQ(){
-    var g = BL.view, S = BL[g];
-    if(S.i >= COUNT[g] - 1 || S.done){
-      S._showSummary = true;
-      if(!S.done){ S.done = true; apply(true); }
+    if(mathsFrozen && mathsChecked){
+      // Sprint was completed — show frozen results
+      _mathsShowFrozenState();
+      return;
+    } else {
+      // Sprint was in progress — restore questions, reset timer to 3 min fresh
+      _mathsShowSprintArea();
+      renderMathsQuestions();
+      buildMathsProgress();
+      _restoreSelections();
+      _mathsStartTimer(); // timer always resets to 3:00 on refresh (as per requirement)
       return;
     }
-    S.i++;
-    if(g === 'maths' && S.mins && S.paused){ S.endAt = Date.now() + S.left; S.paused = false; }
-  }
-  function startSprint(){
-    var m = BL.maths;
-    m.started = true; m.i = 0;
-    if(m.mins){ m.endAt = Date.now() + m.mins * 60000; m.paused = false; }
-    apply(true);
-  }
-  function checkSudoku(){
-    var S = BL.sudoku; if(!S.level || S.done) return;
-    if(!confirm('Check your Sudoku now? You can check only once today.')) return;
-    var P = puzzle(S.level), ok = true;
-    for(var i = 0; i < 81; i++) if(!P.start[i] && S.cells[i] !== P.sol[i]){ ok = false; break; }
-    S.done = true; S.ok = ok; S.sel = -1;
-    apply(true);
   }
 
-  // ---- connections to the rest of the app ---------------------------------------------------
-  // The day record carries what the child did in Brain Lab.
-  if(typeof collectFormData === 'function'){
-    var collect = collectFormData;
-    collectFormData = function(date, pts){
-      var d = collect(date, pts);
-      try{
-        if(BL && BL.date === date) d.brainStateJSON = JSON.stringify(snapshot());
-        else {
-          var rec = days().find(function(x){ return x.date === date; });
-          if(rec && rec.brainStateJSON) d.brainStateJSON = rec.brainStateJSON;
-        }
-      }catch(e){}
-      return d;
-    };
-  }
-  // When another day is loaded, start again from its saved record.
-  ['loadDraftDay', 'loadApprovedDay'].forEach(function(fn){
-    if(typeof window[fn] !== 'function') return;
-    var orig = window[fn];
-    window[fn] = function(){
-      var r = orig.apply(this, arguments);
-      BL = null;
-      try{ var t = $('tab-brain'); if(t && t.classList.contains('active')) render(); }catch(e){}
-      return r;
-    };
+  // No session — show start screen
+  _mathsShowStartScreen();
+}
+
+function _mathsShowStartScreen(){
+  document.getElementById('maths-start-screen').style.display = 'block';
+  document.getElementById('maths-sprint-area').style.display  = 'none';
+  document.getElementById('maths-score-display').style.display= 'none';
+  document.getElementById('maths-timer-wrap').style.display   = 'none';
+  document.getElementById('maths-score-chip').textContent     = '0';
+  document.getElementById('maths-answered-chip').textContent  = '0/5';
+}
+
+function _mathsShowSprintArea(){
+  document.getElementById('maths-start-screen').style.display = 'none';
+  document.getElementById('maths-sprint-area').style.display  = 'block';
+  document.getElementById('maths-score-display').style.display= 'none';
+  document.getElementById('maths-timer-wrap').style.display   = 'flex';
+}
+
+function _mathsShowFrozenState(){
+  document.getElementById('maths-start-screen').style.display = 'none';
+  document.getElementById('maths-sprint-area').style.display  = 'block';
+  document.getElementById('maths-score-display').style.display= 'block';
+  document.getElementById('maths-timer-wrap').style.display   = 'none';
+  document.getElementById('maths-check-btn').style.display    = 'none';
+  document.getElementById('maths-score-chip').textContent     = mathsPtsToday;
+  renderMathsQuestions(); // re-render in frozen state
+  _mathsShowScoreCard();
+}
+
+// ── Start Sprint button clicked ──────────────────────────────────
+function startMathsSprint(){
+  // Pick 5 random questions
+  const shuffled = [...MATHS_BANK].sort(()=>Math.random()-.5);
+  mathsQuestions = shuffled.slice(0, 5);
+  mathsSelected  = Array(5).fill(null);
+  mathsChecked   = false;
+  mathsFrozen    = false;
+  mathsPtsToday  = 0;
+  mathsStarted   = true;
+
+  _mathsShowSprintArea();
+  renderMathsQuestions();
+  buildMathsProgress();
+  _mathsStartTimer();
+  _mathsSaveSession(); // save questions so refresh restores them
+}
+
+// ── Timer ────────────────────────────────────────────────────────
+function _mathsStartTimer(){
+  clearInterval(mathsTimerInt);
+  mathsTimerVal = 180; // always reset to 3:00 (as per requirement)
+  updateMathsTimer();
+  mathsTimerInt = setInterval(()=>{
+    mathsTimerVal--;
+    updateMathsTimer();
+    if(mathsTimerVal <= 0){
+      clearInterval(mathsTimerInt);
+      if(!mathsChecked) checkMathsSprint(true); // auto-submit
+    }
+  }, 1000);
+}
+
+function buildMathsProgress(){
+  const el = document.getElementById('maths-prog-dots');
+  if(!el) return;
+  el.innerHTML = mathsQuestions.map((_,i)=>
+    `<div id="mpd-${i}" style="height:6px;width:28px;border-radius:3px;background:rgba(255,255,255,.25);transition:background .3s"></div>`
+  ).join('');
+}
+
+function updateMathsProgress(){
+  mathsQuestions.forEach((_,i)=>{
+    const d = document.getElementById('mpd-'+i); if(!d) return;
+    d.style.background = mathsSelected[i] !== null ? '#fff' : 'rgba(255,255,255,.25)';
   });
-  // Draw Brain Lab whenever its tab opens.
-  if(typeof showTab === 'function'){
-    var show = showTab;
-    showTab = function(id, btn){
-      var r = show.apply(this, arguments);
-      if(id === 'brain'){ try{ if(BL && BL.date !== dateOpen()) BL = null; render(); }catch(e){ console.error('[brain] render:', e); } }
-      return r;
-    };
+}
+
+function updateMathsTimer(){
+  const m = Math.floor(mathsTimerVal/60), s = mathsTimerVal%60;
+  const el = document.getElementById('maths-timer-txt');
+  if(el) el.textContent = m+':'+(s<10?'0':'')+s;
+  const arc = document.getElementById('maths-timer-arc');
+  if(!arc) return;
+  const pct = mathsTimerVal/180;
+  arc.style.strokeDashoffset = 138.2*(1-pct);
+  arc.style.stroke = pct>0.4?'#fff':pct>0.2?'#FCD34D':'#FCA5A5';
+}
+
+// ── Render questions ─────────────────────────────────────────────
+function renderMathsQuestions(){
+  const wrap = document.getElementById('maths-questions');
+  if(!wrap) return;
+  const diffStyle = {Easy:'background:#ECFDF5;color:#065F46',Medium:'background:#FFFBEB;color:#92400E',Hard:'background:#FEF2F2;color:#B91C1C'};
+  wrap.innerHTML = mathsQuestions.map((q,i)=>`
+    <div style="background:#fff;border-radius:var(--rads);border:2px solid #FED7AA;margin-bottom:10px;overflow:hidden">
+      <div style="background:linear-gradient(135deg,#FFF7ED,#FFEDD5);padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:1.5px solid #FED7AA">
+        <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#F97316,#C2410C);color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
+        <span style="font-size:11px;font-weight:800;color:#92400E">${q.topic}</span>
+        <span style="font-size:9px;font-weight:900;padding:2px 7px;border-radius:8px;margin-left:auto;${diffStyle[q.diff]||''}">${q.diff}</span>
+      </div>
+      <div style="padding:13px 14px">
+        <div style="font-size:13px;font-weight:800;color:var(--ink);line-height:1.6;margin-bottom:11px">${q.q}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          ${q.opts.map((o,oi)=>{
+            let cls='opt-btn', bg='', bc='', co='';
+            if(mathsChecked){
+              if(oi===q.ans){ cls='opt-btn correct'; }
+              else if(mathsSelected[i]===oi && oi!==q.ans){ cls='opt-btn wrong'; }
+            } else if(mathsSelected[i]===oi){
+              bg='var(--tl)'; bc='var(--t)'; co='var(--td)';
+            }
+            const dis = mathsChecked ? 'disabled style="cursor:default"' : `onclick="selectMathsOpt(${i},${oi})"`;
+            return `<button id="mopt-${i}-${oi}" class="${cls}" ${dis} style="text-align:left;font-size:12px;padding:8px 11px;background:${bg};border-color:${bc};color:${co}">${String.fromCharCode(65+oi)}) ${o}</button>`;
+          }).join('')}
+        </div>
+        <div id="mexpl-${i}" style="display:${mathsChecked?'block':'none'};margin-top:8px;font-size:11px;background:#ECFDF5;border-radius:6px;padding:8px 10px;color:#065F46;font-weight:700;line-height:1.5">💡 ${q.exp}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Restore previously chosen selections after refresh ────────────
+function _restoreSelections(){
+  mathsSelected.forEach((sel, i) => {
+    if(sel === null) return;
+    const btn = document.getElementById(`mopt-${i}-${sel}`);
+    if(btn){
+      btn.style.background = 'var(--tl)';
+      btn.style.borderColor = 'var(--t)';
+      btn.style.color = 'var(--td)';
+    }
+  });
+  const answered = mathsSelected.filter(x=>x!==null).length;
+  document.getElementById('maths-answered-chip').textContent = answered+'/5';
+  updateMathsProgress();
+}
+
+// ── Option selection ─────────────────────────────────────────────
+function selectMathsOpt(qi, oi){
+  if(mathsChecked || mathsFrozen) return;
+  mathsSelected[qi] = oi;
+  for(let j=0;j<4;j++){
+    const b = document.getElementById(`mopt-${qi}-${j}`); if(!b) continue;
+    b.className = 'opt-btn';
+    b.style.background  = j===oi ? 'var(--tl)' : '';
+    b.style.borderColor = j===oi ? 'var(--t)'  : '';
+    b.style.color       = j===oi ? 'var(--td)' : '';
+  }
+  const answered = mathsSelected.filter(x=>x!==null).length;
+  document.getElementById('maths-answered-chip').textContent = answered+'/5';
+  updateMathsProgress();
+  _mathsSaveSession(); // save selection immediately
+}
+
+// ── Check/Submit sprint (timerExpired=true means auto-submit) ─────
+function checkMathsSprint(timerExpired = false){
+  if(mathsChecked || mathsFrozen) return;
+  mathsChecked = true;
+  mathsFrozen  = true;
+  clearInterval(mathsTimerInt);
+
+  let correct = 0;
+  mathsQuestions.forEach((q,i) => {
+    if(mathsSelected[i] === q.ans) correct++;
+    // Colour correct/wrong
+    for(let j=0;j<4;j++){
+      const b = document.getElementById(`mopt-${i}-${j}`); if(!b) continue;
+      b.disabled = true; b.style.cursor = 'default';
+      b.style.background=''; b.style.borderColor=''; b.style.color='';
+      if(j===q.ans)         b.className = 'opt-btn correct';
+      else if(j===mathsSelected[i] && j!==q.ans) b.className = 'opt-btn wrong';
+      else                  b.className = 'opt-btn';
+    }
+    const expl = document.getElementById(`mexpl-${i}`);
+    if(expl) expl.style.display = 'block';
+  });
+
+  // Score: 0=0, 1=3, 2=8, 3=14, 4=20, 5=25
+  const scoreMap = [0,3,8,14,20,25];
+  const pts = scoreMap[correct] || 0;
+  mathsPtsToday  = pts;
+  brainPtsToday  = sudokuPts+logicPtsTotal+riddlePtsTotal+mathsPtsToday+worksheetPts;
+  updateBrainDisplay();
+  calcDayPts();
+
+  _mathsShowScoreCard();
+  _mathsSaveSession();
+
+  const suffix = timerExpired ? '⏰ Time up! ' : '';
+  toast(`${suffix}⚡ Sprint done! ${correct}/5 correct — +${pts} pts!`);
+
+  // Immediately save to Supabase
+  saveBrainDraft().catch(e=>console.warn('Sprint save failed:',e));
+}
+
+function _mathsShowScoreCard(){
+  const correct = mathsQuestions.filter((q,i)=>mathsSelected[i]===q.ans).length;
+  const pts = mathsPtsToday;
+
+  document.getElementById('maths-score-chip').textContent = pts;
+  document.getElementById('maths-score-big').textContent  = pts;
+  const msgs = ['Keep going — practice makes perfect! 💪','Good try! 1 correct — keep warming up! 🙂','Nice effort! 2/5 — keep pushing! 😊','Well done! 3/5 — solid maths brain! 😄','Excellent! 4/5 — almost perfect! 🤩','PERFECT SCORE! Olympiad champion! 🥳🧠'];
+  document.getElementById('maths-score-msg').textContent = msgs[correct]||'';
+
+  const bdEl = document.getElementById('maths-score-breakdown');
+  if(bdEl){
+    bdEl.innerHTML = mathsQuestions.map((q,i)=>{
+      const right = mathsSelected[i]===q.ans;
+      const skipped = mathsSelected[i]===null;
+      const bg = right ? 'background:#ECFDF5;color:#065F46;border:1.5px solid #6EE7B7'
+                       : skipped ? 'background:#F3F4F6;color:#6B7280;border:1.5px solid #D1D5DB'
+                       : 'background:#FEF2F2;color:#B91C1C;border:1.5px solid #FCA5A5';
+      const icon = right ? '✅' : skipped ? '⬜' : '❌';
+      return `<span style="${bg};border-radius:20px;padding:4px 11px;font-size:11px;font-weight:800">${icon} Q${i+1}: ${q.topic}</span>`;
+    }).join('');
   }
 
-  // The day's full marks (timetable, Progress medals) use this class's Brain Lab maxima.
-  if(typeof window.ttDayScore === 'function'){
-    var dayScore = window.ttDayScore;
-    window.ttDayScore = function(){ syncMax(); return dayScore.apply(this, arguments); };
-  }
+  document.getElementById('maths-score-display').style.display = 'block';
+  document.getElementById('maths-check-btn').style.display     = 'none';
+  document.getElementById('maths-timer-wrap').style.display    = 'none';
 
-  window.niyamBrainLab = { render: render, state: function(){ return BL; }, score: function(){ ensure(); return score(); },
-    leaves: function(){ ensure(); return { total: leavesTotal(), today: leavesToday() }; } };
-})();
+  // Answered chip shows final count
+  const answeredCount = mathsSelected.filter(x=>x!==null).length;
+  document.getElementById('maths-answered-chip').textContent   = answeredCount+'/5';
+}
+
+function updateBrainDisplay(){
+  const pts = brainPtsToday;
+  const disp = document.getElementById('brain-pts-disp');
+  if(disp) disp.textContent = pts;
+  const big = document.getElementById('brain-pts-big');
+  if(big) big.textContent = pts;
+  // Breakdown chips
+  const bs = document.getElementById('bb-sudoku');if(bs)bs.textContent=sudokuPts;
+  const bl = document.getElementById('bb-logic');if(bl)bl.textContent=logicPtsTotal;
+  const bm = document.getElementById('bb-maths');if(bm)bm.textContent=mathsPtsToday;
+  const br = document.getElementById('bb-riddle');if(br)br.textContent=riddlePtsTotal;
+  const bw = document.getElementById('bb-worksheet');if(bw)bw.textContent=worksheetPts;
+  // Mood emoji + message
+  const moodEl = document.getElementById('brain-mood-emoji');
+  const msgEl  = document.getElementById('brain-pts-msg');
+  let emoji, msg;
+  if(pts === 0){emoji='😴';msg='Complete puzzles above to earn points!';}
+  else if(pts < 20){emoji='🙂';msg='Good start! Keep going, more pts await!';}
+  else if(pts < 40){emoji='😊';msg='Nice work! You are warming up!';}
+  else if(pts < 60){emoji='😄';msg='Brilliant brain work, '+_childName()+'! 💪';}
+  else if(pts < 70){emoji='🤩';msg='Outstanding!! Your brain is on fire! 🔥';}
+  else{emoji='🥳';msg='GENIUS MODE!! Maximum brain pts! 🧠👑';}
+  if(moodEl) moodEl.textContent = emoji;
+  if(msgEl)  msgEl.textContent  = msg;
+}
+
+// ════════════════════════════════════════════
+// ONCE-A-DAY FREEZE — SUDOKU & LOGIC
+// ════════════════════════════════════════════
+function freezeSudoku(){
+  if(sudokuFrozen) return;
+  sudokuFrozen = true;
+  // Disable all numpad buttons and cells
+  document.querySelectorAll('.npbtn').forEach(b=>{b.disabled=true;b.style.opacity='.4';b.style.cursor='not-allowed';});
+  document.querySelectorAll('.sc-cell:not(.given)').forEach(c=>{c.onclick=null;c.style.cursor='default';});
+  // Disable difficulty + action buttons inside puzzle-sudoku
+  document.querySelectorAll('#puzzle-sudoku .btn').forEach(b=>{b.disabled=true;b.style.opacity='.4';b.style.cursor='not-allowed';});
+  // Show frozen badge + parent unlock hint
+  const msg=document.getElementById('sudoku-msg');
+  const diff=sudokuDifficulty||'easy';
+  const diffLabel={easy:'Easy',medium:'Medium',hard:'Hard'}[diff]||diff;
+  if(msg) msg.innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+      <span style="background:#ECFDF5;color:#065F46;border:1.5px solid #6EE7B7;border-radius:10px;
+        padding:8px 14px;font-size:13px;font-weight:800;display:inline-block">
+        ✅ Sudoku (${diffLabel}) checked &amp; locked for today! ${sudokuPts>0?'🏆 '+sudokuPts+' pts earned!':'Come back tomorrow!'} 🔒
+      </span>
+      <span style="color:#9CA3AF;font-size:11px;font-weight:700">
+        🔐 Your parent can unlock one more attempt from the Parent Zone.
+      </span>
+    </div>`;
+}
+
+function unfreezeSudoku(){
+  sudokuFrozen = false;
+  sudokuPts = 0; // reset pts so the fresh attempt can earn full points
+  brainPtsToday = sudokuPts + logicPtsTotal + riddlePtsTotal + mathsPtsToday + worksheetPts;
+  // Re-enable all buttons and cells
+  document.querySelectorAll('.npbtn').forEach(b=>{b.disabled=false;b.style.opacity='';b.style.cursor='';});
+  document.querySelectorAll('#puzzle-sudoku .btn').forEach(b=>{b.disabled=false;b.style.opacity='';b.style.cursor='';});
+  // Generate a fresh puzzle at easy (parent can pick difficulty after)
+  genSudoku('easy');
+  updateBrainDisplay(); calcDayPts();
+  toast('🔓 Sudoku unlocked! '+_childName()+' gets one more attempt. It will lock again after they check.');
+}
+
+function freezeLogic(){
+  if(logicFrozen) return;
+  logicFrozen = true;
+  // Disable all option buttons and check button
+  document.querySelectorAll('#logic-puzzles .opt-btn').forEach(b=>{b.disabled=true;b.style.cursor='default';});
+  const checkBtn=document.getElementById('logic-check-btn');
+  if(checkBtn){checkBtn.disabled=true;checkBtn.style.opacity='.4';checkBtn.style.cursor='not-allowed';}
+  // Add frozen notice
+  const c=document.getElementById('logic-puzzles');
+  if(c){
+    const old=c.querySelector('.logic-frozen-notice');if(old)return;
+    const notice=document.createElement('div');
+    notice.className='logic-frozen-notice';
+    notice.style.cssText='background:#ECFDF5;border:1.5px solid #6EE7B7;border-radius:10px;padding:10px 14px;margin-top:10px;font-size:13px;font-weight:800;color:#065F46;text-align:center';
+    notice.textContent='✅ Logic puzzles done for today! Come back tomorrow for new ones! 🔒';
+    c.appendChild(notice);
+  }
+}
+
+// ════════════════════════════════════════════
+// SAVE BRAIN LAB DRAFT
+// ════════════════════════════════════════════
+async function saveBrainDraft(){
+  // Use IST date as fallback if rpt-date input is empty (e.g. called from Brain Lab tab)
+  const istNow = new Date(Date.now() + 5.5 * 60 * 60000);
+  const istToday = istNow.toISOString().split('T')[0];
+  let date = document.getElementById('rpt-date')?.value || istToday;
+  if(!date) date = istToday;
+  // GUARD: never overwrite an approved report from a sub-tab save
+  const _existingB = savedDays.find(d => d.date === date);
+  if(_existingB && _existingB.approved === true){
+    toast('✅ Report already approved — brain pts are locked in!');
+    return;
+  }
+  const pts=calcDayPts();
+  const data = collectFormData(date, pts);
+  // Upsert into savedDays
+  const idx = savedDays.findIndex(d=>d.date===date);
+  if(idx>=0){ savedDays[idx]={...savedDays[idx],...data}; }
+  else { savedDays.unshift(data); }
+  savedDays.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  await saveToSupabase(data);
+  updateTopBar();
+  const msgEl=document.getElementById('brain-save-msg');
+  if(msgEl){msgEl.textContent='✅ Brain Lab progress saved to today\'s report! ('+brainPtsToday+' brain pts)';
+    setTimeout(()=>{if(msgEl)msgEl.textContent='';},4000);}
+  toast('💾 Brain Lab saved! '+brainPtsToday+' brain pts recorded.');
+}
+
+// showSoulTab removed — now two separate tabs
+
+// ════════════════════════════════════════════
+// CREATIVE IMAGE UPLOAD
+// ════════════════════════════════════════════
+let creativeImgData = null; // base64 string stored here
+
+function previewCreativeImg(input){
+  if(!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e){
+    creativeImgData = e.target.result;
+    const img = document.getElementById('creative-img-show');
+    const preview = document.getElementById('creative-img-preview');
+    if(img) img.src = creativeImgData;
+    if(preview) preview.style.display='block';
+    toast('✅ Photo uploaded! Parents will see it in their review.');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearCreativeImg(){
+  creativeImgData = null;
+  const img = document.getElementById('creative-img-show');
+  const preview = document.getElementById('creative-img-preview');
+  const input = document.getElementById('creative-img-upload');
+  if(img) img.src='';
+  if(preview) preview.style.display='none';
+  if(input) input.value='';
+}
+
+// ════════════════════════════════════════════
+// GEETA IMAGE SLIDER — auto-only, no wallpaper
+// ════════════════════════════════════════════
+let geetaImgCurrent = 1;
+const GEETA_IMG_TOTAL = 4;
+let geetaAutoInterval = null;
+let geetaAutoOn = true;
+
+function geetaImgGo(n){
+  for(let i=1;i<=GEETA_IMG_TOTAL;i++){
+    const img = document.getElementById('gimg-'+i);
+    const dot = document.getElementById('gdot-'+i);
+    if(img){
+      img.style.opacity = '0';
+      img.style.position = 'absolute';
+      img.style.zIndex = '1';
+    }
+    if(dot){
+      dot.style.background='#A7F3D0';
+      dot.style.boxShadow='none';
+      dot.style.transform='scale(1)';
+    }
+  }
+  geetaImgCurrent = ((n-1+GEETA_IMG_TOTAL)%GEETA_IMG_TOTAL)+1;
+  const cur = document.getElementById('gimg-'+geetaImgCurrent);
+  const curDot = document.getElementById('gdot-'+geetaImgCurrent);
+  if(cur){
+    // If image failed to load (SSL/local), skip to next
+    if(cur.naturalWidth===0 && cur.complete){
+      // Image broken — try next one
+      setTimeout(()=>geetaImgGo(geetaImgCurrent+1), 100);
+      return;
+    }
+    cur.style.opacity='1';
+    cur.style.position='relative';
+    cur.style.zIndex='2';
+  }
+  if(curDot){
+    curDot.style.background='linear-gradient(135deg,#10B981,#3B82F6)';
+    curDot.style.boxShadow='0 0 8px rgba(16,185,129,.6)';
+    curDot.style.transform='scale(1.35)';
+  }
+}
+
+function geetaImgNext(){ geetaImgGo(geetaImgCurrent+1); }
+
+function geetaStartAuto(){
+  if(geetaAutoInterval) clearInterval(geetaAutoInterval);
+  geetaAutoInterval = setInterval(geetaImgNext, 5000);
+}
+function geetaStopAuto(){
+  if(geetaAutoInterval){ clearInterval(geetaAutoInterval); geetaAutoInterval=null; }
+}
+
+// ════════════════════════════════════════════
+// GEETA & CREATIVE DRAFT SAVES
+// ════════════════════════════════════════════
+function checkGeetaSaveReady(){
+  const val = (document.getElementById('past-shlokas')?.value||'').trim();
+  const btn = document.getElementById('geeta-save-btn');
+  const req = document.getElementById('past-shlokas-required');
+  if(val.length > 0){
+    if(btn){
+      btn.disabled = false;
+      btn.style.background = 'linear-gradient(135deg,#10B981,#059669)';
+      btn.style.cursor = 'pointer';
+      btn.style.opacity = '1';
+      btn.style.boxShadow = '0 4px 16px rgba(16,185,129,.35)';
+    }
+    if(req) req.style.display = 'none';
+  } else {
+    if(btn){
+      btn.disabled = true;
+      btn.style.background = 'linear-gradient(135deg,#9CA3AF,#6B7280)';
+      btn.style.cursor = 'not-allowed';
+      btn.style.opacity = '.5';
+      btn.style.boxShadow = 'none';
+    }
+    if(req) req.style.display = 'flex';
+  }
+}
+
+async function saveGeetaDraft(){
+  const date = document.getElementById('rpt-date')?.value;
+  if(!date){ toast('Please set a date on the Daily Report tab first!'); return; }
+  // GUARD: never overwrite an approved report
+  const _existingG = savedDays.find(d => d.date === date);
+  if(_existingG && _existingG.approved === true){
+    toast('✅ Report already approved — shloka work is locked in!');
+    return;
+  }
+  // Guard: past-shlokas is mandatory
+  const pastVal = (document.getElementById('past-shlokas')?.value||'').trim();
+  if(!pastVal){ toast('✍️ Please write at least one past shloka first!'); return; }
+  const pts = calcDayPts();
+  const data = collectFormData(date, pts);
+  const idx = savedDays.findIndex(d=>d.date===date);
+  if(idx>=0){ savedDays[idx]={...savedDays[idx],...data}; }
+  else { savedDays.unshift(data); }
+  await saveToSupabase(data);
+  updateTopBar();
+  const msg = document.getElementById('geeta-save-msg');
+  if(msg){ msg.textContent='✅ Shloka reflection saved! Parents can now see it.'; }
+  toast('💾 Shloka work saved!');
+}
+
+// saveCreativeDraft — defined in creative section above
+
