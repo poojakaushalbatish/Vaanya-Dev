@@ -44,7 +44,7 @@
     load(c);
     var B = window.NIYAM_BIG_IDEAS || {}; return TRIED[c] ? (B[String(c)] || []) : [];   // the old file, only if the table has nothing
   }
-  var MIN_WORDS = { 5:30, 6:40, 7:60, 8:60 };     // Pooja, 3 Nov 2026
+  var MIN_WORDS = { 5:30, 6:40, 7:60, 8:80 };     // Pooja, 3–4 Nov 2026
   function minWords(){ return MIN_WORDS[cls()] || 60; }
   function words(t){ return (String(t || '').match(/[A-Za-zऀ-ॿ0-9]+(?:['’-][A-Za-z]+)*/g) || []).length; }
   function first(){ return String(window.niyamChildName || '').split(' ')[0] || ''; }
