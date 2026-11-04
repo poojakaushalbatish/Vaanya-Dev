@@ -201,5 +201,207 @@ var NIYAM_BRAIN_CHALLENGES = {
    "answer": "A",
    "explanation": "Each pair of teams meets twice. There are 10 × 9 ÷ 2 = 45 pairs, so 45 × 2 = 90 matches."
   }
+ ],
+ "8": [
+  {
+   "topic": "Number theory",
+   "question": "What is the remainder when 2¹⁰⁰ is divided by 7?",
+   "option_a": "2",
+   "option_b": "1",
+   "option_c": "4",
+   "option_d": "6",
+   "answer": "A",
+   "explanation": "2³ = 8 leaves remainder 1 when divided by 7. 100 = 3 × 33 + 1, so 2¹⁰⁰ = (2³)³³ × 2 leaves 1 × 2 = 2."
+  },
+  {
+   "topic": "Number theory",
+   "question": "What is the highest power of 2 that divides 50! (1 × 2 × 3 × … × 50) exactly?",
+   "option_a": "2⁴⁸",
+   "option_b": "2⁴⁷",
+   "option_c": "2⁵⁰",
+   "option_d": "2²⁵",
+   "answer": "B",
+   "explanation": "Count the 2s: 50 ÷ 2 = 25 even numbers, 12 multiples of 4 give one more, 6 multiples of 8, 3 of 16 and 1 of 32. 25 + 12 + 6 + 3 + 1 = 47."
+  },
+  {
+   "topic": "Digits",
+   "question": "What is the sum of the digits of 10²⁵ − 25?",
+   "option_a": "219",
+   "option_b": "216",
+   "option_c": "207",
+   "option_d": "225",
+   "answer": "A",
+   "explanation": "10²⁵ − 25 = 999…975: twenty-three 9s followed by 7 and 5. 23 × 9 + 7 + 5 = 207 + 12 = 219."
+  },
+  {
+   "topic": "Factors",
+   "question": "How many factors (divisors) does the number 2026 have?",
+   "option_a": "8",
+   "option_b": "6",
+   "option_c": "2",
+   "option_d": "4",
+   "answer": "D",
+   "explanation": "2026 = 2 × 1013, and 1013 is a prime number. So the factors are 1, 2, 1013 and 2026."
+  },
+  {
+   "topic": "Algebra",
+   "question": "If a + b + c = 0 (and none of them is 0), what is (a³ + b³ + c³) ÷ abc?",
+   "option_a": "0",
+   "option_b": "1",
+   "option_c": "3",
+   "option_d": "It depends on a, b and c",
+   "answer": "C",
+   "explanation": "There is an identity: a³ + b³ + c³ − 3abc = (a + b + c)(a² + b² + c² − ab − bc − ca). If a + b + c = 0, then a³ + b³ + c³ = 3abc, so the answer is 3."
+  },
+  {
+   "topic": "Algebra",
+   "question": "What is the value of √(2 + √(2 + √(2 + …))) going on for ever?",
+   "option_a": "√2",
+   "option_b": "1 + √2",
+   "option_c": "2",
+   "option_d": "4",
+   "answer": "C",
+   "explanation": "Call it x. The part under the first root is 2 + x again, so x = √(2 + x), x² = x + 2, (x − 2)(x + 1) = 0. x is positive, so x = 2."
+  },
+  {
+   "topic": "Algebra",
+   "question": "If x² − 5x + 1 = 0, what is x³ + 1/x³?",
+   "option_a": "140",
+   "option_b": "125",
+   "option_c": "110",
+   "option_d": "115",
+   "answer": "C",
+   "explanation": "Divide by x: x + 1/x = 5. Then x³ + 1/x³ = (x + 1/x)³ − 3(x + 1/x) = 125 − 15 = 110."
+  },
+  {
+   "topic": "Geometry",
+   "question": "A circle fits exactly inside a square of side 14 cm. What is the area inside the square but outside the circle? (Take π = 22/7.)",
+   "option_a": "154 sq cm",
+   "option_b": "42 sq cm",
+   "option_c": "38 sq cm",
+   "option_d": "56 sq cm",
+   "answer": "B",
+   "explanation": "Square = 14 × 14 = 196. The circle has radius 7: 22/7 × 7 × 7 = 154. 196 − 154 = 42 sq cm."
+  },
+  {
+   "topic": "Geometry",
+   "question": "The three sides of a right-angled triangle are consecutive even numbers. What is its perimeter?",
+   "option_a": "24",
+   "option_b": "48",
+   "option_c": "12",
+   "option_d": "36",
+   "answer": "A",
+   "explanation": "Try x, x + 2, x + 4: x² + (x + 2)² = (x + 4)² gives x² − 4x − 12 = 0, so x = 6. The sides are 6, 8 and 10: perimeter 24."
+  },
+  {
+   "topic": "Probability",
+   "question": "Three fair coins are tossed. What is the probability of getting at least two heads?",
+   "option_a": "1/4",
+   "option_b": "5/8",
+   "option_c": "3/8",
+   "option_d": "1/2",
+   "answer": "D",
+   "explanation": "8 outcomes. Exactly two heads: HHT, HTH, THH (3); three heads: HHH (1). 4/8 = 1/2."
+  },
+  {
+   "topic": "Counting",
+   "question": "In how many different ways can the letters of the word INDIA be arranged?",
+   "option_a": "120",
+   "option_b": "24",
+   "option_c": "60",
+   "option_d": "30",
+   "answer": "C",
+   "explanation": "5 letters give 5! = 120 orders, but the two Is are the same, so each order is counted twice: 120 ÷ 2 = 60."
+  },
+  {
+   "topic": "Counting",
+   "question": "In how many ways can a team of 3 be chosen from 8 students?",
+   "option_a": "24",
+   "option_b": "336",
+   "option_c": "64",
+   "option_d": "56",
+   "answer": "D",
+   "explanation": "Choose in order: 8 × 7 × 6 = 336. Each team of 3 is counted 3 × 2 × 1 = 6 times, so 336 ÷ 6 = 56."
+  },
+  {
+   "topic": "Sequences",
+   "question": "The sum of the first n odd numbers (1 + 3 + 5 + …) is 2025. What is n?",
+   "option_a": "90",
+   "option_b": "44",
+   "option_c": "1013",
+   "option_d": "45",
+   "answer": "D",
+   "explanation": "The sum of the first n odd numbers is always n²: 1, 4, 9, 16 … So n² = 2025 and n = 45."
+  },
+  {
+   "topic": "Squares",
+   "question": "2025 is a perfect square (45²). Which is the next year that is a perfect square?",
+   "option_a": "2100",
+   "option_b": "2209",
+   "option_c": "2116",
+   "option_d": "2070",
+   "answer": "C",
+   "explanation": "The next square after 45² is 46² = 2116."
+  },
+  {
+   "topic": "Speed",
+   "question": "Two trains, 120 m and 180 m long, run towards each other on parallel tracks at 54 km/h and 36 km/h. How long do they take to pass each other completely?",
+   "option_a": "6 seconds",
+   "option_b": "30 seconds",
+   "option_c": "12 seconds",
+   "option_d": "20 seconds",
+   "answer": "C",
+   "explanation": "Moving towards each other, their speeds add: 90 km/h = 25 m/s. They must cover both lengths, 300 m: 300 ÷ 25 = 12 seconds."
+  },
+  {
+   "topic": "Work",
+   "question": "Asha can finish a job in 12 days and Bina in 18 days. They work together for 4 days, then Asha leaves. How many more days does Bina need?",
+   "option_a": "10",
+   "option_b": "9",
+   "option_c": "6",
+   "option_d": "8",
+   "answer": "D",
+   "explanation": "Together they do 1/12 + 1/18 = 5/36 of the job a day; in 4 days, 20/36 = 5/9. 4/9 is left. Bina does 1/18 a day: 4/9 × 18 = 8 days."
+  },
+  {
+   "topic": "Percentages",
+   "question": "A price is increased by 20% and then the new price is decreased by 20%. What is the overall change?",
+   "option_a": "2% less",
+   "option_b": "4% less",
+   "option_c": "4% more",
+   "option_d": "No change",
+   "answer": "B",
+   "explanation": "₹100 → ₹120 → ₹120 − ₹24 = ₹96. That is 4% less than at the start."
+  },
+  {
+   "topic": "HCF",
+   "question": "The product of two numbers is 2160 and their HCF is 12. How many different pairs of such numbers are there?",
+   "option_a": "2",
+   "option_b": "4",
+   "option_c": "3",
+   "option_d": "1",
+   "answer": "A",
+   "explanation": "Write them as 12a and 12b with a and b sharing no factor: 144ab = 2160, so ab = 15. Pairs: (1, 15) and (3, 5), giving 12 & 180 and 36 & 60. So 2 pairs."
+  },
+  {
+   "topic": "Clocks",
+   "question": "At what time between 3 o'clock and 4 o'clock are the two hands of a clock exactly on top of each other?",
+   "option_a": "16 4/11 minutes past 3",
+   "option_b": "15 minutes past 3",
+   "option_c": "16 minutes past 3",
+   "option_d": "17 3/11 minutes past 3",
+   "answer": "A",
+   "explanation": "At 3:00 the hour hand is 15 minute-spaces ahead. The minute hand gains 11/12 of a space every minute, so it catches up after 15 ÷ 11/12 = 180/11 = 16 4/11 minutes."
+  },
+  {
+   "topic": "Ramanujan",
+   "question": "Ramanujan found the value of √(1 + 2√(1 + 3√(1 + 4√(1 + …)))) going on for ever. What is it?",
+   "option_a": "2",
+   "option_b": "4",
+   "option_c": "3",
+   "option_d": "1 + √2",
+   "answer": "C",
+   "explanation": "3 = √9 = √(1 + 2 × 4) = √(1 + 2√16) = √(1 + 2√(1 + 3 × 5)) = √(1 + 2√(1 + 3√25)) … The pattern n = √(1 + (n − 1)(n + 1)) keeps going, so the whole thing equals 3."
+  }
  ]
 };
