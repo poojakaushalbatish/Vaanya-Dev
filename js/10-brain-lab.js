@@ -38,14 +38,16 @@
 (function(){
   'use strict';
 
-  var PTS   = { riddle:5, hintCost:2, logic:3, maths:3, up:5, sudoku:{ easy:15, medium:30, hard:40 }, bonus:10 };
+  var PTS   = { riddle:5, hintCost:2, logic:3, maths:3, up:5, sudoku:{ easy:15, medium:30, hard:40 }, bonus:10, challenge:10 };
   var COUNT = { riddle:2, logic:5, maths:10 };
   // Per class (Pooja, 2 Nov 2026). given = numbers shown at the start of a Sudoku (fewer = harder);
   // timer = Maths Sprint minutes to start with; up = how many Level Up questions a day (worth PTS.up).
   // A child only ever gets the questions of their OWN class — there is no fallback to another class.
   var CLASSCFG = {
     4: { given:{ easy:36, medium:30, hard:27 }, timer:10, up:{ logic:0, maths:0 } },
-    6: { given:{ easy:32, medium:27, hard:24 }, timer:15, up:{ logic:1, maths:3 } }
+    6: { given:{ easy:32, medium:27, hard:24 }, timer:15, up:{ logic:1, maths:3 } },
+    7: { given:{ easy:30, medium:26, hard:23 }, timer:15, up:{ logic:2, maths:4 } },
+    8: { given:{ easy:28, medium:24, hard:21 }, timer:15, up:{ logic:3, maths:5 } }    // Pooja, 4 Nov 2026
   };
   var SUDOKU_LEAVES = { easy:1, medium:2, hard:3 };
   var TIMER_CHOICES = [0, 5, 10, 15, 20];            // minutes; 0 = no timer
@@ -54,7 +56,8 @@
     riddle: { name:'Riddles',      c:'#7A1F2B', unit:'Riddle',   icon:'bulb',  who:'with Birbal & Tenali Rama' },
     logic:  { name:'Logic',        c:'#0E6B70', unit:'Puzzle',   icon:'logic', who:'with Chanakya' },
     maths:  { name:'Maths Sprint', c:'#33307A', unit:'Question', icon:'bolt',  who:'with Ramanujan' },
-    sudoku: { name:'Sudoku',       c:'#3D7A3A', unit:'',         icon:'grid',  who:'from Lilavati’s puzzle book' }
+    sudoku: { name:'Sudoku',       c:'#3D7A3A', unit:'',         icon:'grid',  who:'from Lilavati’s puzzle book' },
+    challenge:{ name:'Ramanujan’s Challenge', c:'#33307A', unit:'', icon:'bolt', who:'weekends only' }
   };
   // The thinker who sets each challenge: initials for the seal, and what they say.
   var MENTOR = {
@@ -162,6 +165,22 @@
     }catch(e){}
   }
   function stateCls(st){ return (st && +st.cls) || 4; }   // days saved before 2 Nov 2026 were all Class 4 questions
+  // Ramanujan's Challenge: one very hard extra question on Saturdays and Sundays (classes that have them,
+  // data/brain-challenges.js). No hints, no clock, one try, +10 points and 2 leaves.
+  function chList(){ var C = window.NIYAM_BRAIN_CHALLENGES || {}; return C[String(classNo())] || []; }
+  function isWeekend(date){ var d = new Date(String(date) + 'T12:00:00').getDay(); return d === 0 || d === 6; }
+  function chAvail(){ return !!(BL && classNo() && isWeekend(BL.date) && chList().length); }
+  function chQ(){
+    if(!chAvail()) return null;
+    var S = BL.challenge, L = chList();
+    if(!(S.idx >= 0)){
+      var n = 0, c = classNo();
+      days().forEach(function(d){ if(!d || !d.date || d.date >= BL.date) return; var st = parse(d.brainStateJSON); if(st && st.challenge && st.challenge.idx >= 0 && stateCls(st) === c) n++; });
+      S.idx = n % L.length;
+    }
+    return L[S.idx] || null;
+  }
+  function chRight(){ var q = chQ(); return !!(q && BL.challenge.ans[0] !== undefined && BL.challenge.ans[0] === q.answer); }
   function today(){ return new Date().toLocaleDateString('en-CA'); }
   function dateOpen(){ return ($('rpt-date') && $('rpt-date').value) || today(); }
   function days(){ return (typeof savedDays !== 'undefined' && Array.isArray(savedDays)) ? savedDays : []; }
@@ -195,7 +214,8 @@
       riddle:{ ans:{}, hint:{}, i:0, pick:'', done:false },
       logic: { ans:{}, i:0, pick:'', done:false },
       maths: { ans:{}, i:0, pick:'', done:false, mins:cfg().timer, started:false, endAt:0, left:0, paused:false },
-      sudoku:{ level:'', cells:{}, sel:-1, done:false, ok:false } };
+      sudoku:{ level:'', cells:{}, sel:-1, done:false, ok:false },
+      challenge:{ ans:{}, i:0, pick:'', idx:-1 } };
   }
   // what is saved with the day
   function snapshot(){
@@ -205,7 +225,8 @@
       riddle:{ ans:BL.riddle.ans, hint:BL.riddle.hint, done:BL.riddle.done },
       logic: { ans:BL.logic.ans, done:BL.logic.done },
       maths: { ans:m.ans, done:m.done, mins:m.mins, started:m.started, endAt:m.endAt, left:m.left, paused:m.paused },
-      sudoku:{ level:BL.sudoku.level, cells:BL.sudoku.cells, done:BL.sudoku.done, ok:BL.sudoku.ok } };
+      sudoku:{ level:BL.sudoku.level, cells:BL.sudoku.cells, done:BL.sudoku.done, ok:BL.sudoku.ok },
+      challenge:{ ans:BL.challenge.ans, idx:BL.challenge.idx } };
   }
   // newOnly: count only days played in this Brain Lab (for the child's Day number)
   function played(rec, newOnly){
@@ -245,7 +266,7 @@
     if(st){
       BL.day = st.day || dayFor(date);
       BL.celebrated = !!st.celebrated;
-      ['riddle','logic','maths','sudoku'].forEach(function(g){ if(st[g]) Object.assign(BL[g], st[g]); });
+      ['riddle','logic','maths','sudoku','challenge'].forEach(function(g){ if(st[g]) Object.assign(BL[g], st[g]); });
       BL.riddle.i = firstOpen('riddle'); BL.logic.i = firstOpen('logic'); BL.maths.i = firstOpen('maths');
     } else {
       BL.day = dayFor(date);
@@ -260,7 +281,7 @@
   }
   function anyPlayed(){
     if(!BL) return false;
-    return !!BL.sudoku.level || ['riddle','logic','maths'].some(function(g){ return Object.keys(BL[g].ans).length > 0; });
+    return !!BL.sudoku.level || ['riddle','logic','maths','challenge'].some(function(g){ return Object.keys(BL[g].ans).length > 0; });
   }
   function locked(){
     var rec = days().find(function(d){ return d.date === BL.date; });
@@ -314,11 +335,13 @@
     });
     if(BL.sudoku.ok) s.sudoku = PTS.sudoku[BL.sudoku.level] || 0;
     if(allDone()) s.bonus = PTS.bonus;
+    s.challenge = chRight() ? PTS.challenge : 0;
+    s.bonus += s.challenge;                       // saved with the all-four bonus
     s.total = s.riddle + s.logic + s.maths + s.sudoku + s.bonus;
     return s;
   }
   function allDone(){ return BL.riddle.done && BL.logic.done && BL.maths.done && BL.sudoku.done; }
-  function maxToday(){ return gameMax('riddle') + gameMax('logic') + gameMax('maths') + PTS.sudoku.hard + PTS.bonus; }
+  function maxToday(){ return gameMax('riddle') + gameMax('logic') + gameMax('maths') + PTS.sudoku.hard + PTS.bonus + (chAvail() ? PTS.challenge : 0); }
   function rightCount(g){
     var Q = list(g), n = 0;
     Object.keys(BL[g].ans).forEach(function(i){ if(Q[i] && BL[g].ans[i] === Q[i].answer) n++; });
@@ -332,7 +355,7 @@
     if(!BL) return 0;
     // Before today's questions have loaded, keep what was saved for today.
     if(!BL.loaded){ var rec = days().find(function(d){ return d.date === BL.date; }), st = parse(rec && rec.brainStateJSON); return st ? (+st.leaves || 0) : 0; }
-    return leavesOf('riddle') + leavesOf('logic') + leavesOf('maths') + leavesOf('sudoku') + (allDone() ? 1 : 0);
+    return leavesOf('riddle') + leavesOf('logic') + leavesOf('maths') + leavesOf('sudoku') + (allDone() ? 1 : 0) + (chRight() ? 2 : 0);
   }
   // every leaf the child has grown, on every other day plus today
   function leavesTotal(){
@@ -746,6 +769,13 @@
       + (nDone === 4 ? 'All four done: +' + PTS.bonus + ' points and a golden leaf earned!' : 'Finish all four today: +' + PTS.bonus + ' points and a golden leaf')
       + '<span class="n">' + nDone + '/4</span></div>';
     if(nDone === 4) h += '<button class="bl-btn" style="--c:var(--maroon)" data-act="done">See today’s tree</button>';
+    if(chAvail()){
+      var cA = BL.challenge.ans[0] !== undefined, cOk = chRight();
+      h += '<button class="bl-strip bl-ch" data-act="ch" style="cursor:pointer;width:100%;text-align:left;border:2px solid #33307A;background:#EEEDF9">'
+        + '<span style="font-size:22px">⚡</span><span><b style="color:#33307A">Ramanujan’s Challenge</b> · weekends only · one very hard problem, no hints'
+        + '<small style="display:block;font-weight:600;color:#6B6788">' + (cA ? (cOk ? 'Solved! +' + PTS.challenge + ' points and 2 leaves' : 'Tried today — a new challenge next weekend day') : 'One try · +' + PTS.challenge + ' points and 2 leaves') + '</small></span>'
+        + '<span class="n">' + (cA ? (cOk ? '✓' : '✗') : 'Go') + '</span></button>';
+    }
     h += fact() + '</div></div>';
     return h;
   }
@@ -1005,6 +1035,7 @@
     if(v === 'home') html = homeHtml();
     else if(v === 'done') html = doneHtml();
     else if(v === 'sudoku') html = sudokuHtml();
+    else if(v === 'challenge') html = challengeHtml();
     else if(v.indexOf('review-') === 0) html = reviewHtml(v.slice(7));
     else html = quizHtml(v);
     r.innerHTML = '<div class="v-' + (v === 'home' ? 'home' : 'game') + '">' + html + '</div>';
@@ -1031,7 +1062,8 @@
     else if(act === 'review'){ BL.view = g === 'sudoku' ? 'sudoku' : 'review-' + g; }
     else if(act === 'pick'){ var S = BL[BL.view]; if(S && S.ans[S.i] === undefined) S.pick = b.getAttribute('data-l'); }
     else if(act === 'hint'){ BL.riddle.hint[BL.riddle.i] = true; apply(false); }
-    else if(act === 'check'){ answer(); }
+    else if(act === 'ch'){ if(chAvail()){ chQ(); BL.view = 'challenge'; } }
+    else if(act === 'check'){ if(BL.view === 'challenge') chAnswer(); else answer(); }
     else if(act === 'next'){ nextQ(); }
     else if(act === 'mins'){ BL.maths.mins = +b.getAttribute('data-m'); }
     else if(act === 'start-sprint'){ startSprint(); }
@@ -1047,6 +1079,39 @@
     render();
   }
 
+  function chAnswer(){
+    var S = BL.challenge, q = chQ();
+    if(!q || !S.pick || S.ans[0] !== undefined) return;
+    S.ans[0] = S.pick; S.pick = '';
+    apply(true);
+  }
+  function challengeHtml(){
+    var q = chQ(), S = BL.challenge, m = MENTOR.ramanujan;
+    if(!q) return top('challenge', '') + '<div class="bl-card" style="margin-top:18px;font-weight:700;text-align:center">Ramanujan’s Challenge comes on Saturdays and Sundays.</div>';
+    var ans = S.ans[0], answered = ans !== undefined, ok = answered && ans === q.answer;
+    var head = top('challenge', 'Weekend only · no hints · one try', '+' + PTS.challenge + ' pts · 2 leaves');
+    var mentor = answered ? bubble(m, m.name + ' explains', steps(q.explanation))
+               : bubble(m, m.name + ' says', esc('This one is meant to be hard. There is no clock — think it through. You have one try.'));
+    var fig = svgSafe(q.figure);
+    var qa = '<div class="bl-q"><div class="topic">' + esc(q.topic || 'Challenge') + '</div><div class="q">' + esc(q.question) + '</div>' + (fig ? '<div class="bl-fig">' + fig + '</div>' : '') + '</div>';
+    var figs = ['A','B','C','D'].some(function(Lt){ return isFig(opt(q, Lt)); });
+    var long = !figs && ['A','B','C','D'].some(function(Lt){ return String(opt(q, Lt) || '').length > 22; });
+    qa += '<div class="bl-opts' + (long ? ' one' : '') + (figs ? ' figs' : '') + '">';
+    ['A','B','C','D'].forEach(function(Lt){
+      var cls = 'bl-opt';
+      if(answered){ cls += Lt === q.answer ? ' right' : Lt === ans ? ' wrong' : ' dim'; }
+      else if(S.pick === Lt) cls += ' pick';
+      qa += '<button class="' + cls + (figs ? ' fig' : '') + '" data-act="pick" data-l="' + Lt + '"' + (answered ? ' disabled' : '') + '>'
+        + (figs ? '<span class="lt">' + Lt + '</span>' + optHtml(q, Lt) : (answered && Lt === q.answer ? '✓ ' : '') + esc(opt(q, Lt))) + '</button>';
+    });
+    qa += '</div>';
+    if(answered) qa += ok ? '<div class="bl-win"><span class="big">+' + PTS.challenge + '</span> points <span style="display:flex;align-items:center;gap:4px;margin-left:auto">' + leafIcon(16) + ' +2 leaves</span></div>'
+                          : '<div class="bl-win miss">Not this time — this was a tough one. The answer is ' + ansText(q, q.answer) + '.</div>';
+    var next = answered ? '<button class="bl-btn" data-act="home">Back to Brain Lab</button>'
+             : '<button class="bl-btn" data-act="check"' + (S.pick ? '' : ' disabled') + '>Give my answer</button><div class="bl-note">One try only — Ramanujan explains the answer afterwards.</div>';
+    return '<div class="bl-play' + (answered ? ' answered' : '') + '" style="--c:#33307A">'
+      + '<div class="pa-head">' + head + '</div><div class="pa-mentor">' + mentor + '</div><div class="pa-qa">' + qa + '</div><div class="pa-next">' + next + '</div></div>';
+  }
   function answer(){
     var g = BL.view, S = BL[g], q = list(g)[S.i];
     if(!q || !S.pick || S.ans[S.i] !== undefined) return;
