@@ -96,7 +96,7 @@
     ['maths',      'savedMathsPts',     'Maths Sprint', /maths\s*sprint/i],
     ['logic',      'savedLogicPts',     'Logic',        /logic/i],
     ['riddles',    'savedRiddlePts',    'Riddles',      /riddle/i],
-    ['worksheets', 'savedWorksheetPts', 'All-four bonus', /worksheet|all-four/i]   // Worksheets removed; this is the Brain Lab bonus
+    ['worksheets', 'savedWorksheetPts', 'Brain Lab bonus', /worksheet|all-four|brain lab bonus/i]   // Worksheets removed; this is the Brain Lab bonus
   ];
   function brainKey(name){
     for(var i=0;i<BRAIN.length;i++) if(BRAIN[i][3].test(name||'')) return BRAIN[i][0];
