@@ -97,7 +97,9 @@
           open(blockId); return;
         }
       }
-      return toggle0.apply(this, arguments);
+      var r = toggle0.apply(this, arguments);
+      try{ decorate(); }catch(e){}            // the topic card shows step 3 done straight away
+      return r;
     };
   }
   // Show on the task whether today's Big Idea is written.
@@ -106,12 +108,53 @@
     actsOfKind('write').forEach(function(x){
       var el = $('ttact-' + x.a.id); if(!el) return;
       var sub = el.querySelector('.tt-act-sub'); if(!sub) return;
-      sub.innerHTML = st ? '✅ Written · tap to read the facts again' : (T ? '“' + esc(T.t.title) + '” · tap to write · at least ' + minWords() + ' words' : esc(x.a.note || ''));
+      sub.innerHTML = st ? '✅ Written · tap to read the facts again' : (T ? 'Tap to write · at least ' + minWords() + ' words · guessing is allowed' : esc(x.a.note || ''));
     });
     actsOfKind('teach').forEach(function(x){
       var el = $('ttact-' + x.a.id); if(!el) return;
       var sub = el.querySelector('.tt-act-sub'); if(sub) sub.textContent = st ? 'Tick when you have explained it' : 'Opens after you have written about it';
     });
+    // A big topic card at the top of the block, so a first-timer sees tonight's topic
+    // and the three steps at a glance (Pooja, 4 Nov 2026).
+    if(T) actsOfKind('write').forEach(function(x){ try{ topicCard(x.b, T, st); }catch(e){} });
+  }
+  var CARD_CSS = ''
+  + '.bi-card{margin:0 0 12px;border-radius:16px;padding:16px 16px 14px;background:linear-gradient(135deg,#FFF7E6,#FDEBD3);border:1.5px solid #F3C98B}'
+  + '.bi-card .k{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#B45309}'
+  + '#td-root .bi-card h3,.bi-card h3{font-family:"Rozha One",Georgia,serif!important;font-weight:400;font-size:26px;line-height:1.15;color:#7C2D12;margin:4px 0 6px}'
+  + '.bi-card .q{font-size:15px;font-weight:700;line-height:1.5;color:#3F2A14}'
+  + '.bi-card ol{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}'
+  + '.bi-card li{background:#fff;border-radius:12px;padding:8px 12px;font-size:14px;line-height:1.45;color:#4B3A26;display:flex;gap:10px;align-items:center}'
+  + '.bi-card li b{flex:0 0 22px;height:22px;border-radius:50%;background:#7C2D12;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center}'
+  + '.bi-card li.done b{background:#15803D}'
+  + '.bi-card .go{margin-top:12px;display:inline-flex;align-items:center;gap:6px;border:0;border-radius:12px;padding:11px 18px;font-size:15px;font-weight:800;color:#fff;background:#7C2D12;cursor:pointer}'
+  + '.bi-card .wait{margin-top:12px;display:inline-block;border-radius:12px;padding:9px 14px;font-size:13.5px;font-weight:800;color:#92400E;background:#FEF3C7}'
+  + '@media (max-width:600px){.bi-card h3{font-size:22px}}';
+  function topicCard(b, T, st){
+    var body = $('ttbody-' + b.id); if(!body) return;
+    if(!$('bi-card-css')){ var cs = document.createElement('style'); cs.id = 'bi-card-css'; cs.textContent = CARD_CSS; document.head.appendChild(cs); }
+    var card = $('bicard-' + b.id);
+    if(!card){
+      card = document.createElement('div'); card.id = 'bicard-' + b.id; card.className = 'bi-card';
+      var at = body.querySelector('.tt-activities'); body.insertBefore(card, at || null);
+      card.addEventListener('click', function(e){ var g = e.target.closest('[data-bicard]'); if(g){ e.stopPropagation(); open(b.id); } });
+    }
+    var teach = actsOfKind('teach').filter(function(x){ return x.b.id === b.id; })[0];
+    var bs = (typeof ttBlockStates !== 'undefined' && ttBlockStates[b.id]) || {};
+    var taught = !!(teach && (bs.checkedActs || {})[teach.a.id]);
+    var locked = typeof ttBlockLocked === 'function' && ttBlockLocked(b);
+    var opens = typeof ttBlockOpensAt === 'function' ? ttBlockOpensAt(b) : '';
+    var step = function(n, done, txt){ return '<li class="' + (done ? 'done' : '') + '"><b>' + (done ? '✓' : n) + '</b><span>' + txt + '</span></li>'; };
+    var btn = st ? '<button class="go" data-bicard="1">📖 Read the facts again</button>'
+      : locked ? '<span class="wait">🔒 Opens at ' + esc(opens) + ' — come back then to write</span>'
+      : '<button class="go" data-bicard="1">✏️ Start writing</button>';
+    card.innerHTML = '<div class="k">💡 Tonight’s Big Idea · Day ' + T.day + (T.t.area ? ' · ' + esc(T.t.area) : '') + '</div>'
+      + '<h3>' + esc(T.t.title) + '</h3>'
+      + '<div class="q">' + esc(T.t.question) + '</div>'
+      + '<ol>' + step(1, !!st, '<strong>Write</strong> what you know or think — at least ' + minWords() + ' words. Guessing is fine!')
+      + step(2, !!st, '<strong>Submit</strong> and read the facts that open.')
+      + step(3, taught, '<strong>Explain</strong> it to a parent in 2 minutes, like a teacher.') + '</ol>'
+      + btn;
   }
   if(typeof window.ttRender === 'function'){
     var render0 = window.ttRender;
