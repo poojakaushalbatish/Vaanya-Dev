@@ -174,7 +174,7 @@
     if(!nB && !nT) return '';
     var f = window.niyamFeatures || {}, why = [];
     if(f.brainlab === false) why.push('Brain Lab (switched off)');
-    if(f.creative === false) why.push('Creative Moments (coming in a later version of ' + (window.APP_NAME || 'Alchemy') + ')');
+    if(f.creative === false) why.push('Creative Moments (coming in a later version)');
     var parts = [];
     if(nB) parts.push(nB + (nB===1 ? ' block' : ' blocks'));
     if(nT) parts.push(nT + (nT===1 ? ' task' : ' tasks'));
@@ -729,7 +729,7 @@
     var other = TTA.tab==='weekend' ? 'Weekdays' : 'Weekends';
     var cls = window.niyamChildClass ? ' for ' + window.niyamChildClass : '';
     var child = window.niyamChildName || 'your child';
-    if(!confirm('Use the timetable ' + (window.APP_NAME || 'Alchemy') + ' suggests' + cls + ' on the ' + label + ' tab?\n\n'
+    if(!confirm('Use the suggested timetable' + cls + ' on the ' + label + ' tab?\n\n'
                 + 'The blocks on this tab will be replaced by the suggested ones. '
                 + 'The ' + other + ' tab stays as it is.\n\n'
                 + 'Nothing changes for ' + child + ' until you press Save.')) return;
