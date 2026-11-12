@@ -188,7 +188,7 @@
 
     $('tp-title').textContent = 'This is what ' + TP.name + ' will see on ' + tomorrowLabel() + '.';
     var cls = window.__niyamClass || window.niyamChildClass || '';
-    $('tp-sub').innerHTML = 'NIYAM has made two timetables for ' + esc(TP.name)
+    $('tp-sub').innerHTML = (window.APP_NAME || 'Alchemy') + ' has made two timetables for ' + esc(TP.name)
       + (cls ? ' (' + esc(cls) + ')' : '') + ': one for <b>school days</b> and one for <b>weekends</b>. '
       + 'Look through both. Tap <b>Customise the day</b> to change any block now, '
       + 'or change it later from the Parent Zone.';
