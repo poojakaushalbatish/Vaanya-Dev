@@ -80,9 +80,9 @@
 
   // What grows on the tree, and when (total leaves).
   var MILESTONES = [
-    [10,   'branch',    'its first branch'],
+    [10,   'branch',    'the tree’s first branch'],
     [50,   'butterfly', 'a butterfly'],
-    [100,  'root1',     'its first aerial root'],
+    [100,  'root1',     'the tree’s first aerial root'],
     [150,  'parrot',    'a parrot'],
     [250,  'swing',     'a swing'],
     [400,  'figs',      'red banyan figs'],
@@ -724,7 +724,7 @@
     return '<div class="bl-treecard"><div class="bl-court">' + treeSvg(total, todayN) + '</div><div class="bl-side">'
       + '<div class="bl-chip"><b>' + total + '</b>leaves on your tree' + (todayN ? '<br><span style="color:var(--leaf)">+' + todayN + ' today</span>' : '') + '</div>'
       + '<div class="bl-chip pts"><b>' + s.total + '</b>of ' + maxToday() + ' points today</div>'
-      + '<div class="bl-chip">' + (nx ? 'Next: <span style="color:var(--leaf)">' + nx[2] + '</span> at ' + nx[0] : 'Your Great Banyan is complete!')
+      + '<div class="bl-chip">' + (nx ? 'Next: <span style="color:var(--leaf)">' + nx[2] + '</span> at ' + nx[0].toLocaleString('en-IN') + ' leaves' : 'Your Great Banyan is complete!')
       + '<div class="bl-bar"><i style="width:' + pct + '%"></i></div></div>'
       + '</div></div>';
   }
