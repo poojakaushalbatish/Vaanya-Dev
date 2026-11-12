@@ -50,9 +50,9 @@
 
   var LEVELS = [
     { key:'everyday', name:'Everyday Treats',  sub:'About one good day or less', c:'#14B8A6', tint:'#E6FBF7', grad:'linear-gradient(120deg,#0EA5A0,#2DD4BF)' },
-    { key:'weekend',  name:'Weekend Rewards',  sub:'About 3 to 5 good days',     c:'#3B82F6', tint:'#EAF2FF', grad:'linear-gradient(120deg,#2563EB,#60A5FA)' },
+    { key:'weekend',  name:'Weekend Treats',   sub:'A few good days',            c:'#3B82F6', tint:'#EAF2FF', grad:'linear-gradient(120deg,#2563EB,#60A5FA)' },
     { key:'big',      name:'Big Rewards',      sub:'About 2 to 3 weeks',         c:'#F97316', tint:'#FFF1E6', grad:'linear-gradient(120deg,#EA580C,#FB923C)' },
-    { key:'dream',    name:'Dream Goal',       sub:'About 2 months',             c:'#8B5CF6', tint:'#F3EEFF', grad:'linear-gradient(120deg,#6D28D9,#A78BFA)' }
+    { key:'dream',    name:'Dream Rewards',    sub:'About 2 months',             c:'#8B5CF6', tint:'#F3EEFF', grad:'linear-gradient(120deg,#6D28D9,#A78BFA)' }
   ];
   function levelOf(r){
     if(r.level && LEVELS.some(function(L){ return L.key === r.level; })) return r.level;
