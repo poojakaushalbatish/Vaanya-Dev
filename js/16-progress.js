@@ -23,7 +23,7 @@
   var PG = { month:null };
   var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var WD = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  var LEAF_STEPS = [[10,'its first branch'],[50,'a butterfly'],[100,'its first aerial root'],[150,'a parrot'],[250,'a swing'],[400,'red banyan figs'],[600,'a squirrel family'],[800,'a second aerial root'],[1000,'a bench'],[1500,'a nest'],[2000,'fireflies'],[3000,'a whole courtyard of branches'],[4000,'the Great Banyan']];
+  var LEAF_STEPS = [[10,'the tree’s first branch'],[50,'a butterfly'],[100,'the tree’s first aerial root'],[150,'a parrot'],[250,'a swing'],[400,'red banyan figs'],[600,'a squirrel family'],[800,'a second aerial root'],[1000,'a bench'],[1500,'a nest'],[2000,'fireflies'],[3000,'a whole courtyard of branches'],[4000,'the Great Banyan']];
   var WORD_RANKS = [[0,'Word Collector'],[50,'Word Explorer'],[150,'Wordsmith'],[300,'Lexicon Keeper'],[600,'Master of Words']];
   var KIND_STEPS = [[10,'Kind Friend'],[25,'Kind Heart'],[50,'Golden Heart'],[100,'Heart of Gold']];
 
@@ -230,7 +230,7 @@
     var span = newWeek ? 'since you joined' : 'this week', of = '<em>' + shown + ' of ' + counted + '</em> ' + (counted === 1 ? 'day' : 'days');
     var nudge = todayDone ? 'Today’s sun is already shining — keep going!' : 'Tick your first task today and today’s sun starts to shine.';
     if(dn <= 1){
-      eyebrow = 'My Journey · Day 1'; title = 'Welcome to ' + esc((window.APP_NAME || 'Alchemy')) + ', <em>' + nm + '</em>! 🎉';
+      eyebrow = 'My Journey · Day 1'; title = 'Your alchemy begins today, <em>' + nm + '</em>! ✨';
       line = todayDone ? 'You have started your very first day. Keep ticking your tasks!' : 'This is your first day. Tick your tasks as you finish them, and watch today’s sun light up!';
     }
     else if(!counted){ title = 'A new week begins, ' + nm + '!'; line = nudge; }
