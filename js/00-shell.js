@@ -8,7 +8,18 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-11-04 · Class 8; Big Idea topic card';
+  window.NIYAM_BUILD = '2026-11-12 · Temporary name: Alchemy';
+  // ---- THE APP'S NAME, SHOWN TO FAMILIES ------------------------------------
+  // Temporary name (Pooja, 12 Nov 2026) until the final name is chosen. Change it
+  // here and every screen follows. Internal names in the code stay "niyam".
+  window.APP_NAME    = 'Alchemy';
+  window.APP_WELCOME = 'Welcome to your own Alchemy';
+  window.APP_TAGLINE = 'Master time, Architect your Destiny.';
+  var APP = window.APP_NAME;
+  try{
+    document.title = APP + ' — ' + window.APP_TAGLINE;
+    var _m = document.querySelector('meta[name="apple-mobile-web-app-title"]'); if(_m) _m.setAttribute('content', APP);
+  }catch(e){}
   console.log('%cNIYAM build: ' + window.NIYAM_BUILD, 'color:#e8a838;font-weight:bold');
 
   // Startup self-check: shout early if a required script tag is missing from
@@ -50,6 +61,8 @@
     background:radial-gradient(circle at 50% 38%, rgba(244,183,64,.32), rgba(244,183,64,.04) 72%)}
   #niyam-shell h1{font-size:30px;margin:0;text-align:center;color:#191a2f;letter-spacing:.06em;font-weight:700}
   #niyam-shell .ns-tag{color:#6b6e86;font-size:13px;text-align:center;margin:7px 0 0;letter-spacing:.03em}
+  #niyam-shell h1.ns-welcome{font-size:27px;line-height:1.2;letter-spacing:.01em}
+  #niyam-shell .ns-brand .ns-tag{font-size:15px;font-style:italic;color:#8a6a2a;margin:8px 0 16px}
   #niyam-shell h2{font-size:19px;margin:0 0 10px;color:var(--ink);font-weight:800;letter-spacing:-.01em}
   #niyam-shell .ns-sub{color:var(--muted);font-size:14px;margin:0 0 16px;line-height:1.55}
   #niyam-shell label{display:block;font-size:13px;font-weight:700;margin:14px 0 5px;color:#3a4150}
@@ -71,6 +84,8 @@
   #ns-notice.warn{background:#7A3524}
   #ns-notice button{background:none;border:0;color:#C7C5CF;font-size:18px;line-height:1;cursor:pointer;padding:0 0 0 6px}
   #niyam-shell .ns-ok{background:#ecfdf3;border:1px solid #bbf7d0;color:#166534;font-size:13px;padding:10px;border-radius:10px;margin-top:12px;display:none}
+  #niyam-shell .ns-vtips{display:grid;gap:6px;background:var(--gold-soft);border:1px solid var(--gold-line);border-radius:12px;padding:10px 12px;font-size:13.5px;color:#5b4a2a;line-height:1.45}
+  #niyam-shell .ns-v-email{color:var(--ink);word-break:break-all}
   #niyam-shell .ns-err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:13px;padding:10px;border-radius:10px;margin-top:12px;display:none}
   #niyam-shell .ns-step{display:inline-block;color:var(--gold-deep);background:var(--gold-soft);border:1px solid var(--gold-line);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:4px 11px;border-radius:99px;margin-bottom:12px}
   #niyam-shell .ns-consent{display:flex;gap:10px;align-items:flex-start;background:var(--gold-soft);border:1px solid var(--gold-line);border-radius:12px;padding:14px;font-size:14px;line-height:1.5;color:#4a4434}
@@ -151,9 +166,9 @@
   <div id="ns-login" class="ns-screen">
    <div class="ns-wrap">
     <div class="ns-brand">
+     <h1 class="ns-welcome">${window.APP_WELCOME}</h1>
+     <p class="ns-tag">${window.APP_TAGLINE}</p>
      <div class="ns-mark"><svg width="42" height="42" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="nsg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd36b"/><stop offset="1" stop-color="#e8a838"/></linearGradient></defs><path d="M12 2.2l2.55 6.06 6.55.52-4.99 4.27 1.55 6.39L12 16.6l-5.21 3.84 1.55-6.39-4.99-4.27 6.55-.52z" fill="url(#nsg)"/></svg></div>
-     <h1>NIYAM</h1>
-     <p class="ns-tag">Small Habits, Big Destiny.</p>
     </div>
     <div class="ns-card">
      <h2 id="ns-login-title">Parent login</h2>
@@ -169,14 +184,31 @@
      <div id="ns-login-err" class="ns-err"></div>
      <div id="ns-login-ok" class="ns-ok"></div>
     </div>
+    <div id="ns-verify" class="ns-card" style="display:none">
+     <div style="font-size:40px;line-height:1;margin-bottom:6px">&#9993;&#65039;</div>
+     <h2 id="ns-v-title">Check your email</h2>
+     <p class="ns-sub" id="ns-v-text"></p>
+     <div class="ns-vtips">
+      <div>&#128269; Can&#8217;t see it? Look in <b>Spam</b> or <b>Promotions</b>.</div>
+      <div>&#128279; Use the <b>newest</b> email &#8212; each link works once.</div>
+      <div>&#128241; Open the link on this device to come straight back here.</div>
+     </div>
+     <button id="ns-v-resend" class="ns-primary" style="margin-top:14px">Send the link again</button>
+     <div style="text-align:center;margin-top:8px">
+      <button id="ns-v-login" class="ns-link">I&#8217;ve confirmed &#8212; log in</button>
+      <button id="ns-v-change" class="ns-link">Use a different email</button>
+     </div>
+     <div id="ns-v-err" class="ns-err"></div>
+     <div id="ns-v-ok" class="ns-ok"></div>
+    </div>
    </div>
   </div>
   <div id="ns-onboard" class="ns-screen">
    <div class="ns-wrap">
     <div id="ns-ob-consent" class="ns-card" style="display:none">
-     <div class="ns-step">Step 1 of 3</div><h2>Welcome to NIYAM</h2>
-     <p class="ns-sub">NIYAM helps your child build small daily habits. You're in control of everything.</p>
-     <div class="ns-consent"><input id="ns-consent-check" type="checkbox"><span>I am the parent or legal guardian, and I consent to my child's information being used in NIYAM. <em>(Wording to be finalised with legal review.)</em></span></div>
+     <div class="ns-step">Step 1 of 3</div><h2>Welcome to ${APP}</h2>
+     <p class="ns-sub">${APP} helps your child build small daily habits. You're in control of everything.</p>
+     <div class="ns-consent"><input id="ns-consent-check" type="checkbox"><span>I am the parent or legal guardian, and I consent to my child's information being used in ${APP}. <em>(Wording to be finalised with legal review.)</em></span></div>
      <button id="ns-consent-next" class="ns-primary">Continue</button>
      <div id="ns-consent-err" class="ns-err"></div>
     </div>
@@ -200,7 +232,7 @@
    <div class="ns-wrap" style="padding-top:70px">
     <div class="ns-card">
      <h2>Choose a new password</h2>
-     <p class="ns-sub">You opened the password link from your email. Choose a new password for your NIYAM account.</p>
+     <p class="ns-sub">You opened the password link from your email. Choose a new password for your ${APP} account.</p>
      <label>New password</label><input id="ns-newpw1" type="password" autocomplete="new-password" placeholder="6+ characters">
      <label>New password again</label><input id="ns-newpw2" type="password" autocomplete="new-password">
      <button id="ns-newpw-save" class="ns-primary" style="margin-top:14px">Save new password</button>
@@ -208,7 +240,7 @@
     </div>
    </div>
   </div>
-  <div id="ns-boot"><div class="bm">N</div><h3 id="ns-boot-h">Getting the day ready</h3><p id="ns-boot-p">This takes a moment.</p><div class="bar"><i></i></div></div>
+  <div id="ns-boot"><div class="bm">&#9733;</div><h3 id="ns-boot-h">Getting the day ready</h3><p id="ns-boot-p">This takes a moment.</p><div class="bar"><i></i></div></div>
   <div id="ns-notice"><span id="ns-notice-t"></span><button id="ns-notice-x" aria-label="Close">×</button></div>
   <div id="ns-pinprompt" class="ns-screen">
    <div class="ns-wrap" style="padding-top:70px">
@@ -407,7 +439,7 @@
       var tEl = document.getElementById('hdr-title');
       if(tEl) tEl.textContent = nm.toUpperCase() + "'S SCHEDULE & SCOREBOARD \uD83C\uDFC6";
       var sEl = document.getElementById('hdr-sub');
-      if(sEl) sEl.textContent = [p.child_class, pd.school].filter(Boolean).join(' \u00B7 ') || 'NIYAM \u00B7 Small Habits, Big Destiny';
+      if(sEl) sEl.textContent = [p.child_class, pd.school].filter(Boolean).join(' \u00B7 ') || APP + ' \u00B7 ' + window.APP_TAGLINE;
       var stEl = document.getElementById('hdr-star');
       if(stEl && pd.star_name) stEl.textContent = '\uD83C\uDF08 ' + pd.star_name.toUpperCase();
       var avEl = document.getElementById('hdr-avatar');
@@ -464,11 +496,11 @@
         setTimeout(function(){ bootCover(false); }, 250);
         if(problem) notice('Something went wrong while opening the app. Please refresh the page. If it keeps happening, let us know.', true);
         else if(timedOut){
-          notice('The connection is slow, so NIYAM’s timetable for the class is showing for now. Your own timetable appears as soon as it loads.', true);
+          notice('The connection is slow, so ' + APP + '’s timetable for the class is showing for now. Your own timetable appears as soon as it loads.', true);
           load.then(function(r){ if(r && r[0] === 'ok'){ try{ if(typeof ttRender==='function') ttRender(); if(window.niyamToday) window.niyamToday.refresh(); }catch(e){} } });
         }
         else if(window.__niyamWelcome){
-          notice('Welcome to NIYAM — ' + window.__niyamWelcome + '’s day is ready.', false, 6000);
+          notice('Welcome to ' + APP + ' — ' + window.__niyamWelcome + '’s day is ready.', false, 6000);
           window.__niyamWelcome = null;
         }
       });
@@ -503,6 +535,10 @@
     var s = await window.sb.auth.getSession();
     currentUser = s.data.session ? s.data.session.user : null;
     if(!currentUser){ screen('ns-login'); return; }
+    if(!currentUser.email_confirmed_at && !currentUser.confirmed_at){      // belt and braces: no NIYAM before the email is confirmed
+      var _em = currentUser.email; try{ await window.sb.auth.signOut(); }catch(e){} currentUser = null;
+      screen('ns-login'); showVerify(_em, 'login'); return;
+    }
     profile = await loadProfile();
     var pd = (profile && profile.profile_data) || {};
     if(typeof pd === 'string'){ try{ pd = JSON.parse(pd); }catch(e){ pd = {}; } }
@@ -538,16 +574,83 @@
   var loginMode='login';
   $('ns-to-signup').onclick=function(){ loginMode='signup'; $('ns-login-title').textContent='Create parent account'; $('ns-btn-login').style.display='none'; $('ns-btn-signup').style.display='block'; $('ns-to-signup').style.display='none'; $('ns-to-login').style.display='inline'; clearErr('ns-login-err'); };
   $('ns-to-login').onclick=function(){ loginMode='login'; $('ns-login-title').textContent='Parent login'; $('ns-btn-login').style.display='block'; $('ns-btn-signup').style.display='none'; $('ns-to-signup').style.display='inline'; $('ns-to-login').style.display='none'; clearErr('ns-login-err'); };
+  // ---- Email confirmation (Pooja, 12 Nov 2026) ----------------------------
+  // A new parent must confirm their email before they can use NIYAM: sign-up
+  // sends a link (Supabase Auth → "Confirm email" must be ON), and the link
+  // brings them back here, logged in, to set up. Until then, login is refused
+  // and the "Check your email" card offers to send the link again.
+  var BACK_URL = location.origin + location.pathname;
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
+  var TYPOS = { 'gmial.com':'gmail.com','gmai.com':'gmail.com','gmal.com':'gmail.com','gamil.com':'gmail.com','gmail.co':'gmail.com','gmail.con':'gmail.com','gmail.in':'gmail.com','gnail.com':'gmail.com',
+                'yaho.com':'yahoo.com','yahoo.co':'yahoo.com','yahooo.com':'yahoo.com','yahoo.con':'yahoo.com','hotmial.com':'hotmail.com','hotmail.co':'hotmail.com',
+                'outlok.com':'outlook.com','outlook.co':'outlook.com','rediffmail.co':'rediffmail.com','icloud.co':'icloud.com' };
+  function emailProblem(em){
+    if(!em) return 'Please type your email.';
+    if(!EMAIL_RE.test(em)) return 'That email doesn’t look right. Please check it — for example, name@gmail.com.';
+    var dom = em.split('@')[1].toLowerCase();
+    if(TYPOS[dom]) return 'Did you mean ' + em.split('@')[0] + '@' + TYPOS[dom] + '? Please check the email and try again.';
+    return '';
+  }
+  var verifyEmail = '', resendWait = 0, resendTimer = null;
+  function showVerify(em, why){
+    verifyEmail = em;
+    $('ns-v-title').textContent = why === 'login' ? 'Please confirm your email first' : 'Check your email';
+    $('ns-v-text').innerHTML = (why === 'login' ? 'Your account is waiting for you to confirm your email. We sent a link to ' : 'We have sent a confirmation link to ')
+      + '<b class="ns-v-email">' + String(em).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }) + '</b>.'
+      + ' Open it to confirm your email, and you will come straight back to set up ' + APP + '.';
+    clearErr('ns-v-err'); $('ns-v-ok').style.display = 'none';
+    document.querySelector('#ns-login .ns-card').style.display = 'none'; $('ns-verify').style.display = 'block';
+    if(why !== 'login') startWait(60);
+  }
+  function hideVerify(){ $('ns-verify').style.display = 'none'; document.querySelector('#ns-login .ns-card').style.display = 'block'; }
+  function startWait(sec){
+    resendWait = sec; clearInterval(resendTimer);
+    var b = $('ns-v-resend'), tick = function(){ b.disabled = resendWait > 0; b.textContent = resendWait > 0 ? 'Send the link again (in ' + resendWait + 's)' : 'Send the link again'; if(resendWait-- <= 0) clearInterval(resendTimer); };
+    tick(); resendTimer = setInterval(tick, 1000);
+  }
+  function friendly(err){
+    var m = (err && err.message) || String(err || ''), code = (err && err.code) || '';
+    if(/invalid login credentials/i.test(m)) return 'The email or password is not right. Check them, or tap “Forgot your password?”.';
+    if(/rate limit|too many|security purposes/i.test(m)) return 'Too many tries just now. Please wait a minute and try again.';
+    if(/password should be|weak/i.test(m) || code === 'weak_password') return 'Please choose a stronger password — at least 6 characters.';
+    if(/sending|smtp|email.*(send|deliver)/i.test(m)) return 'We could not send the email just now. Please try again in a few minutes.';
+    return m;
+  }
   $('ns-btn-login').onclick=async function(){ clearErr('ns-login-err');
-    var r = await window.sb.auth.signInWithPassword({ email:$('ns-email').value.trim(), password:$('ns-password').value });
-    if(r.error) return showErr('ns-login-err', r.error.message);
+    var em = $('ns-email').value.trim();
+    var r = await window.sb.auth.signInWithPassword({ email:em, password:$('ns-password').value });
+    if(r.error){
+      if(r.error.code === 'email_not_confirmed' || /email not confirmed/i.test(r.error.message)) return showVerify(em, 'login');
+      return showErr('ns-login-err', friendly(r.error));
+    }
     route();
   };
   $('ns-btn-signup').onclick=async function(){ clearErr('ns-login-err');
-    var r = await window.sb.auth.signUp({ email:$('ns-email').value.trim(), password:$('ns-password').value });
-    if(r.error) return showErr('ns-login-err', r.error.message);
-    route();
+    var em = $('ns-email').value.trim(), pw = $('ns-password').value;
+    var bad = emailProblem(em); if(bad) return showErr('ns-login-err', bad);
+    if(pw.length < 6) return showErr('ns-login-err', 'Please choose a password of at least 6 characters.');
+    var r = await window.sb.auth.signUp({ email:em, password:pw, options:{ emailRedirectTo: BACK_URL } });
+    if(r.error){
+      if(/already registered|already exists/i.test(r.error.message)) return showErr('ns-login-err', 'This email already has an ' + APP + ' account. Tap “Have an account? Log in”, or “Forgot your password?”.');
+      return showErr('ns-login-err', friendly(r.error));
+    }
+    if(r.data && r.data.session){ route(); return; }            // only if email confirmation is switched off
+    // An email that already has an account comes back with no identities (and no email is sent).
+    if(r.data && r.data.user && Array.isArray(r.data.user.identities) && !r.data.user.identities.length)
+      return showErr('ns-login-err', 'This email already has an ' + APP + ' account. Tap “Have an account? Log in”, or “Forgot your password?”.');
+    showVerify(em, 'signup');
   };
+  $('ns-v-resend').onclick = async function(){
+    clearErr('ns-v-err'); $('ns-v-ok').style.display = 'none';
+    if(!verifyEmail || resendWait > 0) return;
+    try{
+      var r = await window.sb.auth.resend({ type:'signup', email:verifyEmail, options:{ emailRedirectTo: BACK_URL } });
+      if(r.error) throw r.error;
+      $('ns-v-ok').textContent = 'Sent! Look for the newest email from ' + APP + '.'; $('ns-v-ok').style.display = 'block'; startWait(60);
+    }catch(e){ showErr('ns-v-err', friendly(e)); }
+  };
+  $('ns-v-login').onclick = function(){ hideVerify(); $('ns-to-login').onclick(); $('ns-email').value = verifyEmail; $('ns-password').value = ''; $('ns-password').focus(); };
+  $('ns-v-change').onclick = function(){ hideVerify(); $('ns-to-signup').onclick(); $('ns-email').value = ''; $('ns-password').value = ''; $('ns-email').focus(); };
 
   // onboarding
   $('ns-consent-next').onclick=async function(){ clearErr('ns-consent-err');
@@ -585,7 +688,7 @@
       {key:'rewards',   icon:'\uD83C\uDFC6', name:'Points & Rewards',
        desc:'Earn, save and spend on rewards you set yourself.', locked:true},
       {key:'geeta',     icon:'\uD83D\uDCFF', name:'Values & Wisdom',
-       desc:'One short verse from the Bhagavad Geeta each day with its meaning in simple language \u2014 timeless wisdom about honesty, effort and self-control. NIYAM is rooted in Indian tradition and open to every family.', locked:true},
+       desc:'One short verse from the Bhagavad Geeta each day with its meaning in simple language \u2014 timeless wisdom about honesty, effort and self-control. ' + APP + ' is rooted in Indian tradition and open to every family.', locked:true},
       {key:'wordbook',  icon:'\uD83D\uDCD6', name:'Reading & My Dictionary',
        desc:'Daily book reading, with three new words added to their own dictionary \u2014 meaning, sentence and a quiz.', locked:true},
       {key:'brainlab',  icon:'\uD83E\uDDE0', name:'Brain Lab',
@@ -609,7 +712,7 @@
        hint:'Just enough to build their day. Nothing more.'},
       {id:'ns-pp3',sec:'day',icon:'\uD83C\uDF24\uFE0F',key:'day_start',type:'radio',list:STARTS,
        q:'When does {name}\u2019s day open up?',
-       hint:'The school bag drops. The shoes come off. Somewhere in that gap, the day stops belonging to school and starts belonging to them.<br><br>NIYAM stays completely quiet until that moment \u2014 no tasks, no points, no nudges while {name} is still in class or on the way home. Tell us when their free time really begins, and their day will be waiting.',
+       hint:'The school bag drops. The shoes come off. Somewhere in that gap, the day stops belonging to school and starts belonging to them.<br><br>' + APP + ' stays completely quiet until that moment \u2014 no tasks, no points, no nudges while {name} is still in class or on the way home. Tell us when their free time really begins, and their day will be waiting.',
        foot:'Weekends and holidays open earlier \u2014 you can set that separately whenever you like.'},
       {id:'ns-pp4',sec:'ready',icon:'\u2B50',type:'features',
        q:'Here\u2019s what {name} gets',
@@ -680,7 +783,7 @@
           {innerHTML:'This shapes their whole timetable \u2014 how long they study, when they sleep, and which activities appear.',
            style:'margin-top:10px'}));
         w.appendChild(Object.assign(E('div','ns-qhint ns-center'),
-          {innerHTML:'NIYAM is built for Classes 4 to 8 right now. <b>Little ones are coming soon.</b>',
+          {innerHTML:APP + ' is built for Classes 4 to 8 right now. <b>Little ones are coming soon.</b>',
            style:'margin-top:8px;background:#fff8e6;border:1px solid #f0d9a0;border-radius:11px;padding:9px 11px;color:#6b5a2a'}));
         card.appendChild(w);
       }
@@ -896,8 +999,9 @@
     clearErr('ns-login-err'); var ok=$('ns-login-ok'); ok.style.display='none';
     var em = $('ns-email').value.trim();
     if(!em) return showErr('ns-login-err', 'Type your email above, then tap “Forgot your password?” again.');
-    try{ await window.niyamSendPasswordReset(em); ok.textContent='We have sent a link to ' + em + '. Open it on this device to choose a new password.'; ok.style.display='block'; }
-    catch(e){ showErr('ns-login-err', 'Could not send the link: ' + e.message); }
+    if(!EMAIL_RE.test(em)) return showErr('ns-login-err', 'That email doesn’t look right. Please check it and try again.');
+    try{ await window.niyamSendPasswordReset(em); ok.textContent='If ' + em + ' has an ' + APP + ' account, we have sent it a link to choose a new password. Open the newest email on this device — the link works once, within an hour. Can’t see it? Look in Spam.'; ok.style.display='block'; }
+    catch(e){ showErr('ns-login-err', 'Could not send the link: ' + friendly(e)); }
   };
   // The emailed link opens the app in "recovery" mode: choose a new password.
   // The link's details arrive in the address (#...); read them before the
@@ -906,9 +1010,10 @@
   function showNewPw(){ clearErr('ns-newpw-err'); $('ns-newpw').style.display='block'; }
   try{ if(window.sb && window.sb.auth.onAuthStateChange) window.sb.auth.onAuthStateChange(function(ev){ if(ev === 'PASSWORD_RECOVERY') showNewPw(); }); }catch(e){}
   if(/type=recovery/.test(_hash)) setTimeout(showNewPw, 600);
+  if(/type=signup/.test(_hash) && /access_token=/.test(_hash)) setTimeout(function(){ notice('✅ Your email is confirmed. Welcome to ' + APP + ' — let’s set it up!', false, 7000); }, 800);
   if(/error_code=|error=access_denied/.test(_hash)){
-    var _why = /otp_expired/.test(_hash) ? 'This password link has expired or was already used.' : 'This link could not be used.';
-    setTimeout(function(){ notice(_why + ' On the login screen, type your email and tap “Forgot your password?” to get a new link. Each link works once, within an hour.', true); }, 500);
+    var _why = /otp_expired/.test(_hash) ? 'This email link has expired or was already used.' : 'This email link could not be used.';
+    setTimeout(function(){ notice(_why + ' To confirm your email: log in, then tap “Send the link again”. To reset your password: type your email and tap “Forgot your password?”. Always use the newest email.', true); }, 500);
     try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
   }
   $('ns-newpw-save').onclick = async function(){
