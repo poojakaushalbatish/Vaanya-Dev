@@ -1,7 +1,7 @@
 {
-  "name": "NIYAM",
-  "short_name": "NIYAM",
-  "description": "Small Habits, Big Destiny.",
+  "name": "Alchemy",
+  "short_name": "Alchemy",
+  "description": "Master time, Architect your Destiny.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
