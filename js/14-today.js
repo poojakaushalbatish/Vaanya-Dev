@@ -381,12 +381,12 @@
     var greet = { morning:'Good morning', afternoon:'Good afternoon', evening:'Good evening', night:'Good night soon' }[m] + (name ? ',<br>' + esc(name) : '') + ' ' + { morning:'🌤️', afternoon:'☀️', evening:'🌇', night:'🌙' }[m];
     if(!isToday) greet = (approved ? 'Approved day' : 'Looking back') + (name ? ',<br>' + esc(name) : '') + ' 📖';
     var dn = dayNo(date);
-    if(isToday && dn === 1) greet = 'Welcome to NIYAM' + (name ? ',<br>' + esc(name) : '') + ' 🎉';
+    if(isToday && dn === 1) greet = 'Welcome to ' + esc((window.APP_NAME || 'Alchemy')) + (name ? ',<br>' + esc(name) : '') + ' 🎉';
     var T = times(), first = T.find(function(t){ return t.b.type !== 'locked-until-3pm' && typeof t.start === 'number'; });
     var weekend = false; try{ weekend = ttIsWeekendSchedule(); }catch(e){}
     var natural = [0, 6].indexOf(new Date(date + 'T12:00:00').getDay()) >= 0;
     var dayType = (first ? 'Your day starts at ' + hm(first.start) : '') + (isToday ? (first ? ' · ' : '') + 'now ' + hm(nowH()) : '');
-    if(dn >= 1 && dn <= 7) dayType = 'Day ' + dn + ' of your NIYAM journey' + (dn === 1 ? ' ✨' : '') + (dayType ? ' · ' + dayType : '');
+    if(dn >= 1 && dn <= 7) dayType = 'Day ' + dn + ' of your ' + esc((window.APP_NAME || 'Alchemy')) + ' journey' + (dn === 1 ? ' ✨' : '') + (dayType ? ' · ' + dayType : '');
     var toggle = '<div class="sched">'
       + '<button class="' + (weekend ? '' : 'on') + '" data-act="sched" data-m="weekday"' + (isToday ? '' : ' disabled') + '><span class="i">🏫</span><span>School day<small>Mon – Fri timetable</small></span></button>'
       + '<button class="' + (weekend ? 'on' : '') + '" data-act="sched" data-m="holiday"' + (isToday ? '' : ' disabled') + '><span class="i">☀️</span><span>Holiday<small>Sat · Sun · holidays</small></span></button></div>';
@@ -460,7 +460,7 @@
     steps.push([word, '📖', 'Add a new word', 'Start your very own dictionary.', 'word']);
     var done = steps.filter(function(x){ return x[0]; }).length, all = done === steps.length;
     g.innerHTML = '<div class="card guide"><div class="gh"><span>🎉</span><div><div class="cap" style="color:#B45309">Day 1 · Welcome aboard</div>'
-      + '<div class="gt">' + (all ? 'Day 1 complete! You are a natural 🌟' : 'Here is how NIYAM works, ' + esc(String(childName()).split(' ')[0] || 'superstar') + '!') + '</div></div></div>'
+      + '<div class="gt">' + (all ? 'Day 1 complete! You are a natural 🌟' : 'Here is how ' + esc((window.APP_NAME || 'Alchemy')) + ' works, ' + esc(String(childName()).split(' ')[0] || 'superstar') + '!') + '</div></div></div>'
       + '<div class="gbar"><i style="width:' + Math.round(done / steps.length * 100) + '%"></i></div><div class="gn">' + done + ' of ' + steps.length + ' done</div>'
       + steps.map(function(x){ return '<button class="gs' + (x[0] ? ' ok' : '') + '" data-act="guide" data-g="' + x[4] + '"><span class="gi">' + (x[0] ? '✓' : x[1]) + '</span><span><b>' + x[2] + '</b><small>' + x[3] + '</small></span></button>'; }).join('')
       + '<div class="gf">⭐ Tonight your parent checks your day, and your points go into your <b>Star Bank</b>.</div>'
@@ -494,7 +494,7 @@
     var t = today(), hid = false; try{ hid = localStorage.getItem('niyam_ttnote_hide') === t; }catch(e){}
     if(pd.tt_review_pending !== true || hid || dateOpen() !== t){ el.innerHTML = ''; el._h = ''; return; }
     var cls = String(window.niyamChildClass || '').trim(), nm = String(childName()).split(' ')[0] || 'your child';
-    var html = '<div class="ttnote" role="note"><div class="tx"><b>NIYAM’s recommended timetable' + (cls ? ' for ' + esc(cls) : '') + '</b>'
+    var html = '<div class="ttnote" role="note"><div class="tx"><b>' + esc((window.APP_NAME || 'Alchemy')) + '’s recommended timetable' + (cls ? ' for ' + esc(cls) : '') + '</b>'
       + '<span>This timetable is a starting point. A parent can edit, add or remove any block or task to suit ' + esc(nm) + '’s school and routine in <b>Parent Zone → Timetable</b>.</span></div>'
       + '<div class="bt"><button data-act="ttnote-open">Review timetable</button><button class="x" data-act="ttnote-x" aria-label="Hide this note for today" title="Hide for today">×</button></div></div>';
     if(el._h !== html){ el._h = html; el.innerHTML = html; }   // redraw only when it changes, so it never flickers
