@@ -222,7 +222,7 @@ var NIYAM_BAND_DEFS = {
 
   // ======================= BAND C · Class 6–8 · "Full NIYAM" ================
   C: {
-    label: 'Full NIYAM', classes: [6,7,8],
+    label: 'Full day', classes: [6,7,8],
     defaultStart: 15,           // 3:00 PM
     weekendStart: 7,            // 7:00 AM
     bedtime: 21.75,             // 9:45 PM
