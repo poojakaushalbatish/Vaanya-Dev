@@ -8,14 +8,18 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-11-12 · Temporary name: Alchemy';
+  window.NIYAM_BUILD = '2026-11-12 · Alchemy wording + grammar pass';
   // ---- THE APP'S NAME, SHOWN TO FAMILIES ------------------------------------
   // Temporary name (Pooja, 12 Nov 2026) until the final name is chosen. Change it
   // here and every screen follows. Internal names in the code stay "niyam".
   window.APP_NAME    = 'Alchemy';
   window.APP_WELCOME = 'Welcome to your own Alchemy';
-  window.APP_TAGLINE = 'Master time, Architect your Destiny.';
+  window.APP_TAGLINE = 'Master time, architect your destiny.';
   var APP = window.APP_NAME;
+  // A child's name as it should look on screen: each word starts with a capital
+  // ("jatin" → "Jatin", "aarav kumar" → "Aarav Kumar"); the rest is kept as typed.
+  function niceName(s){ return String(s || '').trim().replace(/\s+/g, ' ').replace(/(^|[\s-])([a-z])/g, function(m, a, b){ return a + b.toUpperCase(); }); }
+  window.niyamNiceName = niceName;
   try{
     document.title = APP + ' — ' + window.APP_TAGLINE;
     var _m = document.querySelector('meta[name="apple-mobile-web-app-title"]'); if(_m) _m.setAttribute('content', APP);
@@ -206,9 +210,9 @@
   <div id="ns-onboard" class="ns-screen">
    <div class="ns-wrap">
     <div id="ns-ob-consent" class="ns-card" style="display:none">
-     <div class="ns-step">Step 1 of 3</div><h2>Welcome to ${APP}</h2>
+     <div class="ns-step">Welcome</div><h2>${window.APP_WELCOME}</h2>
      <p class="ns-sub">${APP} helps your child build small daily habits. You're in control of everything.</p>
-     <div class="ns-consent"><input id="ns-consent-check" type="checkbox"><span>I am the parent or legal guardian, and I consent to my child's information being used in ${APP}. <em>(Wording to be finalised with legal review.)</em></span></div>
+     <div class="ns-consent"><input id="ns-consent-check" type="checkbox"><span>I am the parent or legal guardian, and I consent to my child's information being used by ${APP}. <em>(Wording to be finalised with legal review.)</em></span></div>
      <button id="ns-consent-next" class="ns-primary">Continue</button>
      <div id="ns-consent-err" class="ns-err"></div>
     </div>
@@ -278,10 +282,25 @@
     if(r.error){ showErr('ns-login-err', r.error.message); return null; }
     return r.data;
   }
+  // A dropped connection (common on Safari-based browsers after the page sits
+  // idle, or on weak Wi-Fi) is retried quietly before anyone sees an error.
+  // Only used for saves that are safe to repeat (upserts).
+  function isNetErr(e){ return !!e && !e.code && /fetch|load failed|network|connection|timed? ?out|offline|aborted/i.test(String(e.message || e)); }
+  async function sendWithRetry(make){
+    var r, waits = [700, 2000, 4000];
+    for(var i = 0; ; i++){
+      try{ r = await make(); }catch(e){ r = { error:{ message:String((e && e.message) || e) } }; }
+      if(!r.error || !isNetErr(r.error) || i >= waits.length) return r;
+      console.warn('[shell] connection dropped, trying again (' + (i + 1) + ')');
+      await new Promise(function(res){ setTimeout(res, waits[i]); });
+    }
+  }
+  var NET_MSG = 'We couldn’t reach the internet just now, so this was not saved. Your answers are kept — check the Wi-Fi or mobile data and tap the button again.';
+  window.niyamIsNetErr = isNetErr;
   async function saveProfile(patch){
     var row = Object.assign({ user_id: currentUser.id, updated_at: new Date().toISOString() }, patch);
-    var r = await window.sb.from('profiles').upsert(row);
-    if(r.error) throw new Error(r.error.message);
+    var r = await sendWithRetry(function(){ return window.sb.from('profiles').upsert(row); });
+    if(r.error) throw new Error(isNetErr(r.error) ? NET_MSG : r.error.message);
     profile = Object.assign(profile||{}, row);
   }
 
@@ -320,9 +339,10 @@
   async function saveFamilyTimetable(weekday, weekend){
     var row = { user_id: currentUser.id, weekday: weekday, weekend: weekend,
                 updated_at: new Date().toISOString() };
-    var r = await window.sb.from('timetables').upsert(row, { onConflict: 'user_id' });
+    var r = await sendWithRetry(function(){ return window.sb.from('timetables').upsert(row, { onConflict: 'user_id' }); });
     if(r.error){
       console.error('[shell] timetable save failed:', r.error);
+      if(isNetErr(r.error)) throw new Error(NET_MSG);
       throw new Error('Could not save the timetable: ' + r.error.message
         + (r.error.hint ? ' (' + r.error.hint + ')' : ''));
     }
@@ -428,7 +448,7 @@
     try{
       var p = profile || {}, pd = p.profile_data || {};
       if(typeof pd === 'string'){ try{ pd = JSON.parse(pd); }catch(e){ pd = {}; } }
-      var nm = p.child_name || 'My Star';
+      var nm = niceName(p.child_name) || 'My Star';
       // Exposed so any file (e.g. js/02-report.js's popups) can address the
       // real child by name instead of a hardcoded placeholder.
       window.niyamChildName = nm;
@@ -476,7 +496,7 @@
     $('ns-login').style.display='none';
     $('ns-onboard').style.display='none';
     $('ns-topbtns').style.display='flex';
-    if(profile && profile.child_name){ var nm=$('ns-pz-name'); if(nm) nm.textContent=profile.child_name; }
+    if(profile && profile.child_name){ var nm=$('ns-pz-name'); if(nm) nm.textContent=niceName(profile.child_name); }
     if(!booted){
       booted=true;
       bootCover(true);
@@ -496,11 +516,11 @@
         setTimeout(function(){ bootCover(false); }, 250);
         if(problem) notice('Something went wrong while opening the app. Please refresh the page. If it keeps happening, let us know.', true);
         else if(timedOut){
-          notice('The connection is slow, so ' + APP + '’s timetable for the class is showing for now. Your own timetable appears as soon as it loads.', true);
+          notice('The connection is slow, so the recommended timetable for the class is showing for now. Your own timetable will appear as soon as it loads.', true);
           load.then(function(r){ if(r && r[0] === 'ok'){ try{ if(typeof ttRender==='function') ttRender(); if(window.niyamToday) window.niyamToday.refresh(); }catch(e){} } });
         }
         else if(window.__niyamWelcome){
-          notice('Welcome to ' + APP + ' — ' + window.__niyamWelcome + '’s day is ready.', false, 6000);
+          notice('All set! ' + niceName(window.__niyamWelcome) + '’s day is ready.', false, 6000);
           window.__niyamWelcome = null;
         }
       });
@@ -517,7 +537,7 @@
   function bootCover(on){
     var c = $('ns-boot'); if(!c) return;
     if(on){
-      var nm = (profile && profile.child_name) || '';
+      var nm = niceName(profile && profile.child_name);
       $('ns-boot-h').innerHTML = nm ? 'Getting <em>' + String(nm).replace(/[<>&]/g, '') + '’s</em> day ready' : 'Getting the day ready';
       c.style.opacity = '1'; c.style.display = 'flex';
     } else { c.style.opacity = '0'; setTimeout(function(){ c.style.display = 'none'; }, 380); }
@@ -597,7 +617,7 @@
     $('ns-v-title').textContent = why === 'login' ? 'Please confirm your email first' : 'Check your email';
     $('ns-v-text').innerHTML = (why === 'login' ? 'Your account is waiting for you to confirm your email. We sent a link to ' : 'We have sent a confirmation link to ')
       + '<b class="ns-v-email">' + String(em).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }) + '</b>.'
-      + ' Open it to confirm your email, and you will come straight back to set up ' + APP + '.';
+      + ' Open it to confirm your email, and you will come straight back here to finish setting up.';
     clearErr('ns-v-err'); $('ns-v-ok').style.display = 'none';
     document.querySelector('#ns-login .ns-card').style.display = 'none'; $('ns-verify').style.display = 'block';
     if(why !== 'login') startWait(60);
@@ -725,7 +745,7 @@
     var PIN_AFTER='ns-pp3';
     var ALLIDS=['ns-ob-consent','ns-ob-pin','ns-ob-done'].concat(ORDER);
 
-    function nm(){ return Q.child_name || 'your child'; }
+    function nm(){ return niceName(Q.child_name) || 'your child'; }
     function fill(t){ return String(t||'').replace(/\{name\}/g, nm()); }
 
     function E(tag,cls,html){ var d=document.createElement(tag); if(cls) d.className=cls; if(html!=null) d.innerHTML=html; return d; }
@@ -948,6 +968,7 @@
         + tt.weekday.length + ' weekday blocks, ' + tt.weekend.length + ' weekend blocks');
       await saveFamilyTimetable(tt.weekday, tt.weekend);
       console.log('[setup] timetable saved for class ' + cls);
+      Q.child_name = niceName(Q.child_name) || Q.child_name;
       await saveProfile({ child_name:Q.child_name, child_class:cls, profile_data:pd });
       try{ localStorage.removeItem(draftKey()); }catch(e){}
 
@@ -1010,7 +1031,7 @@
   function showNewPw(){ clearErr('ns-newpw-err'); $('ns-newpw').style.display='block'; }
   try{ if(window.sb && window.sb.auth.onAuthStateChange) window.sb.auth.onAuthStateChange(function(ev){ if(ev === 'PASSWORD_RECOVERY') showNewPw(); }); }catch(e){}
   if(/type=recovery/.test(_hash)) setTimeout(showNewPw, 600);
-  if(/type=signup/.test(_hash) && /access_token=/.test(_hash)) setTimeout(function(){ notice('✅ Your email is confirmed. Welcome to ' + APP + ' — let’s set it up!', false, 7000); }, 800);
+  if(/type=signup/.test(_hash) && /access_token=/.test(_hash)) setTimeout(function(){ notice('✅ Your email is confirmed. Let’s get you set up!', false, 7000); }, 800);
   if(/error_code=|error=access_denied/.test(_hash)){
     var _why = /otp_expired/.test(_hash) ? 'This email link has expired or was already used.' : 'This email link could not be used.';
     setTimeout(function(){ notice(_why + ' To confirm your email: log in, then tap “Send the link again”. To reset your password: type your email and tap “Forgot your password?”. Always use the newest email.', true); }, 500);
