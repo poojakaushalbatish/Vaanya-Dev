@@ -424,13 +424,13 @@
   function shell(){
     var n = counts();
     var nav = function(k, lab){ return '<button class="nv' + (PZ.page === k ? ' on' : '') + '" data-pz="go" data-p="' + k + '">' + I(k) + lab + (k === 'today' && n ? '<span class="ct">' + n + '</span>' : '') + '</button>'; };
-    var h = '<aside class="side"><div class="brand"><div class="mark">N</div><div><b>NIYAM</b><span>Parent Zone</span></div></div>'
+    var h = '<aside class="side"><div class="brand"><div class="mark">★</div><div><b>' + esc((window.APP_NAME || 'Alchemy')) + '</b><span>Parent Zone</span></div></div>'
       + '<div class="kid"><div class="av">' + avatar() + '</div><div><b>' + esc(child()) + '</b><span>' + esc(window.niyamChildClass || '') + '</span></div></div>'
       + '<div class="navl">Every day</div>' + nav('today', 'Today') + '<div class="navl">Now and then</div>'
       + PAGES.slice(1).map(function(p){ return nav(p[0], p[1]); }).join('')
       + '<div class="grow"></div>' + nav('settings', 'Settings')
       + '<button class="back" data-pz="leave">' + I('lock') + 'Lock &amp; back to ' + esc(first()) + '</button></aside>';
-    h += '<main class="main"><div class="mtop"><div class="mark">N</div><b>Parent Zone</b><button data-pz="leave">' + I('lock', 'width:14px;height:14px') + 'Back to ' + esc(first()) + '</button></div><div id="pz2-page"></div></main>';
+    h += '<main class="main"><div class="mtop"><div class="mark">★</div><b>Parent Zone</b><button data-pz="leave">' + I('lock', 'width:14px;height:14px') + 'Back to ' + esc(first()) + '</button></div><div id="pz2-page"></div></main>';
     h += '<nav class="ptabs">' + PAGES.concat([['settings','Settings']]).map(function(p){
       return '<button class="' + (PZ.page === p[0] ? 'on' : '') + '" data-pz="go" data-p="' + p[0] + '">' + I(p[0]) + p[1] + (p[0] === 'today' && n ? '<span class="ct">' + n + '</span>' : '') + '</button>'; }).join('') + '</nav>';
     return h;
@@ -1067,10 +1067,10 @@
       h += '<div class="card" style="margin-bottom:16px;background:#FFF8EC;border-color:#F1DDB5;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap">'
         + '<div style="flex:1;min-width:240px"><b style="font-size:15px">This is NIYAM’s recommended timetable' + (window.niyamChildClass ? ' for ' + esc(window.niyamChildClass) : '') + '.</b>'
         + '<div style="color:var(--mute);font-size:13.5px;margin-top:3px">Tap any block to change it, add or remove tasks, and check both the school day and holiday timetables. When it suits ' + esc(first()) + '’s routine, save your changes — or keep it as it is.</div></div>'
-        + '<button class="btn dark" data-pz="ttkeep"' + (PZ.busy ? ' disabled' : '') + '>Keep NIYAM’s timetable</button></div>';
+        + '<button class="btn dark" data-pz="ttkeep"' + (PZ.busy ? ' disabled' : '') + '>Keep ' + esc((window.APP_NAME || 'Alchemy')) + '’s timetable</button></div>';
     h += '<div class="cols edcols" style="grid-template-columns:minmax(0,1fr) ' + (PZ.tdraft ? '380px' : '0') + '"><div><div class="card tt">' + (rows || '<p style="color:var(--mute)">No blocks yet.</p>') + '</div>'
       + '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:12px 4px 0;color:var(--mute);font-size:12.5px"><span>Tap a block to change it.' + (nHid ? ' Blocks of switched-off parts of the app are kept aside and come back if you switch them on.' : '') + '</span>'
-      + '<button class="lnk" data-pz="tdefault">Use NIYAM’s suggested timetable</button></div></div><div>' + (PZ.tdraft ? ttEditor() : '') + '</div></div>';
+      + '<button class="lnk" data-pz="tdefault">Use ' + esc((window.APP_NAME || 'Alchemy')) + '’s suggested timetable</button></div></div><div>' + (PZ.tdraft ? ttEditor() : '') + '</div></div>';
     return h;
   }
   function ttProblem(list, b){
@@ -1122,7 +1122,7 @@
   function pageRewards(){
     var list = rwList(), edit = PZ.rw ? (PZ.rwNew ? PZ.rw : list.find(function(r){ return String(r.id) === String(PZ.rw.id); }) && PZ.rw) : null;
     var h = '<div class="head"><div><div class="eyebrow">Rewards</div><h1>' + esc(first()) + '’s <em>rewards</em> list</h1><p>' + plural(list.length, 'reward', 'rewards') + '. He claims them on his Rewards page with your PIN.</p></div>'
-      + '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-pz="rwreset">Back to NIYAM’s list</button><button class="btn dark" data-pz="rwadd">' + I('plus') + 'Add a reward</button></div></div>';
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-pz="rwreset">Back to ' + esc((window.APP_NAME || 'Alchemy')) + '’s list</button><button class="btn dark" data-pz="rwadd">' + I('plus') + 'Add a reward</button></div></div>';
     var cat = '';
     LEVELS.forEach(function(L){
       var items = list.filter(function(r){ return lvOf(r) === L[0]; }).sort(function(a, b){ return num(a.pts) - num(b.pts); }); if(!items.length) return;
@@ -1292,7 +1292,7 @@
         try{ await window.niyamSaveProfileData({ tt_review_pending:false }); }catch(e){ ok = false; }
         try{ if(window.niyamToday) window.niyamToday.light(); }catch(e){}
         PZ.busy = false; render();
-        toast(ok ? 'Done — ' + first() + ' will follow NIYAM’s timetable. You can change it here any time.' : 'Could not save. Please check the internet and try again.');
+        toast(ok ? 'Done — ' + first() + ' will follow ' + (window.APP_NAME || 'Alchemy') + '’s timetable. You can change it here any time.' : 'Could not save. Please check the internet and try again.');
       })();
       return;
     }
@@ -1318,7 +1318,7 @@
     if(act === 'tdefault'){
       if(!confirm('Use NIYAM’s suggested timetable for ' + (window.niyamChildClass || 'his class') + '?\n\nBoth the school day and holiday timetables are replaced. Approved days never change.')) return;
       PZ.T = null; var keep = window.TT_CUSTOM; window.TT_CUSTOM = null; ttLoad(); window.TT_CUSTOM = keep;
-      PZ.tdraft = null; ttSaveAll('NIYAM’s suggested timetable is back'); return;
+      PZ.tdraft = null; ttSaveAll((window.APP_NAME || 'Alchemy') + '’s suggested timetable is back'); return;
     }
     // Rewards
     if(act === 'rwadd'){ PZ.rw = { id:'c-' + Date.now(), icon:'🎁', title:'', pts:300, level:'weekend', daily:false }; PZ.rwNew = true; render(); return; }
@@ -1343,7 +1343,7 @@
       return;
     }
     if(act === 'rwreset'){
-      if(!confirm('Go back to NIYAM’s list of 16 rewards?\n\nYour own changes to the list will be replaced.')) return;
+      if(!confirm('Go back to ' + (window.APP_NAME || 'Alchemy') + '’s list of 16 rewards?\n\nYour own changes to the list will be replaced.')) return;
       if(window.niyamRewardDefaults && await rwSave(window.niyamRewardDefaults(), 'NIYAM’s rewards list is back')){ PZ.rw = null; render(); }
       return;
     }
@@ -1353,7 +1353,7 @@
     if(act === 'pinsave'){ savePin(); return; }
     if(act === 'backup'){ if(typeof exportBackup === 'function') exportBackup(); return; }
     if(act === 'clear'){ if(typeof clearDay === 'function') clearDay(); return; }
-    if(act === 'logout'){ if(confirm('Log out of NIYAM on this device?')){ var lo = $('ns-pz-logout'); if(lo) lo.click(); } return; }
+    if(act === 'logout'){ if(confirm('Log out of ' + (window.APP_NAME || 'Alchemy') + ' on this device?')){ var lo = $('ns-pz-logout'); if(lo) lo.click(); } return; }
     if(act === 'feat'){ toggleFeature(b.getAttribute('data-k')); return; }
   }
   function onChange(e){
@@ -1430,7 +1430,7 @@
       var em = window.niyamAccountEmail ? window.niyamAccountEmail() : '';
       var h = '';
       if(step === 1){
-        h = '<h2>Reset your Parent PIN</h2><p class="ns-sub">To keep the Parent Zone safe, first confirm it is you with the password of your NIYAM account.</p>'
+        h = '<h2>Reset your Parent PIN</h2><p class="ns-sub">To keep the Parent Zone safe, first confirm it is you with the password of your ' + esc((window.APP_NAME || 'Alchemy')) + ' account.</p>'
           + '<div class="fgl">Account</div><div class="fgv">' + esc(em) + '</div>'
           + '<div class="fgl">Account password</div><input id="pz2-fg-pw" type="password" autocomplete="current-password">'
           + '<button type="button" class="fgb" data-fg="check">Confirm</button>'
