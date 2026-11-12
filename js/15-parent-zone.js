@@ -522,7 +522,7 @@
       if(words.length) wrote += '<div class="words">' + words.map(function(w){ var mm = meaningOf(w) || {};
         return '<div class="word"><b>' + esc(w) + '</b>' + (mm.m ? '<div>' + esc(mm.m) + '</div>' : '') + (mm.e ? '<i>“' + esc(mm.e) + '”</i>' : '') + '</div>'; }).join('') + '</div>';
       m.wrote.filter(function(w){ return w.title !== 'New words'; }).forEach(function(w){ wrote += '<div style="font-weight:600;margin-top:6px">' + esc(w.title) + '</div><div class="quote">' + esc(w.text) + '</div>'; });
-      var sh2 = R().shloka(d); if(sh2.reflect.length > 2) wrote += '<div style="font-weight:600;margin-top:6px">Geeta — how he will use it</div><div class="quote">' + esc(sh2.reflect) + '</div>';
+      var sh2 = R().shloka(d); if(sh2.reflect.length > 2) wrote += '<div style="font-weight:600;margin-top:6px">Geeta — how ' + esc(first()) + ' will use it</div><div class="quote">' + esc(sh2.reflect) + '</div>';
       var bl = brainLine(d); if(bl) wrote += '<div style="color:var(--ink2);font-size:13px;padding:6px 0 4px"><b style="color:var(--ink)">Brain Lab:</b> ' + esc(bl) + '</div>';
       if(wrote) h += '<div class="dsec"><div class="lab"><span>What ' + esc(first()) + ' wrote</span></div>' + wrote + '</div>';
       // the ticks
@@ -544,7 +544,7 @@
       if(tk) h += '<div class="dsec"><div class="lab"><span>' + esc(first()) + '’s ticks</span><small>tap a task to change it</small></div>' + tk + '</div>';
       var note = E.note === null ? (d.parentComment || '') : E.note;
       h += '<div class="dsec"><div class="lab"><span>Grade &amp; a note</span><small>both optional</small></div>' + gradeRow
-        + '<textarea data-pz-note="' + d.date + '" placeholder="A note for ' + esc(first()) + ' — he sees it on his Today page">' + esc(note) + '</textarea></div>';
+        + '<textarea data-pz-note="' + d.date + '" placeholder="A note for ' + esc(first()) + ' — it appears on their Today page">' + esc(note) + '</textarea></div>';
     }
     var sum = m.need ? 'Anything you don’t score waits for later' : '';
     h += '<div class="dfoot"><button class="lnk" data-pz="open" data-date="' + d.date + '">' + I(open ? 'up' : 'down') + (open ? 'Show less' : 'See the full day') + '</button>'
@@ -575,7 +575,7 @@
       + '<div class="fl" style="margin-top:8px">How many points</div><div class="adjamt">' + amts.map(function(a){ return '<button class="' + (F.amt === a ? 'on' : '') + '" data-pz="adjamt" data-v="' + a + '">' + (plus ? '+' : '−') + a + '</button>'; }).join('')
       + '<input type="number" id="pz2-adj-amt" min="1" max="100" placeholder="other" value="' + (F.amt && amts.indexOf(F.amt) < 0 ? F.amt : '') + '"></div>'
       + '<div class="fl">Reason <span style="text-transform:none;letter-spacing:0;font-weight:500">· ' + nm + ' will see this</span></div>'
-      + '<input type="text" id="pz2-adj-why" maxlength="120" placeholder="' + (plus ? 'e.g. Helped Dadi carry the shopping' : 'e.g. Shouted at his sister') + '" value="' + esc(F.why || '') + '">'
+      + '<input type="text" id="pz2-adj-why" maxlength="120" placeholder="' + (plus ? 'e.g. Helped Dadi carry the shopping' : 'e.g. Was rude to a younger cousin') + '" value="' + esc(F.why || '') + '">'
       + '<div class="adjwhy">' + ADJ_WHY[String(F.s)].map(function(w){ return '<button data-pz="adjwhy" data-v="' + esc(w) + '">' + esc(w) + '</button>'; }).join('') + '</div>'
       + '<div class="adjtell">' + tell + '</div>'
       + (F.err ? '<div class="adjerr">' + esc(F.err) + '</div>' : '')
@@ -674,19 +674,19 @@
     if(word){
       var WQ = ['When did you last feel <em>' + esc(word) + '</em>, or see someone who was?', 'Can you use <em>' + esc(word) + '</em> in a sentence about your day?', 'Who in our family is the most <em>' + esc(word) + '</em>? Why?'];
       var mm = meaningOf(word); if(mm && mm.m && /^to /i.test(mm.m)) WQ[0] = 'When did you last <em>' + esc(word) + '</em>? Tell me about it.';
-      q.push(['book', '“' + WQ[k % 3] + '”', 'His new word · ' + esc(word)]);
+      q.push(['book', '“' + WQ[k % 3] + '”', esc(first()) + '’s new word · ' + esc(word)]);
     }
-    // the shloka he is learning
+    // the shloka the child is learning
     geetaReady();
     try{
       var id = (typeof geetaProgress !== 'undefined') ? Object.keys(geetaProgress).find(function(s){ var st = geetaProgress[s] && geetaProgress[s].status; return st === 'inprogress' || st === 'relearning'; }) : null;
       var S = id && typeof SHLOKAS !== 'undefined' ? SHLOKAS.find(function(s){ return s.id === id; }) : null;
       if(S){ var mean = (String(S.meaning || '').match(/^[^.!?]*[.!?]?/) || [''])[0].trim(); if(mean.length > 120) mean = mean.slice(0, 117) + '…';
-        q.push(['spark', '“' + esc(mean) + ' What does that mean to you?”', 'The shloka he is learning · ' + esc(S.chapter || '')]); }
+        q.push(['spark', '“' + esc(mean) + ' What does that mean to you?”', 'The shloka ' + esc(first()) + ' is learning · ' + esc(S.chapter || '')]); }
     }catch(e){}
     // today's act of kindness
     try{ var act = NK() && NK().actFor(t), kr = kindFor(t) || kRows().find(function(r){ return r.week === t; });
-      if(act) q.push(['heart', kr ? '“How did it feel to ' + esc(String(act.title).replace(/^./, function(c){ return c.toLowerCase(); })) + '? How did they feel?”' : '“Today’s kind act was: ' + esc(act.title) + '. Did you manage it?”', 'His Act of Kindness']); }catch(e){}
+      if(act) q.push(['heart', kr ? '“How did it feel to ' + esc(String(act.title).replace(/^./, function(c){ return c.toLowerCase(); })) + '? How did they feel?”' : '“Today’s kind act was: ' + esc(act.title) + '. Did you manage it?”', esc(first()) + '’s Act of Kindness']); }catch(e){}
     if(!q.length) q.push(['spark', '“What was the best part of your day, and what was the hardest?”', 'For any evening']);
     return '<div class="talk"><div class="eyebrow" style="color:var(--brass2)">Tonight at dinner</div><div class="serif" style="font-size:24px;line-height:1.2;margin-top:6px;color:#fff">'
       + (q.length > 1 ? (q.length === 2 ? 'Two' : 'Three') + ' things to talk about with ' + esc(first()) : 'Something to talk about with ' + esc(first())) + '</div>'
@@ -731,7 +731,7 @@
     var lab = off === 0 ? 'This week' : off === -1 ? 'Last week' : dObj(mon).getDate() + ' ' + MONTHS[dObj(mon).getMonth()].slice(0, 3) + ' – ' + dObj(sun).getDate() + ' ' + MONTHS[dObj(sun).getMonth()].slice(0, 3);
     var h = '<div class="hsec g"><h2>Approved reports</h2><span class="cnt">' + list.length + '</span><span style="flex:1"></span><div class="wk"><button data-pz="apw" data-v="-1" title="Earlier week">' + I('left', 'width:15px;height:15px') + '</button><span>' + lab + '</span>'
       + '<button data-pz="apw" data-v="1"' + (off >= 0 ? ' disabled' : '') + ' title="Later week">' + I('right', 'width:15px;height:15px') + '</button></div></div>';
-    if(!list.length) return h + '<div class="card" style="color:var(--mute);text-align:center;padding:18px">No approved days in this week.</div>';
+    if(!list.length) return h + '<div class="card" style="color:var(--mute);text-align:center;padding:18px">No days approved this week yet.</div>';
     return h + list.map(function(d){
       var x = dObj(d.date), open = !!(PZ.apOpen || {})[d.date];
       return '<div class="apv"><button class="tile ok" data-pz="apopen" data-date="' + d.date + '"><div class="dbadge"><b>' + x.getDate() + '</b><span>' + MONTHS[x.getMonth()].slice(0, 3) + '</span></div>'
@@ -815,7 +815,7 @@
     var avg = appr.length ? Math.round(appr.reduce(function(a, d){ return a + num(d.pts); }, 0) / appr.length) : 0;
     var aN = appr.filter(function(d){ return d.parentGrade === 'A'; }).length;
     var h = '<div class="head"><div><div class="eyebrow">Progress</div><h1>' + MONTHS[mo] + ' <em>' + y + '</em></h1><p>'
-      + (appr.length ? plural(appr.length, 'day', 'days') + ' approved · average ' + fmtN(avg) + ' points a day' + (aN ? ' · ' + plural(aN, 'A grade', 'A grades') : '') : 'No approved days in this month yet.') + '</p></div>'
+      + (appr.length ? plural(appr.length, 'day', 'days') + ' approved · average ' + fmtN(avg) + ' points a day' + (aN ? ' · ' + plural(aN, 'A grade', 'A grades') : '') : 'No days approved this month yet.') + '</p></div>'
       + '<div style="display:flex;gap:8px"><button class="btn" data-pz="month" data-v="-1">' + I('left', 'width:15px;height:15px') + '</button><button class="btn" data-pz="month" data-v="1"' + (mk >= t.slice(0, 7) ? ' disabled' : '') + '>' + I('right', 'width:15px;height:15px') + '</button>'
       + '<button class="btn" data-pz="backup">' + I('dl') + 'Download backup</button></div></div>';
     // calendar
@@ -907,8 +907,8 @@
         + (s2 === 'l' || s2 === 'r' ? '<button class="btn dark sm" data-pz="master" data-id="' + esc(S.id) + '">' + I('tick', 'width:15px;height:15px') + (s2 === 'r' ? 'Mastered again' : 'Mark as mastered') + '</button>' : '')
         + (s2 === 'm' ? '<button class="btn sm" data-pz="relearn" data-id="' + esc(S.id) + '">Move to relearning</button>' : '')
         + '</div>' + (s2 === 'l' || s2 === 'r' ? '<div style="color:var(--mute);font-size:12px;margin-top:6px">Ask ' + esc(first()) + ' to recite it first. Mastering unlocks the next shloka.</div>' : '')
-        + (s2 === 'm' ? '<div style="color:var(--mute);font-size:12px;margin-top:6px">If he has forgotten it, move it to relearning: he practises it again and you master it again later.</div>' : '')
-        + (s2 === '' ? '<div style="color:var(--mute);font-size:12px;margin-top:6px">' + esc(first()) + ' starts a shloka from his Geeta page.</div>' : '') + '</div>';
+        + (s2 === 'm' ? '<div style="color:var(--mute);font-size:12px;margin-top:6px">If ' + esc(first()) + ' has forgotten it, move it to relearning. ' + esc(first()) + ' practises it again, and you can mark it mastered later.</div>' : '')
+        + (s2 === '' ? '<div style="color:var(--mute);font-size:12px;margin-top:6px">' + esc(first()) + ' starts a shloka from the Geeta page.</div>' : '') + '</div>';
     } else h += '<div style="color:var(--mute);font-size:12.5px;margin-top:8px">Tap a shloka to see it, mark it mastered, or move it back to relearning.</div>';
     return h + '</div>';
   }
@@ -1059,18 +1059,18 @@
     var custom = !!(window.TT_CUSTOM && ((window.TT_CUSTOM.weekday || []).length || (window.TT_CUSTOM.weekend || []).length));
     var hid = PZ.T.hidden[which()] || { blocks:[], acts:{} }, nHid = hid.blocks.length + Object.keys(hid.acts).length;
     var h = '<div class="head"><div><div class="eyebrow">Timetable</div><h1>' + esc(first()) + '’s <em>day</em>, block by block</h1><p>'
-      + plural(list.filter(function(b){ return b.type !== 'break' && b.type !== 'locked-until-3pm'; }).length, 'block', 'blocks') + ' · up to ' + fmtN(mx) + ' points · ' + (custom && !ttPending() ? 'your own timetable' : 'NIYAM’s timetable for ' + esc(window.niyamChildClass || 'his class')) + '</p></div>'
+      + plural(list.filter(function(b){ return b.type !== 'break' && b.type !== 'locked-until-3pm'; }).length, 'block', 'blocks') + ' · up to ' + fmtN(mx) + ' points · ' + (custom && !ttPending() ? 'your own timetable' : 'the recommended timetable for ' + esc(window.niyamChildClass || 'this class')) + '</p></div>'
       + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div class="seg"><button class="' + (PZ.tt === 'school' ? 'on' : '') + '" data-pz="tt" data-v="school" style="padding:10px 16px">School day timetable</button><button class="' + (PZ.tt === 'holiday' ? 'on' : '') + '" data-pz="tt" data-v="holiday" style="padding:10px 16px">Holiday timetable</button></div>'
       + '<button class="btn dark" data-pz="tbadd">' + I('plus') + 'Add a block</button></div></div>';
     var pd = {}; try{ pd = (window.niyamProfileData && window.niyamProfileData()) || {}; }catch(e){}
     if(pd.tt_review_pending === true)
       h += '<div class="card" style="margin-bottom:16px;background:#FFF8EC;border-color:#F1DDB5;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap">'
-        + '<div style="flex:1;min-width:240px"><b style="font-size:15px">This is NIYAM’s recommended timetable' + (window.niyamChildClass ? ' for ' + esc(window.niyamChildClass) : '') + '.</b>'
+        + '<div style="flex:1;min-width:240px"><b style="font-size:15px">This is the recommended timetable' + (window.niyamChildClass ? ' for ' + esc(window.niyamChildClass) : '') + '.</b>'
         + '<div style="color:var(--mute);font-size:13.5px;margin-top:3px">Tap any block to change it, add or remove tasks, and check both the school day and holiday timetables. When it suits ' + esc(first()) + '’s routine, save your changes — or keep it as it is.</div></div>'
-        + '<button class="btn dark" data-pz="ttkeep"' + (PZ.busy ? ' disabled' : '') + '>Keep ' + esc((window.APP_NAME || 'Alchemy')) + '’s timetable</button></div>';
+        + '<button class="btn dark" data-pz="ttkeep"' + (PZ.busy ? ' disabled' : '') + '>Keep the suggested timetable</button></div>';
     h += '<div class="cols edcols" style="grid-template-columns:minmax(0,1fr) ' + (PZ.tdraft ? '380px' : '0') + '"><div><div class="card tt">' + (rows || '<p style="color:var(--mute)">No blocks yet.</p>') + '</div>'
       + '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:12px 4px 0;color:var(--mute);font-size:12.5px"><span>Tap a block to change it.' + (nHid ? ' Blocks of switched-off parts of the app are kept aside and come back if you switch them on.' : '') + '</span>'
-      + '<button class="lnk" data-pz="tdefault">Use ' + esc((window.APP_NAME || 'Alchemy')) + '’s suggested timetable</button></div></div><div>' + (PZ.tdraft ? ttEditor() : '') + '</div></div>';
+      + '<button class="lnk" data-pz="tdefault">Use the suggested timetable</button></div></div><div>' + (PZ.tdraft ? ttEditor() : '') + '</div></div>';
     return h;
   }
   function ttProblem(list, b){
@@ -1121,8 +1121,8 @@
   function daysFor(p){ var n = Math.max(1, Math.round(p / goodDay())); return p < 250 ? '' : 'about ' + n + ' good days'; }
   function pageRewards(){
     var list = rwList(), edit = PZ.rw ? (PZ.rwNew ? PZ.rw : list.find(function(r){ return String(r.id) === String(PZ.rw.id); }) && PZ.rw) : null;
-    var h = '<div class="head"><div><div class="eyebrow">Rewards</div><h1>' + esc(first()) + '’s <em>rewards</em> list</h1><p>' + plural(list.length, 'reward', 'rewards') + '. He claims them on his Rewards page with your PIN.</p></div>'
-      + '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-pz="rwreset">Back to ' + esc((window.APP_NAME || 'Alchemy')) + '’s list</button><button class="btn dark" data-pz="rwadd">' + I('plus') + 'Add a reward</button></div></div>';
+    var h = '<div class="head"><div><div class="eyebrow">Rewards</div><h1>' + esc(first()) + '’s <em>rewards</em> list</h1><p>' + plural(list.length, 'reward', 'rewards') + '. ' + esc(first()) + ' claims them on the Rewards page with your PIN.</p></div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-pz="rwreset">Back to the suggested list</button><button class="btn dark" data-pz="rwadd">' + I('plus') + 'Add a reward</button></div></div>';
     var cat = '';
     LEVELS.forEach(function(L){
       var items = list.filter(function(r){ return lvOf(r) === L[0]; }).sort(function(a, b){ return num(a.pts) - num(b.pts); }); if(!items.length) return;
@@ -1141,7 +1141,7 @@
         + '<label class="fl">Picture</label><div class="emo">' + EMOJI.map(function(x){ return '<button class="' + (x === e.icon ? 'on' : '') + '" data-pz="rwicon" data-v="' + x + '">' + x + '</button>'; }).join('') + '</div>'
         + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label class="fl">Stars</label><input type="number" id="pz2-rw-pts" min="10" step="10" value="' + num(e.pts) + '"></div>'
         + '<div><label class="fl">Kind</label><select id="pz2-rw-level">' + LEVELS.map(function(L){ return '<option value="' + L[0] + '"' + (lvOf(e) === L[0] ? ' selected' : '') + '>' + L[1] + '</option>'; }).join('') + '</select></div></div>'
-        + '<div class="set" style="padding:14px 0 4px;border-top:0"><div class="tx"><b>Once a day</b><span>He can claim it only once on the same day</span></div><button class="tog' + ((e.daily === true || (e.daily === undefined && lvOf(e) === 'everyday')) ? ' on' : '') + '" data-pz="rwdaily"></button></div>'
+        + '<div class="set" style="padding:14px 0 4px;border-top:0"><div class="tx"><b>Once a day</b><span>It can be claimed only once a day</span></div><button class="tog' + ((e.daily === true || (e.daily === undefined && lvOf(e) === 'everyday')) ? ' on' : '') + '" data-pz="rwdaily"></button></div>'
         + '<div style="display:flex;gap:10px;margin-top:14px"><button class="btn dark" style="flex:1" data-pz="rwsave"' + (PZ.busy ? ' disabled' : '') + '>Save</button>' + (PZ.rwNew ? '' : '<button class="btn red" data-pz="rwdel" data-id="' + esc(e.id) + '">' + I('trash') + 'Delete</button>') + '</div></div>';
     }
     return h + '<div class="cols edcols" style="grid-template-columns:minmax(0,1fr) ' + (edit ? '360px' : '0') + '"><div class="card" style="padding-top:6px">' + cat + '</div><div>' + side + '</div></div>';
@@ -1164,8 +1164,8 @@
   // ======================================================================================
   function pageSettings(){
     var F = window.niyamFeatures || {}, pin = PZ.pin;
-    var optional = [['brainlab', 'Brain Lab', 'Maths, logic, sudoku and riddles every day'], ['progress', 'Progress', 'His points and streaks over time']];
-    var always = [['Daily timetable', 'His day, block by block'], ['Review & approval', 'Points are banked only when you approve'], ['Star Bank & rewards', 'He saves up and claims rewards with your PIN'], ['Geeta', 'One shloka at a time, mastered with you'], ['My Dictionary', 'Three new words a day'], ['Act of Kindness', 'One surprise act a day']];
+    var optional = [['brainlab', 'Brain Lab', 'Maths, logic, sudoku and riddles every day'], ['progress', 'Progress', 'Points and streaks over time']];
+    var always = [['Daily timetable', 'The day, block by block'], ['Review & approval', 'Points are banked only when you approve'], ['Star Bank & rewards', 'Saving up, and claiming rewards with your PIN'], ['Geeta', 'One shloka at a time, mastered with you'], ['My Dictionary', 'Three new words a day'], ['Act of Kindness', 'One surprise act a day']];
     var h = '<div class="head"><div><div class="eyebrow">Settings</div><h1>Family <em>settings</em></h1></div></div><div class="cols" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="stack">';
     h += '<div class="card"><div class="ch"><h2>Child</h2></div><div style="display:flex;gap:16px;align-items:center"><div style="width:60px;height:60px;border-radius:50%;background:var(--paper2);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 0 2px var(--brass2);overflow:hidden;flex:0 0 auto">' + avatar() + '</div>'
       + '<div><div class="serif" style="font-size:22px">' + esc(child()) + '</div><div style="color:var(--mute)">' + esc(window.niyamChildClass || '') + '</div></div></div></div>';
@@ -1180,7 +1180,7 @@
     h += '</div>';
     h += '<div class="card"><div class="ch"><h2>Your data</h2></div>'
       + '<div class="set"><div class="tx"><b>Download a backup</b><span>All days, words and rewards in one file</span></div><button class="btn" data-pz="backup">' + I('dl') + 'Download</button></div>'
-      + '<div class="set"><div class="tx"><b>Clear the open day</b><span>Clears the ticks on the day open on ' + esc(first()) + '’s page. Approved days are kept.</span></div><button class="btn red" data-pz="clear">Clear day</button></div>'
+      + '<div class="set"><div class="tx"><b>Clear the open day</b><span>Clears the ticks on the day that is open on ' + esc(first()) + '’s page. Approved days are kept.</span></div><button class="btn red" data-pz="clear">Clear day</button></div>'
       + '<div class="set"><div class="tx"><b>Log out</b><span>You will need your email and password to come back</span></div><button class="btn" data-pz="logout">' + I('out') + 'Log out</button></div></div>';
     h += '</div><div class="stack"><div class="card"><div class="ch"><h2>What ' + esc(first()) + ' sees</h2></div>'
       + optional.map(function(o){ var on = F[o[0]] !== false; return '<div class="set"><div class="tx"><b>' + o[1] + '</b><span>' + o[2] + '</span></div><button class="tog' + (on ? ' on' : '') + '" data-pz="feat" data-k="' + o[0] + '"' + (PZ.busy ? ' disabled' : '') + '></button></div>'; }).join('')
@@ -1271,7 +1271,7 @@
       try{ await R().saveCarried(k2, PZ.carry[k2]); toast('Saved · +' + PZ.carry[k2] + ' points'); delete PZ.carry[k2]; }catch(err){ alert('Could not save: ' + (err && err.message ? err.message : err)); }
       finally{ PZ.busy = false; render(); } return; }
     if(act === 'ksave'){ var kv2 = PZ.kind[id]; if(kv2 === undefined) return; PZ.busy = true; render();
-      try{ if(kv2 === 'redo') await NK().redo(id); else await NK().give(id, kv2); delete PZ.kind[id]; toast(kv2 === 'redo' ? 'He will be asked to try again.' : '+' + kv2 + ' kindness points given'); }
+      try{ if(kv2 === 'redo') await NK().redo(id); else await NK().give(id, kv2); delete PZ.kind[id]; toast(kv2 === 'redo' ? first() + ' will be asked to try again.' : '+' + kv2 + ' kindness points given'); }
       catch(err){ alert('Could not save: ' + (err && err.message ? err.message : err)); }
       finally{ PZ.busy = false; render(); } return; }
     // Progress
@@ -1292,7 +1292,7 @@
         try{ await window.niyamSaveProfileData({ tt_review_pending:false }); }catch(e){ ok = false; }
         try{ if(window.niyamToday) window.niyamToday.light(); }catch(e){}
         PZ.busy = false; render();
-        toast(ok ? 'Done — ' + first() + ' will follow ' + (window.APP_NAME || 'Alchemy') + '’s timetable. You can change it here any time.' : 'Could not save. Please check the internet and try again.');
+        toast(ok ? 'Done — ' + first() + ' will follow the suggested timetable. You can change it here at any time.' : 'Could not save. Please check the internet and try again.');
       })();
       return;
     }
@@ -1316,9 +1316,9 @@
       ttSaveAll('Block deleted'); return;
     }
     if(act === 'tdefault'){
-      if(!confirm('Use NIYAM’s suggested timetable for ' + (window.niyamChildClass || 'his class') + '?\n\nBoth the school day and holiday timetables are replaced. Approved days never change.')) return;
+      if(!confirm('Use the suggested timetable for ' + (window.niyamChildClass || 'this class') + '?\n\nBoth the school day and holiday timetables are replaced. Approved days never change.')) return;
       PZ.T = null; var keep = window.TT_CUSTOM; window.TT_CUSTOM = null; ttLoad(); window.TT_CUSTOM = keep;
-      PZ.tdraft = null; ttSaveAll((window.APP_NAME || 'Alchemy') + '’s suggested timetable is back'); return;
+      PZ.tdraft = null; ttSaveAll('The suggested timetable is back'); return;
     }
     // Rewards
     if(act === 'rwadd'){ PZ.rw = { id:'c-' + Date.now(), icon:'🎁', title:'', pts:300, level:'weekend', daily:false }; PZ.rwNew = true; render(); return; }
@@ -1343,8 +1343,8 @@
       return;
     }
     if(act === 'rwreset'){
-      if(!confirm('Go back to ' + (window.APP_NAME || 'Alchemy') + '’s list of 16 rewards?\n\nYour own changes to the list will be replaced.')) return;
-      if(window.niyamRewardDefaults && await rwSave(window.niyamRewardDefaults(), 'NIYAM’s rewards list is back')){ PZ.rw = null; render(); }
+      if(!confirm('Go back to the suggested list of 16 rewards?\n\nYour own changes to the list will be replaced.')) return;
+      if(window.niyamRewardDefaults && await rwSave(window.niyamRewardDefaults(), 'The suggested rewards list is back')){ PZ.rw = null; render(); }
       return;
     }
     // Settings
