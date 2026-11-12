@@ -1,7 +1,7 @@
 {
   "name": "Alchemy",
   "short_name": "Alchemy",
-  "description": "Master time, Architect your Destiny.",
+  "description": "Master time, architect your destiny.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
