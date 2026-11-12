@@ -139,7 +139,7 @@
     for(var n = bar; n && n.parentElement; n = n.parentElement){ if(n.parentElement === tab){ head = n; break; } }
     if(head){
       head.removeAttribute('style'); head.className = 'gt-hero';
-      head.innerHTML = '<div class="gt-txt"><div class="gt-eyebrow">Bhagavad Gita · 30 shlokas · 7 life lessons</div>'
+      head.innerHTML = '<div class="gt-txt"><div class="gt-eyebrow">Bhagavad Geeta · 30 shlokas · 7 life lessons</div>'
         + '<h1 class="gt-serif">Geeta — Soul Work</h1><p>Learn a shloka, read its story, then recite it to your parent.</p>'
         + '<div class="gt-prog"><div class="bar"><i id="geeta-master-bar"></i></div><span id="geeta-master-lbl">0 / 30 shlokas mastered</span></div></div>'
         + '<div class="gt-stat"><b id="geeta-pts-badge">0</b><span>Geeta points</span></div>'
