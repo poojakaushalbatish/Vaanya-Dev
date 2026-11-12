@@ -381,12 +381,12 @@
     var greet = { morning:'Good morning', afternoon:'Good afternoon', evening:'Good evening', night:'Good night soon' }[m] + (name ? ',<br>' + esc(name) : '') + ' ' + { morning:'🌤️', afternoon:'☀️', evening:'🌇', night:'🌙' }[m];
     if(!isToday) greet = (approved ? 'Approved day' : 'Looking back') + (name ? ',<br>' + esc(name) : '') + ' 📖';
     var dn = dayNo(date);
-    if(isToday && dn === 1) greet = 'Welcome to ' + esc((window.APP_NAME || 'Alchemy')) + (name ? ',<br>' + esc(name) : '') + ' 🎉';
+    if(isToday && dn === 1) greet = 'Your alchemy begins today' + (name ? ',<br>' + esc(name) : '') + ' ✨';
     var T = times(), first = T.find(function(t){ return t.b.type !== 'locked-until-3pm' && typeof t.start === 'number'; });
     var weekend = false; try{ weekend = ttIsWeekendSchedule(); }catch(e){}
     var natural = [0, 6].indexOf(new Date(date + 'T12:00:00').getDay()) >= 0;
     var dayType = (first ? 'Your day starts at ' + hm(first.start) : '') + (isToday ? (first ? ' · ' : '') + 'now ' + hm(nowH()) : '');
-    if(dn >= 1 && dn <= 7) dayType = 'Day ' + dn + ' of your ' + esc((window.APP_NAME || 'Alchemy')) + ' journey' + (dn === 1 ? ' ✨' : '') + (dayType ? ' · ' + dayType : '');
+    if(dn >= 1 && dn <= 7) dayType = 'Day ' + dn + ' of your journey' + (dn === 1 ? ' 🌱' : '') + (dayType ? ' · ' + dayType : '');
     var toggle = '<div class="sched">'
       + '<button class="' + (weekend ? '' : 'on') + '" data-act="sched" data-m="weekday"' + (isToday ? '' : ' disabled') + '><span class="i">🏫</span><span>School day<small>Mon – Fri timetable</small></span></button>'
       + '<button class="' + (weekend ? 'on' : '') + '" data-act="sched" data-m="holiday"' + (isToday ? '' : ' disabled') + '><span class="i">☀️</span><span>Holiday<small>Sat · Sun · holidays</small></span></button></div>';
@@ -494,8 +494,8 @@
     var t = today(), hid = false; try{ hid = localStorage.getItem('niyam_ttnote_hide') === t; }catch(e){}
     if(pd.tt_review_pending !== true || hid || dateOpen() !== t){ el.innerHTML = ''; el._h = ''; return; }
     var cls = String(window.niyamChildClass || '').trim(), nm = String(childName()).split(' ')[0] || 'your child';
-    var html = '<div class="ttnote" role="note"><div class="tx"><b>' + esc((window.APP_NAME || 'Alchemy')) + '’s recommended timetable' + (cls ? ' for ' + esc(cls) : '') + '</b>'
-      + '<span>This timetable is a starting point. A parent can edit, add or remove any block or task to suit ' + esc(nm) + '’s school and routine in <b>Parent Zone → Timetable</b>.</span></div>'
+    var html = '<div class="ttnote" role="note"><div class="tx"><b>Recommended timetable' + (cls ? ' for ' + esc(cls) : '') + '</b>'
+      + '<span>This timetable is a starting point. In <b>Parent Zone → Timetable</b>, a parent can edit, add or remove any block or task to suit ' + esc(nm) + '’s school and routine.</span></div>'
       + '<div class="bt"><button data-act="ttnote-open">Review timetable</button><button class="x" data-act="ttnote-x" aria-label="Hide this note for today" title="Hide for today">×</button></div></div>';
     if(el._h !== html){ el._h = html; el.innerHTML = html; }   // redraw only when it changes, so it never flickers
   }
