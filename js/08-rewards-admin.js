@@ -230,7 +230,7 @@
   }
 
   function goDefault(){
-    if(!confirm('Reset ALL rewards back to the ' + (window.APP_NAME || 'Alchemy') + ' default list?\n\n'
+    if(!confirm('Reset ALL rewards back to the default list?\n\n'
                 + 'Rewards already chosen are not affected. Nothing is saved until you press Save.')) return;
     RA.items = defaults();
     RA.open = {};
