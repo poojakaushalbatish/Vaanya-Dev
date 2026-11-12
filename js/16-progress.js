@@ -230,7 +230,7 @@
     var span = newWeek ? 'since you joined' : 'this week', of = '<em>' + shown + ' of ' + counted + '</em> ' + (counted === 1 ? 'day' : 'days');
     var nudge = todayDone ? 'Today’s sun is already shining — keep going!' : 'Tick your first task today and today’s sun starts to shine.';
     if(dn <= 1){
-      eyebrow = 'My Journey · Day 1'; title = 'Welcome to NIYAM, <em>' + nm + '</em>! 🎉';
+      eyebrow = 'My Journey · Day 1'; title = 'Welcome to ' + esc((window.APP_NAME || 'Alchemy')) + ', <em>' + nm + '</em>! 🎉';
       line = todayDone ? 'You have started your very first day. Keep ticking your tasks!' : 'This is your first day. Tick your tasks as you finish them, and watch today’s sun light up!';
     }
     else if(!counted){ title = 'A new week begins, ' + nm + '!'; line = nudge; }
