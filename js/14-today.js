@@ -263,6 +263,70 @@
   +   '#ab-bar .pz{flex:0 0 auto;min-width:0;margin-left:auto}'
   +   '#ab-bar .pz .arr{display:none}'
   +   '#td-root .sched button{flex:1}'
+  + '}'
+  // ---- header, redesigned (Pooja, 13 Nov 2026): every row on one grid, equal heights, aligned edges
+  + '#td-root .hero{padding:22px 20px;min-height:0}'
+  + '#td-root .hero .in{display:grid;gap:16px 20px;grid-template-columns:minmax(0,1fr);grid-template-areas:"greet" "ctrl" "ring" "prog" "tiles";align-items:start}'
+  + '#td-root .h-greet{grid-area:greet;min-width:0}'
+  + '#td-root .h-ctrl{grid-area:ctrl;display:flex;flex-wrap:wrap;gap:10px;align-items:center}'
+  + '#td-root .h-ring{grid-area:ring;display:flex;justify-content:center;align-items:center}'
+  + '#td-root .h-prog{grid-area:prog;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.22);border-radius:18px;padding:6px 14px}'
+  + '#td-root .h-tiles{grid-area:tiles;display:grid;gap:10px}'
+  + '#td-root .eyebrow{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:11.5px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:5px 12px;margin-bottom:12px}'
+  + '#td-root .eyebrow i{font-style:normal;opacity:.55}'
+  + '#td-root .greet{font-size:30px;line-height:1.12;margin:0;letter-spacing:.005em}'
+  + '#td-root .greet .nm{white-space:nowrap;font-family:inherit!important;font-weight:inherit}'
+  + '#td-root .datenav{margin:0;height:44px;padding:0 6px;gap:4px}'
+  + '#td-root .datenav button{width:32px;height:32px}'
+  + '#td-root .datenav input{font-size:15px;max-width:140px;text-align:center}'
+  + '#td-root .seg{display:inline-flex;height:44px;padding:4px;gap:4px;border-radius:99px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.3)}'
+  + '#td-root .seg button{display:flex;align-items:center;gap:7px;height:100%;padding:0 14px;border:0;border-radius:99px;background:transparent;color:#fff;font-weight:800;font-size:13.5px;white-space:nowrap}'
+  + '#td-root .seg button.on{background:#fff;color:#1E1B3A;box-shadow:0 4px 12px rgba(0,0,0,.18)}'
+  + '#td-root .seg button:disabled{cursor:default}'
+  + '#td-root .ring{width:140px;height:140px}'
+  + '#td-root .ring .c b{font-size:38px}'
+  + '#td-root .ring .c span{font-size:12px;margin-top:2px}'
+  + '#td-root .hpr{padding:9px 0;background:none;border:0;margin:0;border-radius:0;color:#fff}'
+  + '#td-root .hpr + .hpr{border-top:1px solid rgba(255,255,255,.16)}'
+  + '#td-root .hpr .hpt{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-weight:800;font-size:13.5px}'
+  + '#td-root .hpr .hpt span{display:inline-flex;align-items:center;gap:7px}'
+  + '#td-root .hpr .hpt em{font-style:normal;font-variant-numeric:tabular-nums;opacity:.95;white-space:nowrap}'
+  + '#td-root .hpr .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.25);margin-top:7px;overflow:hidden}'
+  + '#td-root .hpr .bar i{display:block;height:100%;border-radius:99px;background:#fff}'
+  + '#td-root .h-tiles .st{display:flex;flex-direction:column;justify-content:center;gap:4px;min-height:66px;padding:10px 12px;border-radius:16px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.22);text-align:left;margin:0}'
+  + '#td-root .h-tiles .st b{font-size:22px;line-height:1;white-space:nowrap;display:flex;align-items:center;gap:7px}'
+  + '#td-root .h-tiles .st span{font-size:11.5px;font-weight:800;line-height:1.2;opacity:.9}'
+  + '#td-root .h-tiles .st b span{font-size:19px;font-weight:400;opacity:1;line-height:1}'
+  + '#td-root .h-tiles button.st{cursor:pointer;color:#fff}'
+  + '#td-root .h-tiles button.st:hover{background:rgba(0,0,0,.26)}'
+  + '@media (min-width:600px) and (max-width:819px){'
+  +   '#td-root .hero .in{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"greet greet" "ctrl ctrl" "ring prog" "tiles tiles";align-items:center}'
+  + '}'
+  + '@media (min-width:820px) and (max-width:1149px){'
+  +   '#td-root .hero{padding:26px 28px}'
+  +   '#td-root .hero .in{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"greet ring" "ctrl ring" "prog prog" "tiles tiles";gap:18px 26px;align-items:center}'
+  +   '#td-root .greet{font-size:36px}'
+  +   '#td-root .ring{width:150px;height:150px}'
+  + '}'
+  + '@media (min-width:1150px){'
+  +   '#td-root .hero{padding:28px 32px}'
+  +   '#td-root .hero .in{grid-template-columns:minmax(0,1.15fr) auto minmax(0,1fr);grid-template-rows:auto auto;grid-template-areas:"greet ring prog" "ctrl ring tiles";gap:18px 32px;align-items:stretch}'
+  +   '#td-root .h-greet{align-self:end}'
+  +   '#td-root .h-ctrl{align-self:end}'
+  +   '#td-root .h-prog{align-self:start}'
+  +   '#td-root .h-tiles{align-self:end}'
+  +   '#td-root .greet{font-size:38px}'
+  +   '#td-root .ring{width:160px;height:160px}'
+  +   '#td-root .ring .c{inset:14px}'
+  + '}'
+  + '@media (max-width:599px){'
+  +   '#td-root .eyebrow .opt,#td-root .eyebrow .opt + i{display:none}'
+  +   '#td-root .h-ctrl > *{flex:1 1 100%}'
+  +   '#td-root .datenav{justify-content:space-between}'
+  +   '#td-root .seg button{flex:1;justify-content:center}'
+  +   '#td-root .ring{width:124px;height:124px}'
+  +   '#td-root .ring .c b{font-size:32px}'
+  +   '#td-root .greet{font-size:27px}'
   + '}';
 
   function addStyles(){
@@ -378,31 +442,37 @@
     var date = dateOpen(), isToday = date === today(), r = rec(date), approved = !!(r && r.approved === true);
     var total = approved ? (parseInt(r.pts, 10) || 0) : s.total, max = Math.max(1, s.max), pct = Math.min(100, Math.round(total / max * 100));
     var name = childName(), inp = $('rpt-date');   // the date picker is kept and put back after the sky is redrawn
-    var greet = { morning:'Good morning', afternoon:'Good afternoon', evening:'Good evening', night:'Good night soon' }[m] + (name ? ',<br>' + esc(name) : '') + ' ' + { morning:'🌤️', afternoon:'☀️', evening:'🌇', night:'🌙' }[m];
-    if(!isToday) greet = (approved ? 'Approved day' : 'Looking back') + (name ? ',<br>' + esc(name) : '') + ' 📖';
+    var firstName = String(name || '').trim().split(/\s+/)[0] || '';
+    var nmHtml = firstName ? ',<br><span class="nm">' + esc(firstName) + ' ' : '';
+    var emo = { morning:'🌤️', afternoon:'☀️', evening:'🌇', night:'🌙' }[m];
+    var greet = { morning:'Good morning', afternoon:'Good afternoon', evening:'Good evening', night:'Good night soon' }[m] + (firstName ? nmHtml + emo + '</span>' : ' ' + emo);
+    if(!isToday) greet = (approved ? 'Approved day' : 'Looking back') + (firstName ? nmHtml + '📖</span>' : ' 📖');
     var dn = dayNo(date);
-    if(isToday && dn === 1) greet = 'Your alchemy begins today' + (name ? ',<br>' + esc(name) : '') + ' ✨';
+    if(isToday && dn === 1) greet = 'Your alchemy begins today' + (firstName ? nmHtml + '✨</span>' : ' ✨');
     var T = times(), first = T.find(function(t){ return t.b.type !== 'locked-until-3pm' && typeof t.start === 'number'; });
     var weekend = false; try{ weekend = ttIsWeekendSchedule(); }catch(e){}
-    var natural = [0, 6].indexOf(new Date(date + 'T12:00:00').getDay()) >= 0;
-    var dayType = (first ? 'Your day starts at ' + hm(first.start) : '') + (isToday ? (first ? ' · ' : '') + 'now ' + hm(nowH()) : '');
-    if(dn >= 1 && dn <= 7) dayType = 'Day ' + dn + ' of your journey' + (dn === 1 ? ' 🌱' : '') + (dayType ? ' · ' + dayType : '');
-    var toggle = '<div class="sched">'
-      + '<button class="' + (weekend ? '' : 'on') + '" data-act="sched" data-m="weekday"' + (isToday ? '' : ' disabled') + '><span class="i">🏫</span><span>School day<small>Mon – Fri timetable</small></span></button>'
-      + '<button class="' + (weekend ? 'on' : '') + '" data-act="sched" data-m="holiday"' + (isToday ? '' : ' disabled') + '><span class="i">☀️</span><span>Holiday<small>Sat · Sun · holidays</small></span></button></div>';
+    var bits = [];
+    if(dn >= 1 && dn <= 7) bits.push('Day ' + dn + ' of your journey' + (dn === 1 ? ' 🌱' : ''));
+    else if(!isToday) bits.push(new Date(date + 'T12:00:00').toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long' }));
+    if(first) bits.push({ t:'Starts ' + hm(first.start), opt:true });
+    if(isToday) bits.push('Now ' + hm(nowH()));
+    var eyebrow = bits.length ? '<div class="eyebrow">' + bits.map(function(b){ return typeof b === 'string' ? esc(b) : '<span class="opt">' + esc(b.t) + '</span>'; }).join('<i>·</i>') + '</div>' : '';
+    var toggle = '<div class="seg" role="group" aria-label="Which timetable">'
+      + '<button class="' + (weekend ? '' : 'on') + '" data-act="sched" data-m="weekday" title="Mon – Fri timetable"' + (isToday ? '' : ' disabled') + '><span aria-hidden="true">🏫</span><span>School day</span></button>'
+      + '<button class="' + (weekend ? 'on' : '') + '" data-act="sched" data-m="holiday" title="Sat · Sun · holidays"' + (isToday ? '' : ' disabled') + '><span aria-hidden="true">☀️</span><span>Holiday</span></button></div>';
     var bank = typeof availablePts === 'function' ? availablePts() : 0, streak = typeof getStreak === 'function' ? getStreak() : 0;
-    var goal = ''; try{ var g = window.niyamStarBank && window.niyamStarBank.goal && window.niyamStarBank.goal(); if(g) goal = '<button class="st" data-act="tab" data-t="rewards"><b>' + esc(g.icon) + ' ' + (bank >= g.pts ? '✓' : fmtN(g.pts - bank)) + '</b><span>' + (bank >= g.pts ? 'goal ready!' : 'to my goal') + '</span></button>'; }catch(e){}
+    var tiles = ['<button class="st" data-act="tab" data-t="rewards"><b><span>⭐</span>' + fmtN(bank) + '</b><span>Star Bank</span></button>',
+                 '<div class="st"><b><span>🔥</span>' + streak + '</b><span>day streak</span></div>'];
+    try{ var g = window.niyamStarBank && window.niyamStarBank.goal && window.niyamStarBank.goal(); if(g) tiles.push('<button class="st" data-act="tab" data-t="rewards"><b><span>' + esc(g.icon) + '</span>' + (bank >= g.pts ? '✓' : fmtN(g.pts - bank)) + '</b><span>' + (bank >= g.pts ? 'goal ready!' : 'to my goal') + '</span></button>'); }catch(e){}
     var lv = levelOf(typeof totalEarned === 'function' ? totalEarned() : 0);
-    function bar(label, a, b){ return '<div class="sp">' + label + ' · ' + fmtN(a) + ' / ' + fmtN(b) + '<div class="bar"><i style="width:' + (b ? Math.min(100, Math.round(a / b * 100)) : 0) + '%"></i></div></div>'; }
+    tiles.push('<div class="st"><b><span>🏅</span>Lv ' + lv.n + '</b><span>' + lv.name + '</span></div>');
+    function bar(label, a, b){ return '<div class="hpr"><div class="hpt"><span>' + label.replace(/^(\S+) /, '<b aria-hidden="true" style="font-weight:400">$1</b>') + '</span><em>' + fmtN(a) + ' / ' + fmtN(b) + '</em></div><div class="bar"><i style="width:' + (b ? Math.min(100, Math.round(a / b * 100)) : 0) + '%"></i></div></div>'; }
     el.innerHTML = '<div class="hero ' + m + '">' + decoHtml(m) + '<div class="in">'
-      + '<div><div class="greet">' + greet + '</div>'
-      + '<div class="datenav"><button data-act="prev" aria-label="Previous day">‹</button><span id="td-date-slot"></span><button data-act="next" aria-label="Next day"' + (date >= today() ? ' disabled style="opacity:.35"' : '') + '>›</button></div>'
-      + toggle + '<div class="daytype">' + dayType + '</div></div>'
-      + '<div class="ringbox"><div class="ring" style="background:conic-gradient(#fff 0 ' + pct + '%,rgba(255,255,255,.28) ' + pct + '% 100%)"><div class="c"><b>' + fmtN(total) + '</b><span>' + (approved ? '✅ approved' : 'of ' + fmtN(s.max) + ' today') + '</span></div></div>'
-      + '<div class="split">' + bar('📋 My tasks', s.tasks, s.tasksMax) + (brainOn() ? bar('🧠 Brain Lab', s.brain, s.brainMax) : '') + bar('👨‍👩‍👧 From parents', s.parent, s.parentMax) + '</div></div>'
-      + '<div class="stats"><button class="st" data-act="tab" data-t="rewards"><b>⭐ ' + fmtN(bank) + '</b><span>in my Star Bank</span></button>'
-      + '<div class="st"><b>🔥 ' + streak + '</b><span>day streak</span></div>' + goal
-      + '<div class="st"><b>🏅 Lv ' + lv.n + '</b><span>' + lv.name + '</span></div></div>'
+      + '<div class="h-greet">' + eyebrow + '<div class="greet">' + greet + '</div></div>'
+      + '<div class="h-ctrl"><div class="datenav"><button data-act="prev" aria-label="Previous day">‹</button><span id="td-date-slot"></span><button data-act="next" aria-label="Next day"' + (date >= today() ? ' disabled style="opacity:.35"' : '') + '>›</button></div>' + toggle + '</div>'
+      + '<div class="h-ring"><div class="ring" style="background:conic-gradient(#fff 0 ' + pct + '%,rgba(255,255,255,.28) ' + pct + '% 100%)"><div class="c"><b>' + fmtN(total) + '</b><span>' + (approved ? '✅ approved' : 'of ' + fmtN(s.max) + ' today') + '</span></div></div></div>'
+      + '<div class="h-prog">' + bar('📋 My tasks', s.tasks, s.tasksMax) + (brainOn() ? bar('🧠 Brain Lab', s.brain, s.brainMax) : '') + bar('👨‍👩‍👧 From parents', s.parent, s.parentMax) + '</div>'
+      + '<div class="h-tiles" style="grid-template-columns:repeat(' + tiles.length + ',minmax(0,1fr))">' + tiles.join('') + '</div>'
       + '</div></div>';
     var slot = $('td-date-slot');
     if(inp && slot){ if(inp.getAttribute('style')) inp.removeAttribute('style'); slot.appendChild(inp); }
