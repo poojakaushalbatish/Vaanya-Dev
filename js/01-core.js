@@ -162,7 +162,7 @@ async function loadFromSupabase() {
       .order('date', { ascending: false });
     if (!e1 && days) {
       const mapped = days.map(d => {
-        const fullData = d.full_data ? (() => { try{ return JSON.parse(d.full_data); }catch(e){ return {}; } })() : {};
+        const fullData = d.full_data ? (typeof d.full_data === 'object' ? d.full_data : (() => { try{ return JSON.parse(d.full_data); }catch(e){ return {}; } })()) : {};
         // Remove 'approved' AND 'pts' from fullData before spreading — the
         // dedicated database columns are always the source of truth and must
         // win over any stale value sitting inside the full_data JSON blob.
@@ -200,6 +200,16 @@ async function loadFromSupabase() {
         if(tNew >= tOld) byDate[r.date] = r;
       });
       savedDays = Object.values(byDate);
+      // A balance carried over from an earlier app (one approved row with
+      // full_data {"carryOver":true}, dated 2000-01-01) counts towards the Star
+      // Bank and total points, but is not a day: it never shows in the calendar,
+      // streaks, medals, records or charts. (Pooja, 13 Nov 2026)
+      window.niyamCarryOver = 0;
+      savedDays = savedDays.filter(function(d){
+        if(d && (d.carryOver || d.date === '2000-01-01')){ if(d.approved) window.niyamCarryOver += (parseInt(d.pts) || 0); return false; }
+        return true;
+      });
+      try{ localStorage.setItem('niyam_carry_over', String(window.niyamCarryOver)); }catch(e){}
 
       // ── Merge the local backup as a safety net ────────────────────────────
       // If a day was approved/saved locally but never reached the cloud (a
@@ -696,7 +706,8 @@ function toggleExDeselect(el,gid,cls){
 }
 
 function totalEarned(){
-  return savedDays
+  if(typeof window.niyamCarryOver !== 'number'){ try{ window.niyamCarryOver = parseInt(localStorage.getItem('niyam_carry_over'), 10) || 0; }catch(e){ window.niyamCarryOver = 0; } }
+  return (window.niyamCarryOver || 0) + savedDays
     .filter(d => d.approved === true)
     .reduce((a,d) => a + (parseInt(d.pts)||0), 0);
 }
