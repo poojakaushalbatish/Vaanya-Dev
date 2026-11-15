@@ -30,7 +30,7 @@
 (function(){
   'use strict';
 
-  var PZ = { page:'today', open:{}, exp:{}, apOpen:{}, apw:0, kind:{}, carry:{}, busy:false, month:null, sel:null, shl:null, tt:null, rw:null, rwNew:false, pin:null };
+  var PZ = { page:'today', open:{}, exp:{}, apOpen:{}, apw:0, kind:{}, carry:{}, busy:false, month:null, sel:null, shl:null, tt:null, rw:null, rwNew:false, pin:null, del:null };
   var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var WD = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   var LEVELS = [['everyday','Everyday treats','once a day'],['weekend','Weekend treats',''],['big','Big rewards',''],['dream','Dream rewards','']];
@@ -138,6 +138,15 @@
   + '#pz2 .btn.dark{background:var(--ink);color:#fff;border-color:var(--ink)}'
   + '#pz2 .btn.dark:hover{background:#262C44}'
   + '#pz2 .btn.red{color:var(--rust)}'
+  + '#pz2 .btn.solidred{background:var(--rust);color:#fff;border-color:var(--rust)}'
+  + '#pz2 .btn.solidred:hover{background:#963F2C}'
+  + '#pz2 .btn.solidred:disabled{opacity:.6;cursor:default}'
+  + '#pz2 .delbox{margin-top:4px;border:1px solid #E7C3B6;background:var(--rust-soft);border-radius:14px;padding:16px}'
+  + '#pz2 .delbox h3{margin:0 0 6px;font-size:16px;color:#7A2E1C}'
+  + '#pz2 .delbox p{margin:0 0 8px;color:#5A3A30;font-size:13.5px;line-height:1.55}'
+  + '#pz2 .delbox ul{margin:0 0 10px;padding-left:18px;color:#5A3A30;font-size:13.5px;line-height:1.6}'
+  + '#pz2 .delbox .row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}'
+  + '@media (max-width:560px){#pz2 .delbox .row2{grid-template-columns:minmax(0,1fr)}}'
   + '#pz2 .btn.sm{padding:7px 12px;font-size:13px;border-radius:10px}'
   + '#pz2 .lnk{color:var(--ink2);font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:4px 0}'
   + '#pz2 .lnk.b{color:var(--brass)}'
@@ -1181,12 +1190,51 @@
     h += '<div class="card"><div class="ch"><h2>Your data</h2></div>'
       + '<div class="set"><div class="tx"><b>Download a backup</b><span>All days, words and rewards in one file</span></div><button class="btn" data-pz="backup">' + I('dl') + 'Download</button></div>'
       + '<div class="set"><div class="tx"><b>Clear the open day</b><span>Clears the ticks on the day that is open on ' + esc(first()) + '’s page. Approved days are kept.</span></div><button class="btn red" data-pz="clear">Clear day</button></div>'
-      + '<div class="set"><div class="tx"><b>Log out</b><span>You will need your email and password to come back</span></div><button class="btn" data-pz="logout">' + I('out') + 'Log out</button></div></div>';
+      + '<div class="set"><div class="tx"><b>Log out</b><span>You will need your email and password to come back</span></div><button class="btn" data-pz="logout">' + I('out') + 'Log out</button></div>'
+      + delBlock() + '</div>';
     h += '</div><div class="stack"><div class="card"><div class="ch"><h2>What ' + esc(first()) + ' sees</h2></div>'
       + optional.map(function(o){ var on = F[o[0]] !== false; return '<div class="set"><div class="tx"><b>' + o[1] + '</b><span>' + o[2] + '</span></div><button class="tog' + (on ? ' on' : '') + '" data-pz="feat" data-k="' + o[0] + '"' + (PZ.busy ? ' disabled' : '') + '></button></div>'; }).join('')
       + always.map(function(o){ return '<div class="set"><div class="tx"><b>' + esc(o[0]) + '</b><span>' + esc(o[1]) + '</span></div><span class="tag t-mute">always on</span></div>'; }).join('')
       + '</div></div></div>';
     return h;
+  }
+  // ---- Delete the account (Google Play requires this inside the app) ---------------------------
+  // Everything is removed at once by the database function delete_my_account()
+  // (database/delete-account.sql): every row of this family in every table, then
+  // the login itself. It runs as one step, so it either all goes or nothing goes.
+  function delBlock(){
+    var D = PZ.del;
+    if(!D) return '<div class="set"><div class="tx"><b>Delete account</b><span>Removes ' + esc(first()) + '’s account and all its data for good</span></div><button class="btn red" data-pz="delask">Delete account</button></div>';
+    return '<div class="set" style="display:block"><div class="delbox">'
+      + '<h3>Delete this account for good?</h3>'
+      + '<p>This removes, straight away and for ever:</p>'
+      + '<ul><li>' + esc(first()) + '’s profile, timetable and settings</li><li>every day, point, Star Bank balance and reward</li><li>all dictionary words, Brain Lab progress and acts of kindness</li><li>your login (' + esc(window.niyamUserEmail || 'this email') + ')</li></ul>'
+      + '<p>It cannot be undone. If you may want the data later, <b>download a backup first</b>.</p>'
+      + '<div class="row2"><div><label class="fl">Parent PIN</label><input type="password" inputmode="numeric" maxlength="4" id="pz2-del-pin" autocomplete="off"></div>'
+      + '<div><label class="fl">Type DELETE to confirm</label><input type="text" id="pz2-del-word" autocomplete="off" autocapitalize="characters" spellcheck="false"></div></div>'
+      + (D.err ? '<div style="color:var(--rust);font-weight:600;margin-top:10px">' + esc(D.err) + '</div>' : '')
+      + '<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><button class="btn solidred" data-pz="delgo"' + (PZ.busy ? ' disabled' : '') + '>' + (PZ.busy ? 'Deleting…' : 'Delete everything') + '</button>'
+      + '<button class="btn" data-pz="delbackup">' + I('dl') + 'Download a backup first</button><button class="btn" data-pz="delx"' + (PZ.busy ? ' disabled' : '') + '>Cancel</button></div>'
+      + '</div></div>';
+  }
+  async function deleteAccount(){
+    var pin = ($('pz2-del-pin') || {}).value || '', word = String(($('pz2-del-word') || {}).value || '').trim().toUpperCase();
+    if(!window.niyamCheckPin(pin)){ PZ.del = { err:'The PIN is not right.' }; render(); return; }
+    if(word !== 'DELETE'){ PZ.del = { err:'Type the word DELETE in the box to confirm.' }; render(); return; }
+    if(!confirm('Last check: delete ' + first() + '’s account and all its data for ever?\n\nThis cannot be undone.')) return;
+    PZ.busy = true; render();
+    try{
+      var r = await window.sb.rpc('delete_my_account');
+      if(r.error) throw new Error(r.error.message);
+    }catch(err){
+      PZ.busy = false;
+      PZ.del = { err:'Could not delete the account: ' + (err && err.message ? err.message : err) + '. Nothing was removed. Check the internet connection and try again.' };
+      render(); return;
+    }
+    // The login no longer exists: forget it on this device, with every cached copy of the family's data.
+    try{ await window.sb.auth.signOut({ scope:'local' }); }catch(e){}
+    try{ localStorage.clear(); sessionStorage.clear(); localStorage.setItem('niyam_account_deleted', '1'); }catch(e){}
+    location.reload();
   }
   async function savePin(){
     var a = ($('pz2-pin0') || {}).value || '', b = ($('pz2-pin1') || {}).value || '', c = ($('pz2-pin2') || {}).value || '';
@@ -1351,6 +1399,10 @@
     if(act === 'pin'){ PZ.pin = {}; render(); return; }
     if(act === 'pinx'){ PZ.pin = null; render(); return; }
     if(act === 'pinsave'){ savePin(); return; }
+    if(act === 'delask'){ PZ.del = {}; render(); var dp = $('pz2-del-pin'); if(dp){ dp.scrollIntoView({ block:'center', behavior:'smooth' }); dp.focus(); } return; }
+    if(act === 'delx'){ PZ.del = null; render(); return; }
+    if(act === 'delbackup'){ if(typeof exportBackup === 'function') exportBackup(); return; }
+    if(act === 'delgo'){ if(!PZ.busy) deleteAccount(); return; }
     if(act === 'backup'){ if(typeof exportBackup === 'function') exportBackup(); return; }
     if(act === 'clear'){ if(typeof clearDay === 'function') clearDay(); return; }
     if(act === 'logout'){ if(confirm('Log out of ' + (window.APP_NAME || 'Alchemy') + ' on this device?')){ var lo = $('ns-pz-logout'); if(lo) lo.click(); } return; }
