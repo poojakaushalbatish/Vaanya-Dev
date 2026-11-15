@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-11-12 · Alchemy wording + grammar pass';
+  window.NIYAM_BUILD = '2026-11-15 · Delete account';
   // ---- THE APP'S NAME, SHOWN TO FAMILIES ------------------------------------
   // Temporary name (Pooja, 12 Nov 2026) until the final name is chosen. Change it
   // here and every screen follows. Internal names in the code stay "niyam".
@@ -554,7 +554,12 @@
     if(!window.sb){ screen('ns-login'); showErr('ns-login-err','Could not load the login system — check your connection and refresh.'); return; }
     var s = await window.sb.auth.getSession();
     currentUser = s.data.session ? s.data.session.user : null;
-    if(!currentUser){ screen('ns-login'); return; }
+    window.niyamUserEmail = currentUser ? currentUser.email : '';
+    if(!currentUser){
+      screen('ns-login');
+      try{ if(localStorage.getItem('niyam_account_deleted')){ localStorage.removeItem('niyam_account_deleted'); var ok = $('ns-login-ok'); if(ok){ ok.textContent = 'Your account and all its data have been deleted. Thank you for using ' + (window.APP_NAME || 'Alchemy') + '.'; ok.style.display = 'block'; } } }catch(e){}
+      return;
+    }
     if(!currentUser.email_confirmed_at && !currentUser.confirmed_at){      // belt and braces: no NIYAM before the email is confirmed
       var _em = currentUser.email; try{ await window.sb.auth.signOut(); }catch(e){} currentUser = null;
       screen('ns-login'); showVerify(_em, 'login'); return;
