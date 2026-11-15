@@ -758,9 +758,31 @@
     var or = window.niyamOpenReview;
     window.niyamOpenReview = function(){ var r = or.apply(this, arguments); try{ parentTools(); }catch(e){} return r; };
   }
+  // The clock: the time always comes from this device's own clock (new Date()).
+  // The page is redrawn just after each minute turns over (not every 60 s from
+  // whenever the page opened, which could leave "Now" up to a minute behind),
+  // and again straight away when the tab or laptop wakes up, because browsers
+  // slow down or pause timers in hidden tabs and while the laptop sleeps.
+  // (Pooja, 15 Nov 2026)
+  function tick(){
+    clearTimeout(timer);
+    var d = new Date(), wait = 60000 - (d.getSeconds() * 1000 + d.getMilliseconds()) + 250;
+    timer = setTimeout(function(){ minute(); tick(); }, wait);
+  }
+  // the timetable too, so a block opens at its minute (not up to a minute late)
+  function minute(){
+    try{ if(typeof ttRender === 'function' && !(typeof _ttTyping === 'function' && _ttTyping())){ ttRender(); } }catch(e){ console.warn('[today] timetable:', e); }
+    light();
+  }
+  function wake(){ if(document.hidden) return; minute(); tick(); }
   function start(){
     try{ refresh(); }catch(e){ console.error('[today] start:', e); }
-    if(!timer) timer = setInterval(light, 60000);       // the sky, the "now" line and the minutes left
+    if(!timer){
+      tick();                                            // the sky, the "now" line and the minutes left
+      document.addEventListener('visibilitychange', wake);
+      window.addEventListener('focus', wake);
+      window.addEventListener('pageshow', wake);
+    }
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
   // once the family's data is in: the Star Bank's waiting rewards count in the Parent Zone button
