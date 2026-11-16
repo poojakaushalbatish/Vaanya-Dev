@@ -658,9 +658,11 @@ function fmtDate(d){
 }
 
 function getStreak(){
-  // Only count APPROVED days in consecutive streak
+  // A day counts once the child has done it (16 Nov 2026): days the parent approved,
+  // and days still waiting for approval that have points. The points themselves
+  // still reach the Star Bank only on approval (or the 3-day safety net).
   const approved = savedDays
-    .filter(d => d.approved === true)
+    .filter(d => d && d.date && ((parseInt(d.pts,10)||0) > 0 || (d.approved === true && !d.autoApproved)))
     .map(d => d.date)
     .sort()
     .reverse(); // newest first
