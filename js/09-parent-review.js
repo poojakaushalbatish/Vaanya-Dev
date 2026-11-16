@@ -627,9 +627,10 @@
     try{ if(typeof renderPendingQueue === 'function') renderPendingQueue(); }catch(e){}
   }
 
-  async function approveDay(date){
-    var d = findDay(date);
+  async function approveDay(date, opts){
+    var d = findDay(date), auto = !!(opts && opts.auto);
     if(!d || d.approved === true) return null;
+    if(auto && d.parentReopened) return null;     // a day the parent opened again is never approved by itself
     var m = model(d), E = m.E, awards = {}, later = [], shloka = 0, creative = 0, mastered = false;
     m.parents.forEach(function(r){
       if(r.award !== undefined){
@@ -645,12 +646,12 @@
     });
     var bonus = gradeBonus(d.date, E.grade), adj = adjustSum(E.adjust), total = m.pts + bonus + adj;
     var rec = Object.assign({}, d, {
-      pts: total, approved: true, savedAt: new Date().toISOString(),
+      pts: total, approved: true, savedAt: new Date().toISOString(), autoApproved: auto,
       parentGrade: E.grade || '', gradeBonus: bonus, parentRating: 0,
       parentComment: String(E.note === null ? (d.parentComment||'') : E.note).substring(0, 2000),
       shlokaPtsAwarded: shloka, creativePtsAwarded: creative,
       ttBlockStatesJSON: JSON.stringify(correctedStates(d, m)),
-      reviewJSON: JSON.stringify({ v:1, tt:m.tt, brain:m.brain, awards:awards, later:later, bonus:bonus, adjust:(E.adjust || []).slice(),
+      reviewJSON: JSON.stringify({ v:1, auto:auto, tt:m.tt, brain:m.brain, awards:awards, later:later, bonus:bonus, adjust:(E.adjust || []).slice(),
                                    undone:Object.keys(E.undone), done:Object.keys(E.done) })
     });
     putDay(rec);
@@ -668,6 +669,81 @@
     if(mastered) await masterShloka();
     delete RV.edits[date];
     return { ok:ok, pts:total, bonus:bonus, later:later.length };
+  }
+
+  // ---- the safety net: a day nobody reviewed approves itself after 3 days ----------------
+  // (16 Nov 2026) Busy parents were leaving days unapproved for a week, so the child saw
+  // nothing reach the Star Bank and stopped. Now a day waiting 3 days or more banks the
+  // child's ticks by itself. Tasks only the parent can score are not guessed: the ones
+  // the child ticked go to "Still to score", the rest stay at 0. Kindness waits for the
+  // parent as before. The day is marked autoApproved and can be opened again.
+  var AUTO_AFTER = 3, autoRan = '', autoBusy = false;
+  function localDay(back){ var x = new Date(); x.setDate(x.getDate() - (back || 0)); return x.toLocaleDateString('en-CA'); }
+  function autoReady(){
+    try{ if(typeof dbReady === 'undefined' || !dbReady) return false; }catch(e){ return false; }
+    if(!window.sb || navigator.onLine === false) return false;
+    var C = window.TT_CUSTOM;                    // only with this family's own timetable loaded
+    return !!(C && ((C.weekday && C.weekday.length) || (C.weekend && C.weekend.length)));
+  }
+  async function autoApprove(){
+    var stamp = localDay(0);
+    if(autoRan === stamp || autoBusy || !autoReady()) return null;
+    autoBusy = true; autoRan = stamp;
+    var cut = localDay(AUTO_AFTER), done = [];
+    try{
+      var list = pendingDays().filter(function(d){ return d.date <= cut && !d.parentReopened && !d.carryOver && d.date !== '2000-01-01'; });
+      for(var i = 0; i < list.length; i++){
+        try{ var res = await approveDay(list[i].date, { auto:true }); if(res) done.push({ date:list[i].date, pts:res.pts }); }
+        catch(e){ console.warn('[review] auto-approve ' + list[i].date + ':', e); }
+      }
+    }finally{ autoBusy = false; }
+    if(done.length){
+      console.log('[review] approved by itself after ' + AUTO_AFTER + ' days:', done.map(function(x){ return x.date; }).join(', '));
+      afterBankChange();
+      try{ if(window.niyamParentZone && $('ns-parent-zone') && $('ns-parent-zone').offsetParent) window.niyamParentZone.render(); }catch(e){}
+      try{ if(window.niyamToday) window.niyamToday.refresh(); }catch(e){}
+    }
+    return done;
+  }
+  // try for two minutes after the app opens (data and timetable load first), then each time it wakes on a new day
+  (function(){
+    var tries = 0;
+    function poll(){ autoApprove().then(function(r){ if(r === null && autoRan !== localDay(0) && ++tries < 24) setTimeout(poll, 5000); }); }
+    setTimeout(poll, 4000);
+    document.addEventListener('visibilitychange', function(){ if(!document.hidden && autoRan !== localDay(0)){ tries = 0; setTimeout(poll, 3000); } });
+  })();
+
+  // ---- "your usual scores": what this parent gave each task over the last 2 weeks ----------
+  // Used by "Approve all with your usual scores". Only tasks the child ticked get one;
+  // the shloka is never scored this way (full marks would mark it mastered), and a task
+  // with no history is left for the parent.
+  function usualFor(r){
+    if(!r || !r.parent || r.kind === 'shloka') return undefined;
+    // the same task can have a different id on weekdays and weekends: match by name too
+    var ids = {}, L = lists(), nm = String(r.name || '').trim().toLowerCase();
+    ids[r.id] = 1;
+    L.weekday.concat(L.weekend).forEach(function(b){ (b.activities || []).forEach(function(a){
+      if((a.type === 'parent' || a.type === 'parent-select') && nm && String(a.name || b.name || '').trim().toLowerCase() === nm) ids[a.id] = 1; }); });
+    var from = localDay(14), got = [];
+    savedDays.forEach(function(d){
+      if(!d || d.approved !== true || d.autoApproved || d.date < from) return;
+      var st = parse(d.ttBlockStatesJSON, {});
+      Object.keys(st).forEach(function(k){ var pp = (st[k] || {}).parentPts || {}; Object.keys(pp).forEach(function(id){ if(ids[id] && pp[id] !== null && pp[id] !== '') got.push(num(pp[id])); }); });
+    });
+    if(!got.length) return undefined;
+    var avg = got.reduce(function(a, v){ return a + v; }, 0) / got.length, best;
+    chipsFor(r.kind, r.max, r.a && r.a.levels).forEach(function(c){ if(best === undefined || Math.abs(c.v - avg) < Math.abs(best - avg) || (Math.abs(c.v - avg) === Math.abs(best - avg) && c.v > best)) best = c.v; });
+    return best;
+  }
+  function usualPlan(d){
+    var m = model(d), plan = {}, extra = 0, left = 0;
+    m.parents.forEach(function(r){
+      if(r.award !== undefined || !r.child) return;
+      var v = usualFor(r);
+      if(v === undefined){ left++; return; }
+      plan[r.id] = v; extra += v;
+    });
+    return { awards:plan, extra:extra, left:left };
   }
 
   // ---- bonus points and deductions from the parent ----------------------------------
@@ -830,6 +906,7 @@
     carried: carriedItems, freshen: freshen, after: afterBankChange,
     saveCarried: function(key, v){ RV.carried[key] = v; return saveCarried(key); },
     forget: function(date){ delete RV.edits[date]; },
-    adjustSum: adjustSum, adjustApproved: adjustApproved
+    adjustSum: adjustSum, adjustApproved: adjustApproved,
+    usual: usualPlan, autoApprove: autoApprove, autoAfter: AUTO_AFTER
   };
 })();
