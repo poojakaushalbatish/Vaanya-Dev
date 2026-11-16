@@ -141,6 +141,14 @@
   + '#pz2 .btn.solidred{background:var(--rust);color:#fff;border-color:var(--rust)}'
   + '#pz2 .btn.solidred:hover{background:#963F2C}'
   + '#pz2 .btn.solidred:disabled{opacity:.6;cursor:default}'
+  // "approve all with your usual scores" (16 Nov 2026)
+  + '#pz2 .usual{display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#FBF4E6,#F6ECD8);border:1px solid #E9D6B0;border-radius:18px;padding:14px 18px;margin:0 0 14px}'
+  + '#pz2 .usual .k{width:40px;height:40px;border-radius:12px;background:#fff;border:1px solid #E9D6B0;display:flex;align-items:center;justify-content:center;color:var(--brass);flex:0 0 auto}'
+  + '#pz2 .usual .tx{flex:1;min-width:0}#pz2 .usual .tx b{display:block;font-size:14.5px;color:var(--ink)}#pz2 .usual .tx span{display:block;color:var(--ink2);font-size:12.5px;margin-top:2px;line-height:1.4}'
+  + '#pz2 .usual .btn{flex:0 0 auto}#pz2 .usual .btn:disabled{opacity:.6}'
+  + '@media(max-width:640px){#pz2 .usual{flex-wrap:wrap}#pz2 .usual .btn{width:100%}}'
+  + '#pz2 .okl.auto{color:#8A6326!important}'
+  + '#pz2 .autonote{display:flex;gap:8px;align-items:flex-start;background:var(--brass-soft);color:#6E4F1E;border-radius:12px;padding:9px 12px;font-size:12.5px;margin-top:12px;line-height:1.45}'
   + '#pz2 .delbox{margin-top:4px;border:1px solid #E7C3B6;background:var(--rust-soft);border-radius:14px;padding:16px}'
   + '#pz2 .delbox h3{margin:0 0 6px;font-size:16px;color:#7A2E1C}'
   + '#pz2 .delbox p{margin:0 0 8px;color:#5A3A30;font-size:13.5px;line-height:1.55}'
@@ -474,6 +482,35 @@
       var f = W.find(function(x){ return String(x.word || x.w || '').toLowerCase() === String(word).toLowerCase(); });
       return f ? { m:f.meaning || f.m || '', e:f.example || f.sentence || f.e || '' } : null; }catch(e){ return null; }
   }
+  // the kindness score this parent usually gives (last 2 weeks), snapped to the day's scale
+  function kindUsual(kr){
+    if(!kr) return undefined;
+    var from = addDays(today(), -14), got = kRows().filter(function(r){ return r.status === 'confirmed' && r.week >= from && num(r.pts) > 0 && !/^little:/.test(r.mission || ''); }).map(function(r){ return num(r.pts); });
+    if(!got.length) return undefined;
+    var avg = got.reduce(function(a, v){ return a + v; }, 0) / got.length, best;
+    kindScale(kr).forEach(function(v){ if(best === undefined || Math.abs(v - avg) < Math.abs(best - avg) || (Math.abs(v - avg) === Math.abs(best - avg) && v > best)) best = v; });
+    return best;
+  }
+  // what "Approve all with your usual scores" would do for each day waiting (not today)
+  function usualAll(){
+    var t = today(), out = { days:[], pts:0, left:0, filled:0 };
+    try{ R().pending().forEach(function(d){
+      if(d.date >= t) return;
+      var C = dayCalc(d), U = R().usual ? R().usual(d) : { awards:{}, extra:0, left:C.toScore }, kv;
+      if(C.kr && C.kv === undefined){ kv = kindUsual(C.kr); if(kv === undefined) U.left++; }
+      var nFill = Object.keys(U.awards).length + (kv !== undefined ? 1 : 0);
+      out.days.push({ d:d, awards:U.awards, kr:C.kr, kv:kv });
+      out.pts += C.total + U.extra + (kv || 0); out.left += U.left; out.filled += nFill;
+    }); }catch(e){ console.warn('[parent zone] usual:', e); }
+    return out;
+  }
+  function usualBar(UA){
+    var n = UA.days.length;
+    return '<div class="usual"><div class="k">' + I('tick') + '</div><div class="tx"><b>' + (n === 1 ? 'Approve this day' : 'Busy week? Approve all ' + n + ' days') + ' with your usual scores</b>'
+      + '<span>' + (UA.filled ? 'Each task you score gets what you usually give it (your average over the last 2 weeks). ' : 'Every tick is banked as it is. ')
+      + (UA.left ? 'Anything without a usual score waits under “Still to score”. ' : '') + 'You can open any day first to change it.</span></div>'
+      + '<button class="btn dark" data-pz="usual"' + (PZ.busy ? ' disabled' : '') + '>Approve · about ' + fmtN(UA.pts) + ' points</button></div>';
+  }
   function dayCalc(d){
     var m = R().model(d), E = m.E, kr = kindFor(d.date), kv = kr ? PZ.kind[kr.id] : undefined;
     var kpts = (typeof kv === 'number') ? kv : 0, bonus = R().gradeBonus(d.date, E.grade);
@@ -492,13 +529,14 @@
     var facts = [done + ' of ' + ticks.length + ' tasks ticked'];
     if(bc) facts.push('Brain Lab ' + bc + ' of 4'); if(words.length) facts.push(plural(words.length, 'new word', 'new words'));
     var waitDays = Math.round((dObj(today()) - x) / 86400000);
+    var autoIn = (R().autoAfter || 3) - waitDays, autoTxt = d.parentReopened ? '' : autoIn <= 0 ? ' · approves itself shortly' : autoIn === 1 ? ' · approves itself tomorrow' : '';
     var tag = late ? '<span class="tag t-rust">Waiting ' + plural(waitDays, 'day', 'days') + '</span>'
             : C.toScore ? '<span class="tag t-brass">' + C.toScore + ' to score</span>' : '<span class="tag t-mute">Ready to approve</span>';
     var badge = '<div class="dbadge"><b>' + x.getDate() + '</b><span>' + MONTHS[x.getMonth()].slice(0, 3) + '</span></div>';
     var title = WD[x.getDay()] + ', ' + x.getDate() + ' ' + MONTHS[x.getMonth()];
     if(!PZ.exp[d.date]){
       return '<button class="tile wait' + (late ? ' late' : '') + '" data-pz="exp" data-date="' + d.date + '">' + badge
-        + '<span class="tx"><b>' + title + '</b><span' + (late ? ' style="color:var(--rust)"' : '') + '>' + (isToday ? 'Today · still going · ' : '') + (late ? 'Awaiting approval for ' + plural(waitDays, 'day', 'days') : 'Awaiting approval') + ' · ' + fmtN(C.total) + ' points accrued</span></span>'
+        + '<span class="tx"><b>' + title + '</b><span' + (late ? ' style="color:var(--rust)"' : '') + '>' + (isToday ? 'Today · still going · ' : '') + (late ? 'Awaiting approval for ' + plural(waitDays, 'day', 'days') : 'Awaiting approval') + autoTxt + ' · ' + fmtN(C.total) + ' points accrued</span></span>'
         + (late ? '' : tag) + '<span class="chev">' + I('down') + '</span></button>';
     }
     var h = '<div class="day wait' + (late ? ' late' : '') + '"><button class="dtop" data-pz="exp" data-date="' + d.date + '">' + badge
@@ -715,10 +753,14 @@
       + '<p>' + (n ? 'Tap a day to open it. Score what only you can judge, then approve — the points reach ' + esc(first()) + '’s Star Bank straight away.' : 'Every saved day is approved. ' + esc(first()) + '’s next day appears here as soon as it is saved.') + '</p></div></div>';
     h += '<div class="cols"><div>';
     if(late.length) h += '<div class="notice">' + I('alert', 'color:var(--rust)') + '<span><b>' + plural(late.length, 'older day', 'older days') + ' still waiting</b> — since ' + longDay(late[0].date) + '. Those points are not in the Star Bank yet.</span></div>';
+    var autoNew = days().filter(function(d){ return d && d.approved === true && d.autoApproved && d.savedAt && (Date.now() - new Date(d.savedAt).getTime()) < 3 * 86400000; });
+    if(autoNew.length) h += '<div class="notice" style="background:var(--brass-soft);border-color:#E9D6B0;color:#6E4F1E">' + I('tick', 'color:var(--brass)') + '<span><b style="color:#5A3F14">' + plural(autoNew.length, 'day was', 'days were') + ' approved automatically</b> after waiting ' + (R().autoAfter || 3) + ' days, so ' + esc(first()) + '’s ticks reached the Star Bank. Anything only you can score is under “Still to score”. To change one, open it again from Approved reports below.</span></div>';
     if(n) h += '<div class="hsec r"><h2>Waiting for approval</h2><span class="cnt">' + n + '</span></div>';
+    var UA = usualAll(), showUsual = UA.days.length > 1 || (UA.days.length === 1 && dayCalc(UA.days[0].d).toScore > 0);
+    if(showUsual) h += usualBar(UA);
     h += pend.slice().reverse().map(function(d){ return dayCard(d, d.date < yest); }).join('');   // the most recent day first
     var ready = pend.filter(function(d){ return !dayCalc(d).toScore; });
-    if(ready.length > 1){
+    if(ready.length > 1 && !showUsual){
       var tot = ready.reduce(function(a, d){ return a + dayCalc(d).total; }, 0);
       h += '<div style="text-align:center;margin-top:12px"><button class="btn" data-pz="all"' + (PZ.busy ? ' disabled' : '') + '>' + I('tick') + 'Approve the ' + ready.length + ' ready days · ' + fmtN(tot) + ' points</button></div>';
     }
@@ -744,16 +786,17 @@
     return h + list.map(function(d){
       var x = dObj(d.date), open = !!(PZ.apOpen || {})[d.date];
       return '<div class="apv"><button class="tile ok" data-pz="apopen" data-date="' + d.date + '"><div class="dbadge"><b>' + x.getDate() + '</b><span>' + MONTHS[x.getMonth()].slice(0, 3) + '</span></div>'
-        + '<span class="tx"><b>' + WD[x.getDay()] + ', ' + x.getDate() + ' ' + MONTHS[x.getMonth()] + '</b><span class="okl">✓ Approved · ' + fmtN(d.pts) + ' points' + (d.parentGrade ? ' · grade ' + esc(d.parentGrade) : '') + '</span></span>'
+        + '<span class="tx"><b>' + WD[x.getDay()] + ', ' + x.getDate() + ' ' + MONTHS[x.getMonth()] + '</b><span class="okl' + (d.autoApproved ? ' auto' : '') + '">✓ ' + (d.autoApproved ? 'Approved automatically' : 'Approved') + ' · ' + fmtN(d.pts) + ' points' + (d.parentGrade ? ' · grade ' + esc(d.parentGrade) : '') + '</span></span>'
         + '<span class="chev">' + I(open ? 'up' : 'down') + '</span></button>' + (open ? '<div class="apbody">' + reportBody(d) + '</div>' : '') + '</div>';
     }).join('');
   }
   // What an approved day looked like: points, note, words, Brain Lab, kindness and the ticks.
   function reportBody(d){
     var rv = {}; try{ rv = JSON.parse(d.reviewJSON || '{}') || {}; }catch(e){}
+    var h0 = d.autoApproved ? '<div class="autonote">' + I('tick', 'width:15px;height:15px;flex:0 0 auto;margin-top:1px') + '<span>Approved automatically after waiting ' + (R().autoAfter || 3) + ' days, so ' + esc(first()) + '’s ticks were not held up. To change anything, open it again for review.</span></div>' : '';
     var aw = 0; Object.keys(rv.awards || {}).forEach(function(k){ aw += num(rv.awards[k]); });
     var m = null; try{ m = R().model(d); R().forget(d.date); }catch(e){}
-    var h = '';
+    var h = h0;
     if(rv.tt !== undefined) h += '<div style="color:var(--ink2);font-size:13px;margin-top:12px">Ticks ' + num(rv.tt) + ' · Brain Lab ' + num(rv.brain) + ' · Parent’s score ' + aw + (rv.bonus ? ' · A bonus ' + rv.bonus : '') + '</div>';
     var kr = kRows().find(function(r){ return r.week === d.date && r.status === 'confirmed' && !/^little:/.test(r.mission || ''); });
     if(kr){ var a = kindAct(kr) || { title:'Act of Kindness' }; h += '<div style="color:var(--ink2);font-size:13px;margin-top:4px">Act of Kindness: “' + esc(a.title) + '” · +' + num(kr.pts) + '</div>'; }
@@ -872,10 +915,11 @@
     var i = savedDays.findIndex(function(x){ return x.date === date; }); if(i < 0) return;
     var d = savedDays[i];
     if(!confirm('Open ' + longDay(date) + ' again for review?\n\nIts ' + fmtN(d.pts) + ' points leave the Star Bank until you approve it again.')) return;
-    savedDays[i] = Object.assign({}, d, { approved:false });
+    savedDays[i] = Object.assign({}, d, { approved:false, autoApproved:false, parentReopened:true });   // never approved by itself again
     try{ localStorage.setItem('vaanya_days', JSON.stringify(savedDays)); }catch(e){}
     var res; try{ res = await _supabase.from('daily_reports').update({ approved:false }).eq('date', date); }catch(e){ res = { error:e }; }
     if(res && res.error){ savedDays[i] = d; alert('Could not open it again: ' + (res.error.message || res.error)); render(); return; }
+    try{ saveToSupabase(savedDays[i]); }catch(e){}   // keeps the "opened again" mark with the day
     try{ R().forget(date); R().after(); }catch(e){}
     PZ.sel = null; toast(longDay(date) + ' is back in Today for review.'); render();
   }
@@ -1309,6 +1353,16 @@
     if(act === 'goday'){ PZ.exp[date] = true; go('today'); return; }
     if(act === 'tick'){ PZ.focus = date; toggleTick(date, id); render(); return; }
     if(act === 'approve'){ approveDates([date]); return; }
+    if(act === 'usual'){
+      var UA = usualAll(); if(!UA.days.length) return;
+      if(!confirm('Approve ' + plural(UA.days.length, 'day', 'days') + ' with your usual scores?\n\nAbout ' + fmtN(UA.pts) + ' points go to ' + first() + '’s Star Bank.' + (UA.left ? '\n' + plural(UA.left, 'task has', 'tasks have') + ' no usual score yet — ' + (UA.left === 1 ? 'it waits' : 'they wait') + ' under “Still to score”.' : ''))) return;
+      UA.days.forEach(function(x){
+        var E2 = R().edits(x.d.date);
+        Object.keys(x.awards).forEach(function(k){ if(E2.awards[k] === undefined){ E2.awards[k] = x.awards[k]; delete E2.later[k]; } });
+        if(x.kr && x.kv !== undefined && PZ.kind[x.kr.id] === undefined) PZ.kind[x.kr.id] = x.kv;
+      });
+      approveDates(UA.days.map(function(x){ return x.d.date; })); return;
+    }
     if(act === 'all'){
       var ready = R().pending().filter(function(d){ return !dayCalc(d).toScore; });
       if(!confirm('Approve ' + ready.length + ' days?\n\nTheir points go to ' + first() + '’s Star Bank.')) return;
