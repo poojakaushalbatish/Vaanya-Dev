@@ -7,14 +7,14 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="css/styles.css">
-<script src="data/shlokas.js"></script>
-<script src="data/lr-bank.js"></script>
-<script src="data/scenes.js"></script>
-<script src="data/maths-bank.js"></script>
-<script src="data/quotes.js"></script>
-<script src="data/badges.js"></script>
-<script src="data/timetable.js"></script>
-<script src="data/timetable-bands.js"></script>
+<!-- The lessons, quotes, puzzles, class timetables and badges are no longer public files:
+     they load after login from private storage (js/00-shell.js, "Content behind the login"). -->
+<script>
+// The built-in timetable lists start empty; the class timetable (loaded after login) fills them.
+// (This used to be data/timetable.js — the /data folder is no longer needed.)
+const TT_WEEKDAY = [];
+const TT_WEEKEND = [];
+</script>
 <!-- PWA: makes the app installable to the phone home screen -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#191a2f">
@@ -1654,15 +1654,12 @@
   <script src="js/09-parent-review.js"></script>
   <script src="js/10-brain-lab.js"></script>
   <script src="js/11-dictionary.js"></script>
-  <script src="data/kindness-missions.js"></script>
 <script src="js/12-star-bank.js"></script>
 <script src="js/13-kindness.js"></script>
   <script src="js/14-today.js"></script>
   <script src="js/15-parent-zone.js"></script>
   <script src="js/16-progress.js"></script>
   <script src="js/17-geeta.js"></script>
-  <script src="data/big-ideas.js"></script>
-  <script src="data/brain-challenges.js"></script>
   <script src="js/18-big-ideas.js"></script>
   
 <!-- MOBILE FLOATING PILL -->
