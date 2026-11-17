@@ -463,6 +463,11 @@ function silentClearDay(){
     Object.entries(mastered).forEach(([id,v])=>{ geetaProgress[id]=v; });
   }catch(e){}
   buildShlokaDisplay(); // refresh Geeta tab to reflect cleared state
+  // (17 Nov 2026) the timetable ticks belong to one day too. They were not cleared here,
+  // so moving to a day with nothing saved yet kept the previous day's ticks on screen —
+  // and the next save copied them into the new day. The day being opened loads its own
+  // ticks straight after this (loadDraftDay / loadApprovedDay), or starts empty.
+  try{ ttBlockStates = {}; if(typeof ttRender === 'function') ttRender(); }catch(e){}
   if(dateVal) document.getElementById('rpt-date').value=dateVal;
   calcDayPts();
   // Re-enable session tracking after a short delay
