@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-11-17 · Big Ideas for Class 4 and 5';
+  window.NIYAM_BUILD = '2026-11-17 · New day starts clean';
   // ---- THE APP'S NAME, SHOWN TO FAMILIES ------------------------------------
   // Temporary name (Pooja, 12 Nov 2026) until the final name is chosen. Change it
   // here and every screen follows. Internal names in the code stay "niyam".
