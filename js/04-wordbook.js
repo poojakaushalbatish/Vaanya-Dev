@@ -244,10 +244,12 @@ async function doResetEdit(){
 // ════════════════════════════════════════════
 // MOTIVATIONAL QUOTES
 // ════════════════════════════════════════════
-const QUOTES_R = QUOTES_L; // unified pool — R used only for compat
+// (17 Nov 2026) the quotes now load after login (see js/00-shell.js, "Content behind the login"),
+// so nothing here may touch QUOTES_L while the page is still loading.
 let qLi=0, qRi=0;
 
 function renderQuote(side, idx){
+  if(typeof QUOTES_L === 'undefined') return;
   if(side==='R') return;
   const q = QUOTES_L[idx % QUOTES_L.length];
 
@@ -284,9 +286,11 @@ function renderQuote(side, idx){
   if(txt) txt.textContent = q.text;
 }
 function nextQuote(side){
+  if(typeof QUOTES_L === 'undefined') return;
   if(side==='L'||side==='R'){ qLi=(qLi+1)%QUOTES_L.length; renderQuote('L',qLi); }
 }
 function prevQuote(side){
+  if(typeof QUOTES_L === 'undefined') return;
   if(side==='L'||side==='R'){ qLi=(qLi-1+QUOTES_L.length)%QUOTES_L.length; renderQuote('L',qLi); }
 }
 // Auto-rotate silently every 12 seconds — no user controls
