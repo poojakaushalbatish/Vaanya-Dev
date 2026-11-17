@@ -1235,7 +1235,7 @@
       + '<div class="set"><div class="tx"><b>Download a backup</b><span>All days, words and rewards in one file</span></div><button class="btn" data-pz="backup">' + I('dl') + 'Download</button></div>'
       + '<div class="set"><div class="tx"><b>Clear the open day</b><span>Clears the ticks on the day that is open on ' + esc(first()) + '’s page. Approved days are kept.</span></div><button class="btn red" data-pz="clear">Clear day</button></div>'
       + '<div class="set"><div class="tx"><b>Log out</b><span>You will need your email and password to come back</span></div><button class="btn" data-pz="logout">' + I('out') + 'Log out</button></div>'
-      + delBlock() + '</div>';
+      + delBlock() + '</div>' + aboutLine();
     h += '</div><div class="stack"><div class="card"><div class="ch"><h2>What ' + esc(first()) + ' sees</h2></div>'
       + optional.map(function(o){ var on = F[o[0]] !== false; return '<div class="set"><div class="tx"><b>' + o[1] + '</b><span>' + o[2] + '</span></div><button class="tog' + (on ? ' on' : '') + '" data-pz="feat" data-k="' + o[0] + '"' + (PZ.busy ? ' disabled' : '') + '></button></div>'; }).join('')
       + always.map(function(o){ return '<div class="set"><div class="tx"><b>' + esc(o[0]) + '</b><span>' + esc(o[1]) + '</span></div><span class="tag t-mute">always on</span></div>'; }).join('')
@@ -1246,6 +1246,13 @@
   // Everything is removed at once by the database function delete_my_account()
   // (database/delete-account.sql): every row of this family in every table, then
   // the login itself. It runs as one step, so it either all goes or nothing goes.
+  // which build is running, and whether the lessons come from private storage (17 Nov 2026)
+  function aboutLine(){
+    var C = {}; try{ C = (window.niyamContent && window.niyamContent()) || {}; }catch(e){}
+    var safe = (C.secure || 0) + (C.saved || 0), t = C.total || 0;
+    var txt = !C.done ? '' : C.open ? 'Content: ' + safe + ' of ' + t + ' files protected · ' + C.open + ' still public' : 'Content: protected (' + safe + ' of ' + t + ' files load only after login)';
+    return '<div style="color:var(--mute);font-size:12px;text-align:center;margin:14px 0 4px">Version ' + esc(String(window.NIYAM_BUILD || '')) + (txt ? '<br>' + txt : '') + '</div>';
+  }
   function delBlock(){
     var D = PZ.del;
     if(!D) return '<div class="set"><div class="tx"><b>Delete account</b><span>Removes ' + esc(first()) + '’s account and all its data for good</span></div><button class="btn red" data-pz="delask">Delete account</button></div>';
