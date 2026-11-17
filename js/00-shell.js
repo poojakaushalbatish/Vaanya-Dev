@@ -8,7 +8,7 @@
   // ---- BUILD STAMP -------------------------------------------------------
   // Bump this whenever you upload a new js/00-shell.js. Check it in the
   // browser console to be certain which build the browser is actually running.
-  window.NIYAM_BUILD = '2026-11-16 · Effortless approval';
+  window.NIYAM_BUILD = '2026-11-17 · Content behind login';
   // ---- THE APP'S NAME, SHOWN TO FAMILIES ------------------------------------
   // Temporary name (Pooja, 12 Nov 2026) until the final name is chosen. Change it
   // here and every screen follows. Internal names in the code stay "niyam".
@@ -30,7 +30,7 @@
   // index.html, instead of failing later in the middle of a parent's setup.
   setTimeout(function(){
     var missing = [];
-    if(typeof window.niyamBuildTimetable !== 'function') missing.push('data/timetable-bands.js');
+    // (the class timetables are content now: they load after login — see "Content behind the login")
     if(typeof window.niyamOpenTimetableEditor !== 'function') missing.push('js/06-timetable-admin.js');
     if(typeof window.niyamOpenReview !== 'function') missing.push('js/09-parent-review.js');
     if(missing.length){
@@ -550,6 +550,100 @@
   }
   window.niyamNotice = notice;
 
+  // ---- Content behind the login (17 Nov 2026) ---------------------------------
+  // The shlokas, quotes, puzzles, class timetables, kindness acts and badges used to
+  // be public files in /data that anyone could open or copy. They now live in a
+  // private Supabase Storage bucket ("content") that only a logged-in parent can
+  // read. After login they are fetched, kept on this device (IndexedDB) so the app
+  // still opens offline, and run in the same order as before.
+  //   * A file is downloaded again only when its copy in the bucket has changed.
+  //   * While a file is not in the bucket yet, the old public /data copy is used,
+  //     so the move can be done in steps with nothing breaking in between.
+  var CONTENT_BUCKET = 'content';
+  var CONTENT_FILES = [   // [file, a name it defines — used to check it really ran]
+    ['shlokas.js', 'SHLOKAS'], ['lr-bank.js', 'LR_BANK'], ['scenes.js', 'GITA_CHAPTER_SCENE'], ['maths-bank.js', 'MATHS_BANK'],
+    ['quotes.js', 'QUOTES_L'], ['badges.js', 'WB_BADGE_SVGS'], ['timetable-bands.js', 'niyamBuildTimetable'],
+    ['kindness-missions.js', 'NIYAM_KINDNESS'], ['big-ideas.js', 'NIYAM_BIG_IDEAS'], ['brain-challenges.js', 'NIYAM_BRAIN_CHALLENGES']
+  ];
+  var contentState = { done:false, total:CONTENT_FILES.length, secure:0, saved:0, open:0, missing:[] };
+  window.niyamContent = function(){ return contentState; };
+  function cdb(){
+    return new Promise(function(res){
+      try{
+        var q = indexedDB.open('niyam-content', 1);
+        q.onupgradeneeded = function(){ q.result.createObjectStore('files', { keyPath:'name' }); };
+        q.onsuccess = function(){ res(q.result); }; q.onerror = q.onblocked = function(){ res(null); };
+      }catch(e){ res(null); }
+    });
+  }
+  function cdbAll(db){
+    return new Promise(function(res){
+      if(!db) return res({});
+      try{ var q = db.transaction('files').objectStore('files').getAll();
+        q.onsuccess = function(){ var m = {}; (q.result || []).forEach(function(x){ m[x.name] = x; }); res(m); }; q.onerror = function(){ res({}); };
+      }catch(e){ res({}); }
+    });
+  }
+  function cdbPut(db, row){ try{ if(db) db.transaction('files', 'readwrite').objectStore('files').put(row); }catch(e){} }
+  function within(p, ms){ return Promise.race([p, new Promise(function(res){ setTimeout(function(){ res({ error:{ message:'timed out' } }); }, ms); })]); }
+  function defined(name){ try{ return (0, eval)('typeof ' + name) !== 'undefined'; }catch(e){ return false; } }
+  var contentLoading = null;
+  function loadContent(){
+    if(contentState.done) return Promise.resolve(true);
+    if(!contentLoading) contentLoading = loadContentNow().then(function(ok){ contentLoading = null; return ok; }, function(e){ contentLoading = null; console.error('[content]', e); return false; });
+    return contentLoading;
+  }
+  async function loadContentNow(){
+    var db = await cdb(), saved = await cdbAll(db), inBucket = null;
+    // what the bucket holds now (one small request); offline or slow -> use the saved copies
+    try{
+      var L = await within(window.sb.storage.from(CONTENT_BUCKET).list('', { limit:100 }), 9000);
+      if(L && !L.error && Array.isArray(L.data)){
+        inBucket = {};
+        L.data.forEach(function(o){ if(o && o.name) inBucket[o.name] = String((o.metadata && (o.metadata.eTag || o.metadata.size)) || '') + '|' + String(o.updated_at || ''); });
+      } else if(L && L.error) console.warn('[content] list:', L.error.message || L.error);
+    }catch(e){ console.warn('[content] list:', e); }
+    var got = {}, from = {};
+    await Promise.all(CONTENT_FILES.map(async function(f){
+      var name = f[0], stamp = inBucket && inBucket[name], old = saved[name];
+      if(defined(f[1])){ from[name] = 'page'; return; }                        // already on the page (an older index.html)
+      if(stamp && old && old.stamp === stamp){ got[name] = old.text; from[name] = 'secure'; return; }
+      for(var go = 0; stamp && go < 2; go++){                                   // a dropped connection gets one more try
+        try{
+          if(go) await new Promise(function(res){ setTimeout(res, 1500); });
+          var d = await within(window.sb.storage.from(CONTENT_BUCKET).download(name), 30000);
+          if(d && !d.error && d.data){
+            var text = await d.data.text();
+            if(text && text.length > 20){ got[name] = text; from[name] = 'secure'; cdbPut(db, { name:name, stamp:stamp, text:text }); return; }
+          } else console.warn('[content] ' + name + ':', d && d.error && (d.error.message || d.error));
+        }catch(e){ console.warn('[content] ' + name + ':', e); }
+      }
+      if(old && old.text){ got[name] = old.text; from[name] = 'saved'; return; }   // offline: the copy kept on this device
+      try{                                                                        // not moved yet: the old public file
+        var r = await fetch('data/' + name, { cache:'no-store' });
+        if(r.ok){ var t = await r.text(); if(t && !/^\s*</.test(t)){ got[name] = t; from[name] = 'open'; return; } }
+      }catch(e){}
+      from[name] = 'missing';
+    }));
+    var missing = CONTENT_FILES.filter(function(f){ return from[f[0]] === 'missing'; }).map(function(f){ return f[0]; });
+    if(missing.length){ contentState.missing = missing; console.error('[content] could not load: ' + missing.join(', ')); return false; }
+    // run them in the old order
+    CONTENT_FILES.forEach(function(f){
+      if(from[f[0]] === 'page') return;
+      var el = document.createElement('script');
+      el.textContent = got[f[0]] + '\n//# sourceURL=niyam-content/' + f[0];
+      document.head.appendChild(el); el.remove();
+      if(!defined(f[1])) missing.push(f[0]);
+    });
+    if(missing.length){ contentState.missing = missing; console.error('[content] did not run: ' + missing.join(', ')); return false; }
+    var n = { secure:0, saved:0, open:0, page:0 };
+    CONTENT_FILES.forEach(function(f){ n[from[f[0]]]++; });
+    contentState = { done:true, total:CONTENT_FILES.length, secure:n.secure, saved:n.saved, open:n.open + n.page, missing:[] };
+    console.log('%cNIYAM content: ' + (n.secure + n.saved) + ' of ' + CONTENT_FILES.length + ' from private storage' + (n.open + n.page ? ' · ' + (n.open + n.page) + ' still from the public files' : ''), 'color:#e8a838;font-weight:bold');
+    try{ if(typeof renderQuote === 'function') renderQuote('L', 0); }catch(e){}
+    return true;
+  }
+
   async function route(){
     if(!window.sb){ screen('ns-login'); showErr('ns-login-err','Could not load the login system — check your connection and refresh.'); return; }
     var s = await window.sb.auth.getSession();
@@ -564,7 +658,16 @@
       var _em = currentUser.email; try{ await window.sb.auth.signOut(); }catch(e){} currentUser = null;
       screen('ns-login'); showVerify(_em, 'login'); return;
     }
-    profile = await loadProfile();
+    // the lessons and timetables load here, behind the login, before anything uses them
+    var cover = !contentState.done; if(cover) bootCover(true);
+    var both = await Promise.all([loadContent(), loadProfile()]);
+    profile = both[1];
+    if(!both[0]){
+      bootCover(false); screen('ns-login');
+      showErr('ns-login-err', navigator.onLine === false ? 'You are offline, and this device has not saved the app’s content yet. Connect to the internet and log in once — after that it opens offline too.'
+        : 'We could not load the app’s content just now. Please check your connection and log in again.');
+      return;
+    }
     var pd = (profile && profile.profile_data) || {};
     if(typeof pd === 'string'){ try{ pd = JSON.parse(pd); }catch(e){ pd = {}; } }
     var c  = profile && profile.consent_at;      // S2 done
@@ -574,6 +677,7 @@
 
     if(c && ch && p && done){ enterApp(); return; }
 
+    if(cover) bootCover(false);
     screen('ns-onboard');
     $('ns-ob-done') && ($('ns-ob-done').style.display='none');
     // Setup answers are saved as the parent goes (profile_data.setup_draft, with a
@@ -965,8 +1069,8 @@
       // This must not fail quietly \u2014 if it does, the family silently gets
       // the old built-in default instead of their class band.
       if(typeof window.niyamBuildTimetable !== 'function'){
-        throw new Error('Class timetables did not load. Check that data/timetable-bands.js '
-          + 'is included in index.html, then refresh and try again.');
+        throw new Error('The class timetables did not load. Please check your connection, '
+          + 'refresh the page and try again.');
       }
       var tt = window.niyamBuildTimetable(cls, sh);
       console.log('[setup] band ' + tt.band + ' (' + tt.label + ') \u00B7 '
