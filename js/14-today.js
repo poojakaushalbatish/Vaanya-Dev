@@ -771,10 +771,37 @@
   }
   // the timetable too, so a block opens at its minute (not up to a minute late)
   function minute(){
+    if(newDay()) return;
     try{ if(typeof ttRender === 'function' && !(typeof _ttTyping === 'function' && _ttTyping())){ ttRender(); } }catch(e){ console.warn('[today] timetable:', e); }
     light();
   }
+  // A new day while the app is open (17 Nov 2026). An app left open overnight, or a
+  // laptop woken in the morning, kept showing yesterday — with yesterday's ticks — and
+  // the morning's ticks went into yesterday. Now, when the date on this device changes
+  // and the child was on the current day, yesterday's last ticks are saved and the app
+  // moves to the new day, empty and ready. A child looking at an older day on purpose
+  // is left there.
+  var dayNow = null;
+  function newDay(){
+    var t = today();
+    if(dayNow === null || dayNow > t){ dayNow = t; return false; }
+    if(t === dayNow) return false;
+    var was = dayNow, inp = $('rpt-date');
+    if(!inp || (typeof dbReady !== 'undefined' && !dbReady)) return false;   // try again next minute
+    dayNow = t;
+    if(inp.value !== was) return false;
+    try{ if(typeof ttSaveNow === 'function') ttSaveNow(); }catch(e){}       // yesterday's last ticks (read before the switch)
+    try{ if(typeof _ttSaveTimer !== 'undefined') clearTimeout(_ttSaveTimer); }catch(e){}
+    inp.value = t;
+    inp.dispatchEvent(new Event('change', { bubbles:true }));             // clears the page and opens the new day
+    try{ if(typeof setTodayDate === 'function') setTodayDate(); }catch(e){}
+    try{ refresh(); }catch(e){}
+    try{ if(typeof toast === 'function') toast('🌅 A new day has started — good morning!'); }catch(e){}
+    console.log('[today] new day: ' + was + ' → ' + t);
+    return true;
+  }
   function wake(){ if(document.hidden) return; minute(); tick(); }
+  try{ dayNow = today(); }catch(e){}
   function start(){
     try{ refresh(); }catch(e){ console.error('[today] start:', e); }
     if(!timer){
@@ -794,5 +821,5 @@
     if(n < 120) setTimeout(function(){ wait(n + 1); }, 500);
   })(0);
 
-  window.niyamToday = { refresh: refresh, light: light };
+  window.niyamToday = { refresh: refresh, light: light, newDay: newDay };
 })();
