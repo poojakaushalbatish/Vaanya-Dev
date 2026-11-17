@@ -1514,8 +1514,58 @@ function _restoreFormFromSnap(snap){
   }
 }
 
+// One-time clean-up (17 Nov 2026). Before the "New day starts clean" fix, some days were
+// saved with the previous day's ticks copied into them. Such a copy is easy to recognise:
+// a block is ticked exactly as it was on the previous day, and some of those blocks have
+// not even opened yet today — which a child cannot do. When today's record looks like
+// that, the copied blocks are removed (blocks the child changed today are kept) and the
+// clean day is saved. Only today, only a day not yet approved, only up to 18 Nov 2026.
+function _dropCopiedTicks(date){
+  try{
+    if(!date || date > '2026-11-18') return 0;
+    if(date !== new Date().toLocaleDateString('en-CA')) return 0;
+    if(typeof ttGetSchedule !== 'function' || typeof ttBlockLocked !== 'function') return 0;
+    const rec = savedDays.find(d => d.date === date);
+    if(rec && rec.approved === true) return 0;
+    const prev = savedDays.filter(d => d && d.date < date && !d.carryOver && d.date !== '2000-01-01')
+                          .sort((x, y) => x.date < y.date ? 1 : -1)[0];
+    if(!prev || !prev.ttBlockStatesJSON) return 0;
+    let P = {}; try{ P = JSON.parse(prev.ttBlockStatesJSON) || {}; }catch(e){ return 0; }
+    const blocks = {}; ttGetSchedule().forEach(b => { blocks[b.id] = b; });
+    const norm = v => {                         // same content, whatever the key order; markedDone ignored
+      if(Array.isArray(v)) return '[' + v.map(norm).join(',') + ']';
+      if(v && typeof v === 'object') return '{' + Object.keys(v).filter(k => k !== 'markedDone' && v[k] !== false && v[k] !== undefined).sort().map(k => k + ':' + norm(v[k])).join(',') + '}';
+      return JSON.stringify(v);
+    };
+    const ticked = st => !!st && ((parseInt(st.pts, 10) || 0) > 0 || Object.values(st.checkedActs || {}).some(Boolean));
+    const clean = json => {
+      let S; try{ S = JSON.parse(json || '{}') || {}; }catch(e){ return null; }
+      const copied = Object.keys(S).filter(id => ticked(S[id]) && P[id] && norm(S[id]) === norm(P[id]));
+      if(!copied.some(id => blocks[id] && ttBlockLocked(blocks[id]))) return null;   // nothing impossible → not a copy
+      copied.forEach(id => { delete S[id]; });
+      return { json: JSON.stringify(S), n: copied.length };
+    };
+    let n = 0;
+    if(rec){ const c = clean(rec.ttBlockStatesJSON); if(c){ rec.ttBlockStatesJSON = c.json; n = Math.max(n, c.n); } }
+    const snap = _sessionLoadForDate(date);
+    if(snap && snap.ttBlockStatesJSON){
+      const c = clean(snap.ttBlockStatesJSON);
+      if(c){ snap.ttBlockStatesJSON = c.json; try{ sessionStorage.setItem(_sessionKey(date), JSON.stringify(snap)); }catch(e){} n = Math.max(n, c.n); }
+    }
+    if(n){
+      console.log('[day] removed ' + n + ' block(s) copied from ' + prev.date + ' into ' + date);
+      setTimeout(function(){
+        try{ if(typeof ttSaveNow === 'function') ttSaveNow(); }catch(e){}
+        try{ if(typeof toast === 'function') toast('🧹 Yesterday’s ticks were removed from today — tick again anything you have done today.'); }catch(e){}
+      }, 1500);
+    }
+    return n;
+  }catch(e){ console.warn('[day] copied ticks check:', e); return 0; }
+}
+
 // After Supabase loads: decide what to show for today's date
 function _onLoadRestoreDate(date){
+  _dropCopiedTicks(date);
   const existing = savedDays.find(d => d.date === date);
 
   // APPROVED: always trust Supabase — never load any session for approved reports
