@@ -949,6 +949,7 @@
     var left = '<div class="card"><div class="ch"><h2>Every day</h2><div class="key" style="margin:0"><span><i style="background:#DDEBE1"></i>A</span><span><i style="background:#ECF2EA"></i>B</span><span><i style="background:#F6EEDC"></i>C</span><span><i style="background:#F5E4DD"></i>D</span><span><i style="border:1.5px dashed var(--brass2)"></i>to review</span></div></div>'
       + '<div class="cal">' + c + '</div><div style="color:var(--mute);font-size:12.5px;margin-top:10px">Tap a day to see it, open it again for review, or delete it.</div></div>';
     left += geetaCard();
+    try{ if(window.niyamMyYear) left += window.niyamMyYear.parentCard(); }catch(e){ console.error('[parent zone] my year:', e); }
     // right column
     var right = PZ.sel ? dayDetail(PZ.sel) : '';
     right += trendCard(inMonth, nDays, mk);
