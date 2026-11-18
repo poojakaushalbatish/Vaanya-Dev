@@ -1655,6 +1655,10 @@ function _sessionStartAutoSave(){
     if(!dbReady) return; // never auto-save before Supabase data is loaded
     const date = document.getElementById('rpt-date')?.value;
     if(!date || todayApproved) return;
+    // (17 Nov 2026) only when something was changed on this copy — an idle copy on a
+    // second device used to write its old picture of the day over the real one
+    if(typeof niyamIsDirty === 'function' && !niyamIsDirty()) return;
+    const _gen = (typeof niyamDirtyGen === 'function') ? niyamDirtyGen() : 0;
     // Only auto-save if on Daily Report tab and has meaningful content
     const pts = calcDayPts();
     const r1  = document.getElementById('r1')?.value || '';
@@ -1662,7 +1666,9 @@ function _sessionStartAutoSave(){
     if(pts < 5 && r1.length < 3 && sr.length < 3) return;
     try{
       const data = collectFormData(date, pts);
-      await saveToSupabase(data);
+      const _ok = await saveToSupabase(data);
+      if(_ok && typeof niyamSavedClean === 'function') niyamSavedClean(_gen);
+      if(_ok && savedDays.find(d => d.date === date && d.approved === true)) return;   // approved elsewhere: taken, not overwritten
       // Update in-memory
       const idx = savedDays.findIndex(d => d.date === date);
       if(idx >= 0) savedDays[idx] = {...savedDays[idx], ...data};
