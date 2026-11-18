@@ -876,6 +876,9 @@
   function freshen(){
     try{
       if(typeof dbReady !== 'undefined' && !dbReady) return;
+      // (17 Nov 2026) only push this copy's picture of the day if something was changed
+      // here; otherwise the Parent Zone takes the latest from the cloud instead
+      if(typeof niyamIsDirty === 'function' && !niyamIsDirty()) return;
       if(typeof todayApproved !== 'undefined' && todayApproved) return;
       var date = $('rpt-date') && $('rpt-date').value;
       if(!date) return;
@@ -884,9 +887,10 @@
       var total = calcDayPts(), any = total > 0;
       Object.keys(ttBlockStates||{}).forEach(function(k){ if(touched(ttBlockStates[k])) any = true; });
       if(!any) return;
+      var gen = (typeof niyamDirtyGen === 'function') ? niyamDirtyGen() : 0;
       var data = collectFormData(date, total);
       putDay(existing ? Object.assign({}, existing, data) : data);
-      saveToSupabase(data);
+      saveToSupabase(data).then(function(ok){ if(ok && typeof niyamSavedClean === 'function') niyamSavedClean(gen); });
     }catch(e){ console.warn('[review] freshen:', e); }
   }
 
