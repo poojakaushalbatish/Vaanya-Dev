@@ -431,7 +431,8 @@
     tab.classList.add('pg-on');
     var h = '';
     try{
-      h = heroHtml() + '<div class="grid two">' + medalsHtml() + calendarHtml() + '</div><div class="grid">' + gardenHtml() + collectionsHtml() + chartHtml() + '</div>';
+      var my = ''; try{ if(window.niyamMyYear) my = window.niyamMyYear.card(); }catch(e){ console.error('[progress] my year:', e); }
+      h = heroHtml() + my + '<div class="grid two">' + medalsHtml() + calendarHtml() + '</div><div class="grid">' + gardenHtml() + collectionsHtml() + chartHtml() + '</div>';
     }catch(e){ console.error('[progress] draw:', e); h = '<div class="card empty">Your progress could not be drawn just now. Please refresh the page.</div>'; }
     root.innerHTML = h;
   }
@@ -466,5 +467,5 @@
       return r;
     };
   }
-  window.niyamProgress = { render: render };
+  window.niyamProgress = { render: render, kindOf: kindOf, fullDay: fullDay };   // kindOf/fullDay: used by the My Year book (19-my-year.js)
 })();
