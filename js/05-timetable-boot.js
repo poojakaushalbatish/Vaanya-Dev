@@ -1205,6 +1205,7 @@ function ttApplyScore(s){
 // child never has to press anything. Approved days are never touched.
 let _ttSaveTimer = null, _ttSaveWarned = 0;
 function ttQueueSave(){
+  if(typeof niyamMarkDirty === 'function') niyamMarkDirty();   // this copy has a change to save
   clearTimeout(_ttSaveTimer);
   _ttSaveTimer = setTimeout(ttSaveNow, 2500);
 }
@@ -1216,12 +1217,14 @@ async function ttSaveNow(){
     if(!date) return;
     const existing = savedDays.find(d => d.date === date);
     if(existing && existing.approved === true) return;
+    const _gen = (typeof niyamDirtyGen === 'function') ? niyamDirtyGen() : 0;
     const data = collectFormData(date, calcDayPts());
     const idx = savedDays.findIndex(d => d.date === date);
     if(idx >= 0) savedDays[idx] = {...savedDays[idx], ...data}; else savedDays.unshift(data);
     savedDays.sort((a,b) => new Date(b.date) - new Date(a.date));
     try{ localStorage.setItem('vaanya_days', JSON.stringify(savedDays)); }catch(e){}
     const ok = await saveToSupabase(data);
+    if(ok && typeof niyamSavedClean === 'function') niyamSavedClean(_gen);
     if(!ok && Date.now() - _ttSaveWarned > 60000){
       _ttSaveWarned = Date.now();
       if(typeof toast === 'function') toast('⚠️ Could not save to the cloud — check the internet. Your ticks are kept on this device.');
