@@ -151,17 +151,9 @@ let spendHist     = [];
 let totalSpent    = 0;
 let dbReady       = false;
 
-async function loadFromSupabase() {
-  if(!_supabase){ console.warn('Supabase not loaded — offline mode'); dbReady=true; return false; }
-  try {
-    showSyncStatus('loading');
-    // Load daily reports
-    const { data: days, error: e1 } = await _supabase
-      .from('daily_reports')
-      .select('*')
-      .order('date', { ascending: false });
-    if (!e1 && days) {
-      const mapped = days.map(d => {
+// One saved row from the cloud → the day record the app works with. (Shared by the
+// first load and by the sync between devices below — 17 Nov 2026.)
+function _niyamMapReport(d){
         const fullData = d.full_data ? (typeof d.full_data === 'object' ? d.full_data : (() => { try{ return JSON.parse(d.full_data); }catch(e){ return {}; } })()) : {};
         // Remove 'approved' AND 'pts' from fullData before spreading — the
         // dedicated database columns are always the source of truth and must
@@ -182,7 +174,19 @@ async function loadFromSupabase() {
           savedAt: d.saved_at,
           ...safeFullData  // spread full_data EXCEPT approved & pts
         };
-      });
+      }
+
+async function loadFromSupabase() {
+  if(!_supabase){ console.warn('Supabase not loaded — offline mode'); dbReady=true; return false; }
+  try {
+    showSyncStatus('loading');
+    // Load daily reports
+    const { data: days, error: e1 } = await _supabase
+      .from('daily_reports')
+      .select('*')
+      .order('date', { ascending: false });
+    if (!e1 && days) {
+      const mapped = days.map(_niyamMapReport);
 
       // ── Collapse any duplicate rows that share the same date ──────────────
       // Older saves could leave more than one row per date. Keep a SINGLE
@@ -228,7 +232,7 @@ async function loadFromSupabase() {
             const ageDays = (Date.now() - new Date(ld.date+'T12:00:00').getTime()) / 86400000;
             if(!cloud){
               if(ageDays <= 3) savedDays.push(ld);      // cloud has nothing — restore local
-            } else if(ld.approved && !cloud.approved){
+            } else if(ld.approved && !cloud.approved && !cloud.parentReopened){   // a day the parent opened again stays open
               const idx = savedDays.findIndex(x=>x.date===ld.date);
               const fixed = {...cloud, ...ld, approved:true};
               if(idx>=0) savedDays[idx] = fixed;
@@ -287,6 +291,25 @@ function saveToSupabase(data){
 }
 async function _saveToSupabaseInner(data) {
   if(!_supabase){ console.warn('Supabase not available — save skipped'); return false; }
+  // (17 Nov 2026) An approved day is never overwritten. A save replaces the whole day in
+  // the cloud, so a copy of the app open on a second device — which never heard about the
+  // approval — used to put the day back to "not approved" with its own older ticks. Now
+  // every save that is not itself an approval (or the parent opening the day again) first
+  // asks the cloud; if the day is approved there, nothing is written and this device
+  // takes the approved day instead and locks it.
+  if(data && data.date && data.approved !== true && !data.parentReopened){
+    try{
+      const chk = await _supabase.from('daily_reports').select('approved').eq('date', data.date);
+      if(!chk.error && (chk.data || []).some(r => r.approved === true || r.approved === 'true')){
+        const full = await _supabase.from('daily_reports').select('*').eq('date', data.date);
+        const row = (full.data || []).find(r => r.approved === true || r.approved === 'true');
+        if(row) niyamAdoptDay(_niyamMapReport(row));
+        showSyncStatus('ok');
+        console.log('[sync] ' + data.date + ' is approved in the cloud — not overwritten');
+        return true;
+      }
+    }catch(e){ /* no connection: the save below fails in the usual way */ }
+  }
   try {
     showSyncStatus('saving');
 
@@ -348,6 +371,127 @@ async function _saveToSupabaseInner(data) {
     return false;
   }
 }
+
+// ════════════════════════════════════════════
+// TWO DEVICES, ONE DAY (17 Nov 2026)
+// ════════════════════════════════════════════
+// A family often has the app open on two devices with the same login (the child's
+// tablet, the parent's laptop). Before this, every open copy saved its own picture of
+// the day every minute — even when nobody was using it — and the last one to save won.
+// An idle laptop kept writing its old ticks over the child's new ones, and over the
+// parent's approval.
+//   • "Changed here": a copy only saves when someone actually changed something on it
+//     (a tick, a typed word, a puzzle). An idle copy never writes.
+//   • Every minute, and whenever the app comes back to the screen, the open day is
+//     checked against the cloud. If another device changed it (or approved it), this
+//     copy takes the cloud's version — unless it has changes of its own still to save.
+//   • The Parent Zone takes the latest copy of every waiting day before it shows totals,
+//     and again just before approving.
+let _niyamDirty = false, _niyamDirtyGen = 0, _niyamActive = 0, _niyamSyncBusy = false;
+function niyamMarkDirty(){ _niyamDirty = true; _niyamDirtyGen++; _niyamActive = Date.now(); }
+function niyamDirtyGen(){ return _niyamDirtyGen; }
+function niyamSavedClean(gen){ if(gen === _niyamDirtyGen) _niyamDirty = false; }
+function niyamIsDirty(){ return _niyamDirty; }
+(function(){
+  function childArea(t){
+    if(!t || !t.closest) return false;
+    if(t.id === 'rpt-date') return false;                               // moving between days is not a change
+    return !t.closest('#ns-parent-zone, #ns-login, #ns-onboard, .ns-modal, [data-no-dirty]');
+  }
+  document.addEventListener('input',  function(e){ if(childArea(e.target)) niyamMarkDirty(); }, true);
+  document.addEventListener('change', function(e){ if(childArea(e.target)) niyamMarkDirty(); }, true);
+  document.addEventListener('pointerdown', function(e){ if(childArea(e.target)) _niyamActive = Date.now(); }, true);
+})();
+
+// Put a day from the cloud on the screen, if it is the day that is open.
+function _niyamShowDay(rec){
+  const el = document.getElementById('rpt-date');
+  if(!el || el.value !== rec.date) return false;
+  try{
+    silentClearDay();
+    el.value = rec.date;
+    buildShlokaDisplay();
+    if(rec.approved === true){ loadApprovedDay(rec); lockForm(rec.date, rec.pts); }
+    else { unlockForm(); loadDraftDay(rec); try{ checkPenalty(); }catch(e){} calcDayPts(); }
+    try{ _sessionClearDate(rec.date); }catch(e){}
+    if(typeof ttRender === 'function') ttRender();
+  }catch(e){ console.warn('[sync] show day:', e); }
+  try{ if(window.niyamToday) window.niyamToday.refresh(); }catch(e){}
+  return true;
+}
+
+// Take the cloud's version of one day. Returns true if anything changed here.
+function niyamAdoptDay(rec){
+  if(!rec || !rec.date) return false;
+  const i = savedDays.findIndex(x => x.date === rec.date), loc = i >= 0 ? savedDays[i] : null;
+  // never step back from an approval here unless the parent opened the day again
+  if(loc && loc.approved === true && rec.approved !== true && !rec.parentReopened) return false;
+  const newlyApproved = rec.approved === true && !(loc && loc.approved === true);
+  if(i >= 0) savedDays[i] = rec; else savedDays.push(rec);
+  savedDays.sort((a,b) => new Date(b.date) - new Date(a.date));
+  try{ localStorage.setItem('vaanya_days', JSON.stringify(savedDays)); }catch(e){}
+  const open = document.getElementById('rpt-date')?.value;
+  if(rec.date === open){
+    if(rec.approved === true){
+      _niyamShowDay(rec); _niyamDirty = false;
+      if(newlyApproved && typeof toast === 'function') toast('✅ This day was approved — ' + (parseInt(rec.pts, 10) || 0) + ' points are in the Star Bank!');
+    }
+    else if(!_niyamDirty){
+      const typing = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && document.activeElement.id !== 'rpt-date';
+      if(!typing && Date.now() - _niyamActive > 30000) _niyamShowDay(rec);
+    }
+  }
+  try{ updateTopBar(); }catch(e){}
+  return true;
+}
+
+// Compare these days with the cloud and take any that another device changed.
+// Returns the dates that changed here.
+async function niyamSyncDays(dates){
+  if(!_supabase || typeof dbReady === 'undefined' || !dbReady || navigator.onLine === false) return [];
+  dates = Array.from(new Set((dates || []).filter(Boolean)));
+  if(!dates.length || _niyamSyncBusy) return [];
+  _niyamSyncBusy = true;
+  try{
+    const r = await _supabase.from('daily_reports').select('date,approved,saved_at').in('date', dates);
+    if(r.error || !r.data) return [];
+    const open = document.getElementById('rpt-date')?.value, want = {};
+    r.data.forEach(row => {
+      const loc = savedDays.find(x => x.date === row.date);
+      const ap = row.approved === true || row.approved === 'true';
+      if(ap && !(loc && loc.approved === true)){ want[row.date] = 1; return; }       // approved elsewhere: always take it
+      if(row.date === open && _niyamDirty) return;                                // this copy has its own changes to save first
+      if(!loc || Date.parse(row.saved_at || 0) !== Date.parse(loc.savedAt || 0)) want[row.date] = 1;
+    });
+    const list = Object.keys(want);
+    if(!list.length) return [];
+    const f = await _supabase.from('daily_reports').select('*').in('date', list);
+    if(f.error || !f.data) return [];
+    const best = {};
+    f.data.map(_niyamMapReport).forEach(x => {                                    // one per date, as on the first load
+      const p = best[x.date];
+      if(!p || (x.approved && !p.approved) || (x.approved === p.approved && Date.parse(x.savedAt || 0) >= Date.parse(p.savedAt || 0))) best[x.date] = x;
+    });
+    const changed = [];
+    Object.keys(best).forEach(dt => { if(niyamAdoptDay(best[dt])) changed.push(dt); });
+    if(changed.length) console.log('[sync] took the latest from the cloud for ' + changed.join(', '));
+    return changed;
+  }catch(e){ console.warn('[sync]', e); return []; }
+  finally{ _niyamSyncBusy = false; }
+}
+window.niyamSyncDays = niyamSyncDays;
+
+// the open day: every minute, and when the app comes back to the screen
+(function(){
+  function syncOpen(){
+    if(document.hidden) return;
+    const d = document.getElementById('rpt-date')?.value;
+    if(d) niyamSyncDays([d]);
+  }
+  setInterval(syncOpen, 60000);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) setTimeout(syncOpen, 800); });
+  window.addEventListener('focus', function(){ setTimeout(syncOpen, 800); });
+})();
 
 async function saveSpendToSupabase(item) {
   try {
